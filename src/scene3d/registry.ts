@@ -88,6 +88,7 @@ export const SETS: Record<string, SetDef> = {
       'ghe-3': { pos: [1.3, 0, -0.6], rotY: -0.5, seated: true },
       'goc-san': { pos: [2.6, 0, 1.2], rotY: -1.2 },
       'be-de': { pos: [-2.6, 0, 1.8], rotY: 1 },
+      'cuoi-san': { pos: [3.4, 0, 3.2], rotY: -1.2 },
     },
     cameras: {
       // Đứng trong sân nhìn ra cổng: thấy người chơi đi vào, chó chạy ra đón.

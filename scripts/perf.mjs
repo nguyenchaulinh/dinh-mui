@@ -894,6 +894,12 @@ async function measureScenario(ctx, sc, input) {
       const note = { value: null };
       driver = input === 'keyboard' ? createKeyboardDriver(cdp) : await createTouchDriver(cdp, opts.device, note);
       if (note.value) result.inputNote = note.value;
+      // Trong game có NPC bắn câu hỏi: bị trúng sẽ mở hội thoại và tạm dừng mọi thứ. Người chơi thật sẽ bấm đóng,
+      // nên tự đóng khung thoại (nút đầu tiên của .panel: lựa chọn hoặc "Tiếp") để phép đo phản ánh lúc chơi bình thường.
+      await evaluate(
+        cdp,
+        'window.__dismissed = 0; if (!window.__dismissTimer) window.__dismissTimer = setInterval(() => { const b = document.querySelector(".panel .choice"); if (b) { b.click(); window.__dismissed++; } }, 350); true',
+      );
     }
     await evaluate(cdp, 'window.__frames.length = 0; window.__framesDropped = 0; true');
     const heapStart = await heapUsedMB(cdp);
@@ -904,6 +910,7 @@ async function measureScenario(ctx, sc, input) {
     }
 
     // 4) Đọc kết quả.
+    if (sc.roam) result.dialogsDismissed = Number(await evaluate(cdp, 'window.__dismissed ?? 0')) || 0;
     await collectResult(cdp, result, sc, { ...sampled, heapStart });
     if (diag.errors.length) result.consoleErrors = diag.errors;
     return result;

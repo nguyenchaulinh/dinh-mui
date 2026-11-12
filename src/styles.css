@@ -128,7 +128,7 @@ html:has(.game) { overflow: hidden; }
   max-width: calc(100% - 32px);
   /* Cao hơn vùng chạm joystick (đáy 20px, cao 120px, nới 20px) để chạm joystick không trúng chip. */
   bottom: calc(max(20px, env(safe-area-inset-bottom)) + 170px);
-  z-index: 6;
+  z-index: 8;
   min-height: 44px;
   padding: 8px 18px;
   font: inherit; font-weight: 700;
@@ -150,5 +150,74 @@ html:has(.game) { overflow: hidden; }
   background: #fff;
   border-radius: 6px;
 }
+/* Nhiệm vụ: nút nhỏ bên phải, bấm để mở danh sách. */
+.rs-quest-chip {
+  position: fixed;
+  /* Dưới khung chỉ số (không đè lên khi màn hẹp 320px). */
+  top: calc(max(8px, env(safe-area-inset-top)) + 126px);
+  left: max(8px, env(safe-area-inset-left));
+  z-index: 7;
+  min-height: 44px;
+  padding: 6px 12px;
+  font: inherit; font-size: 0.8rem; font-weight: 700;
+  color: #fff;
+  background: rgb(0 0 0 / 0.5);
+  border: 0; border-radius: 10px;
+  cursor: pointer;
+}
+.rs-quests {
+  position: fixed;
+  top: calc(max(8px, env(safe-area-inset-top)) + 178px);
+  left: max(8px, env(safe-area-inset-left));
+  z-index: 7;
+  width: min(300px, calc(100% - 16px));
+  max-height: 40%;
+  overflow-y: auto;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  color: #fff;
+  background: rgb(0 0 0 / 0.68);
+  border-radius: 12px;
+}
+.rs-quest + .rs-quest { margin-top: 8px; }
+.rs-quest ul { margin: 4px 0 0; padding-left: 1.2rem; }
+.rs-quest-done { opacity: 0.7; }
+.rs-obj-done { text-decoration: line-through; opacity: 0.65; }
+
+/* Thông báo nổi (né được, nhiệm vụ, câu hỏi vừa bắn). */
+.rs-toasts {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(max(20px, env(safe-area-inset-bottom)) + 230px);
+  z-index: 7;
+  display: grid; justify-items: center; gap: 6px;
+  pointer-events: none;
+}
+.rs-toast {
+  margin: 0;
+  max-width: calc(100% - 32px);
+  padding: 6px 14px;
+  font-size: 0.9rem; font-weight: 600;
+  color: #fff;
+  background: rgb(0 0 0 / 0.7);
+  border-radius: 999px;
+  animation: rs-pop 0.18s ease-out;
+}
+/* Đang hội thoại: đưa thông báo lên trên khung thoại (cao tối đa 55% màn hình) để không che lời thoại. */
+.rs-toasts-high { bottom: calc(55% + 12px); }
+.rs-toast-good { background: #15803d; }
+.rs-toast-bad { background: var(--red); }
+.rs-solo-exit { position: fixed; top: 12px; left: 12px; }
+
+/* Màn ngang thấp (điện thoại xoay ngang): danh sách nhiệm vụ sang bên phải, không che joystick và nút tương tác. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .rs-quests {
+    left: auto;
+    right: max(8px, env(safe-area-inset-right));
+    top: calc(max(8px, env(safe-area-inset-top)) + 56px);
+    max-height: calc(100% - 230px);
+  }
+}
+
 @keyframes rs-pop { from { opacity: 0; transform: translateY(6px); } }
 .stage-card h2, .ending h2 { margin: 4px 0; color: var(--red); }

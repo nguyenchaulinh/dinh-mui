@@ -1,7 +1,7 @@
 import { PerformanceMonitor } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Group, PerspectiveCamera } from 'three';
+import { CanvasTexture, SRGBColorSpace, type Group, type PerspectiveCamera, type Sprite } from 'three';
 import { DEBUG, publish } from '../debug';
 import type { Look } from '../engine/types';
 import { Figure } from '../scene3d/Figure';
@@ -10,6 +10,13 @@ import { SETS } from '../scene3d/registry';
 import { SetView, envOf } from '../scene3d/sets';
 import { DEFAULT_CAM, applyLook, computeCameraPose, computeTalkPose, smoothPose, yawBehind } from './camera';
 import { clipRay, isBlocked, resolveMove } from './collision';
+import {
+  MAX_BUBBLES,
+  createBubbleState,
+  stepBubbles,
+  type BubbleState,
+  type ShooterRuntime,
+} from './bubbles';
 import { findInteractable } from './interact';
 import type { InputController } from './input';
 import { DEFAULT_MOVE, PLAYER_RADIUS, stepMover } from './movement';
@@ -34,9 +41,17 @@ export interface RoamViewProps {
   onNearby: (key: string | null) => void;
   /** Người chơi bấm tương tác khi có NPC trong tầm. */
   onInteract: (key: string) => void;
+  /** NPC vừa bắn một bong bóng câu hỏi (để hiện chữ). */
+  onShoot?: (key: string, text: string) => void;
+  /** Người chơi né được một bong bóng. */
+  onDodge?: (key: string) => void;
+  /** Người chơi bị bong bóng trúng (bị kéo vào hội thoại). */
+  onHit?: (key: string) => void;
   /** Báo FPS mỗi giây (hiện đồng hồ trên màn hình). */
   onFps?: (fps: number) => void;
 }
+
+type Callbacks = Pick<RoamViewProps, 'onNearby' | 'onInteract' | 'onShoot' | 'onDodge' | 'onHit'>;
 
 /** Bóng giả dưới chân: rẻ hơn nhiều so với shadow map trên điện thoại. */
 function BlobShadow({ r }: Readonly<{ r: number }>) {
@@ -90,7 +105,7 @@ function Player({
   colliders: readonly Collider[];
   controller: InputController;
   world: World;
-  cbs: { current: Pick<RoamViewProps, 'onNearby' | 'onInteract'> };
+  cbs: { current: Callbacks };
 }>) {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
@@ -217,6 +232,111 @@ function Player({
   );
 }
 
+const MAX_SPRITES = MAX_BUBBLES;
+const BUBBLE_Y = 1.5;
+
+/** Vẽ một bong bóng thoại (tròn trắng, viền đỏ, dấu "?" đỏ) lên canvas làm kết cấu; không cần tải gì từ mạng. */
+function makeBubbleTexture(): CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 128;
+  c.height = 128;
+  const g = c.getContext('2d');
+  if (g) {
+    g.fillStyle = '#ffffff';
+    g.strokeStyle = '#b91c1c';
+    g.lineWidth = 8;
+    g.beginPath();
+    g.arc(64, 60, 48, 0, Math.PI * 2);
+    g.fill();
+    g.stroke();
+    g.beginPath(); // đuôi bóng thoại
+    g.moveTo(44, 98);
+    g.lineTo(34, 122);
+    g.lineTo(70, 104);
+    g.closePath();
+    g.fill();
+    g.fillStyle = '#b91c1c';
+    g.font = '700 74px system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('?', 64, 64);
+  }
+  const tex = new CanvasTexture(c);
+  tex.colorSpace = SRGBColorSpace; // không đặt thì màu đỏ/trắng bị nhạt trên màn hình
+  return tex;
+}
+
+/** Bong bóng câu hỏi bay về phía người chơi: mô phỏng (bubbles.ts) + vẽ bằng nhóm sprite dùng lại. */
+function BubbleLayer({
+  runtimes,
+  world,
+  obstacles,
+  cbs,
+}: Readonly<{
+  runtimes: NpcRuntime[];
+  world: World;
+  obstacles: readonly Collider[];
+  cbs: { current: Callbacks };
+}>) {
+  const sim = useRef<BubbleState>(createBubbleState(hashKey('bong-bong')));
+  const sprites = useRef<(Sprite | null)[]>([]);
+  const tex = useMemo(() => makeBubbleTexture(), []);
+  useEffect(() => () => tex.dispose(), [tex]);
+
+  const shooters = useMemo<ShooterRuntime[]>(
+    () =>
+      runtimes.flatMap((r) =>
+        r.npc.shoots
+          ? [{ key: r.npc.key, pos: r.target, ...r.npc.shoots }]
+          : [],
+      ),
+    [runtimes],
+  );
+
+  useFrame((_, delta) => {
+    if (shooters.length === 0) return;
+    const r = stepBubbles(sim.current, delta, {
+      player: world.player,
+      playerRadius: PLAYER_RADIUS,
+      shooters,
+      obstacles,
+      bounds: world.bounds,
+      paused: world.paused,
+    });
+    sim.current = r.state;
+    for (const b of r.events.spawned) cbs.current.onShoot?.(b.key, b.text);
+    for (const b of r.events.dodged) cbs.current.onDodge?.(b.key);
+    const hit = r.events.hit[0];
+    if (hit) cbs.current.onHit?.(hit.key);
+
+    const list = r.state.bubbles;
+    for (let i = 0; i < MAX_SPRITES; i++) {
+      const sp = sprites.current[i];
+      if (!sp) continue;
+      const b = list[i];
+      sp.visible = b !== undefined;
+      if (b) sp.position.set(b.x, BUBBLE_Y + Math.sin(b.age * 9) * 0.08, b.z);
+    }
+  });
+
+  return (
+    <group>
+      {Array.from({ length: MAX_SPRITES }, (_, i) => (
+        <sprite
+          key={i}
+          ref={(el) => {
+            sprites.current[i] = el;
+          }}
+          visible={false}
+          scale={[0.75, 0.75, 0.75]}
+        >
+          <spriteMaterial map={tex} transparent depthWrite={false} />
+        </sprite>
+      ))}
+    </group>
+  );
+}
+
 /** Một NPC: chạy hành vi (đứng, lang thang, đuổi theo), cập nhật vị trí và vòng va chạm. */
 /** Giữ hoạt ảnh "đang đi" thêm chừng này giây sau lần nhích cuối: NPC đuổi theo dừng/đi liên tục nên không để chớp. */
 const MOVING_HOLD = 0.3;
@@ -294,6 +414,9 @@ export default function RoamView({
   talkingKey,
   onNearby,
   onInteract,
+  onShoot,
+  onDodge,
+  onHit,
   onFps,
 }: Readonly<RoamViewProps>) {
   const def = SETS[setId];
@@ -312,10 +435,10 @@ export default function RoamView({
     world.paused = paused;
     world.talkingKey = talkingKey;
   }, [world, paused, talkingKey]);
-  const cbs = useRef<Pick<RoamViewProps, 'onNearby' | 'onInteract'>>({ onNearby, onInteract });
+  const cbs = useRef<Callbacks>({ onNearby, onInteract, onShoot, onDodge, onHit });
   useEffect(() => {
-    cbs.current = { onNearby, onInteract };
-  }, [onNearby, onInteract]);
+    cbs.current = { onNearby, onInteract, onShoot, onDodge, onHit };
+  }, [onNearby, onInteract, onShoot, onDodge, onHit]);
 
   return (
     <Canvas
@@ -334,6 +457,8 @@ export default function RoamView({
       {runtimes.map((rt, i) => (
         <NpcView key={rt.npc.key} rt={rt} world={world} index={i} talking={talkingKey === rt.npc.key} />
       ))}
+
+      <BubbleLayer runtimes={runtimes} world={world} obstacles={playerColliders} cbs={cbs} />
 
       <Player
         look={playerLook}

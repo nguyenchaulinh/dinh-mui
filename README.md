@@ -36,6 +36,8 @@ http://localhost:5173/?roam=san-nha&region=ha-noi
 ```
 
 - Máy tính: **WASD** hoặc phím mũi tên đi, **Shift** chạy, **kéo chuột** xoay camera, **E** tương tác.
+- **Né câu hỏi:** Dì Út (đi lang thang gần cổng) bắn bong bóng "?" về chỗ bạn đang đứng. Bước vuông góc với đường bay thì né được; đứng yên hoặc chạy dọc theo đường bay thì trúng và bị kéo vào hội thoại. Né đủ 3 câu hoàn thành nhiệm vụ.
+- **Nhiệm vụ:** nút "Nhiệm vụ n/4" góc trái, bấm để xem danh sách; hoàn thành thì được thưởng chỉ số.
 - Lại gần Cô Hai, Bác Cả, Bà Tám (ngồi quanh bàn trà), chó Vàng hoặc bé Bin (chạy theo bạn) thì hiện nút "[E] ..."; bấm để nói chuyện hoặc vuốt ve. `?persona=` đổi câu hỏi theo vai.
 - Điện thoại: joystick bên trái, kéo ở bất cứ đâu để xoay camera, nút "Tương tác" bên phải (thêm `&touch` vào URL để thấy joystick trên máy tính).
 
@@ -58,7 +60,9 @@ src/engine/validate.ts     kiểm tra toàn vẹn nội dung (kể cả set 3D, 
 src/game/                  chế độ đi lại: collision (va chạm), movement (chuyển động), camera (bám góc nhìn thứ ba),
                            input + RoamControls (bàn phím/joystick), RoamView + RoamScreen (ghép), types (hợp đồng toạ độ)
 src/game/npc.ts, interact.ts   hành vi NPC (đứng, lang thang, đuổi theo) và chọn đối tượng tương tác (thuần, có test)
-src/game/roamWorld.ts      dựng vật cản/vị trí NPC (thuần); roamDemo.ts: dữ liệu NPC và hành động; TalkPanel: khung hội thoại
+src/game/roamWorld.ts      dựng vật cản/vị trí NPC (thuần); roamDemo.ts: tra cứu bản đồ trong nội dung; TalkPanel: khung hội thoại
+src/game/bubbles.ts        mô phỏng bong bóng câu hỏi (bắn, bay, trúng, né), talkMerge.ts: áp lựa chọn lên state mới nhất
+src/engine/quests.ts       nhiệm vụ dựa trên cờ; bản đồ/NPC/nhiệm vụ nằm trong v1.json mục "maps"
 src/scene3d/walk.ts        vùng đi lại và vật cản của từng cảnh (khớp hình học trong sets.tsx/props.tsx)
 src/content/v1.json        nội dung thật (đang có chặng Ra bến, Đường về (đến làng), Bước vào nhà, Mâm cơm)
 src/scene3d/registry.ts    danh mục bộ cảnh: vị trí đứng, góc máy (dữ liệu thuần)

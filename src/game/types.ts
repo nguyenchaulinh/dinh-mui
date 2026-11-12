@@ -129,6 +129,8 @@ export interface DebugInfo {
   nearby?: string | null;
   /** Đang nói chuyện với NPC nào (key) hoặc null. */
   talking?: string | null;
+  /** Số bong bóng câu hỏi đang bay. */
+  bubbles?: number;
   /** Vị trí hiện tại của từng NPC (key -> x, z), để script đo kiểm tra NPC có đi lại. */
   npcs?: Record<string, { x: number; z: number }>;
 }

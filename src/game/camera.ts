@@ -169,7 +169,15 @@ export function computeTalkPose(
   const vf = Number.isFinite(vfov) && vfov > 0.1 && vfov < 3 ? vfov : 0.87;
   const hfov = 2 * Math.atan(Math.tan(vf / 2) * ar);
   // Chiều ngang (màn hình dọc hẹp) cần lùi nhiều hơn chiều dọc; lấy cái lớn hơn, nhân 1.15 để chừa lề.
-  const want = Math.min(TALK_MAX_DIST, Math.max(TALK_MIN_DIST, (1.15 * (sep / 2 + 0.8)) / Math.tan(hfov / 2)));
+  const fit = (separation: number): number => (1.15 * (separation / 2 + 0.8)) / Math.tan(hfov / 2);
+  // Hai người xa nhau tới mức không thể lùi đủ xa để cả hai lọt vào chiều ngang (bị bắn từ xa trên màn hình dọc hẹp):
+  // chỉ dựng khung người chơi để họ luôn thấy mình, thay vì đẩy cả hai ra ngoài màn hình.
+  const farApart = fit(sep) > TALK_MAX_DIST;
+  const want = Math.min(TALK_MAX_DIST, Math.max(TALK_MIN_DIST, fit(farApart ? 0 : sep)));
+  if (farApart) {
+    mid.x = px;
+    mid.z = pz;
+  }
 
   // Infinity = không có vật cản (như computeCameraPose); NaN hoặc âm = đầu vào hỏng, coi là bị chặn sát.
   const room1 = (v: number): number => (Number.isNaN(v) || v < 0 ? 0 : Math.min(v, want + CLIP_MARGIN));

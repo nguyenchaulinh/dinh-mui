@@ -50,6 +50,8 @@
       "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#e5e7eb", "hairStyle": "bun", "outfit": "#be185d", "build": "elder", "accessory": "phone" } },
     { "id": "bin", "name": "Bin", "role": "Em họ Gen Alpha", "enabled": true,
       "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#facc15", "build": "kid", "accessory": "headphones" } },
+    { "id": "di-ut", "name": "Dì Út", "role": "Chuyên mục: Bao giờ cưới", "enabled": true,
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#2b1d15", "hairStyle": "bun", "outfit": "#db2777", "accessory": "phone" } },
     { "id": "ong", "name": "Ông", "role": "Ông nội", "enabled": true,
       "look": { "kind": "human", "skin": "#e0b088", "hair": "#f3f4f6", "hairStyle": "short", "outfit": "#78350f", "build": "elder", "accessory": "none" } },
     { "id": "duy-den-cay", "name": "Duy Đèn Cầy", "role": "Chuyên mục: Review mâm cỗ", "enabled": true,
@@ -396,9 +398,65 @@
         { "id": "a", "style": "kheo", "text": "Đây, mừng tuổi em, mua kẹo nha.", "effects": { "wallet": -5, "harmony": 5 },
           "reply": "Yeah! Em sẽ quay clip cảm ơn anh/chị đăng lên nhóm chat!" },
         { "id": "b", "style": "that-tha", "text": "Anh/chị cũng đang nghèo, để năm sau nhé.", "effects": { "harmony": -3, "stamina": 3 },
-          "reply": "Hứ. Em ghi sổ rồi nha, năm sau tính cả lãi." },
+          "reply": "Hứ. Em ghi sổ rồi, năm sau tính cả lãi." },
         { "id": "c", "style": "lay", "text": "Em quét mã anh/chị đi, anh/chị trả lương cho em luôn.", "effects": { "harmony": 3, "stamina": 3 },
           "reply": "Em làm thì được, nhưng giá cao lắm đó!" }
+      ]
+    },
+    {
+      "id": "roam-ut-sv", "stageId": "buoc-vao-nha", "roamOnly": true, "characterId": "di-ut", "personas": ["sinh-vien"],
+      "line": "Con ơi, sắp ra trường rồi, định làm gì chưa? Dì hỏi trước kẻo quên.",
+      "lineByRegion": {
+        "da-nang": "Con ơi, sắp ra trường rồi, định làm chi chưa? Dì hỏi trước kẻo quên.",
+        "sai-gon": "Con ơi, sắp ra trường rồi, định làm gì chưa nghen? Dì hỏi trước kẻo quên."
+      },
+      "stage3d": { "set": "san-nha", "actors": [ { "characterId": "di-ut", "spot": "cuoi-san", "anim": "talk" } ] },
+      "next": null,
+      "choices": [
+        { "id": "a", "style": "kheo", "text": "Dạ con đang tìm hiểu, dì có chỗ nào giới thiệu cho con không ạ?", "effects": { "harmony": 5, "stamina": -5 },
+          "reply": "Để dì hỏi giùm. Mà ăn thêm đi con, việc gì cũng cần có sức.", "tipId": "T03" },
+        { "id": "b", "style": "that-tha", "text": "Dạ con chưa biết dì ạ, con cũng đang lo.", "effects": { "harmony": 2, "stamina": 3 },
+          "reply": "Chưa biết thì nghĩ nhanh nhanh, dì đợi tin vui." },
+        { "id": "c", "style": "lay", "text": "Dạ con định ở lại làm sinh viên thêm ba năm nữa.", "effects": { "harmony": 2, "stamina": -2 },
+          "reply": "Ba năm nữa dì hỏi lại đó." }
+      ]
+    },
+    {
+      "id": "roam-ut-dl", "stageId": "buoc-vao-nha", "roamOnly": true, "characterId": "di-ut", "personas": ["moi-di-lam"],
+      "line": "Lương tháng bao nhiêu rồi con? Dì hỏi để về còn khoe với bà Sáu.",
+      "lineByRegion": {
+        "da-nang": "Lương tháng nhiêu rồi con? Dì hỏi để về còn khoe với bà Sáu.",
+        "sai-gon": "Lương tháng bao nhiêu rồi con? Dì hỏi để về còn khoe với bà Sáu nghen."
+      },
+      "stage3d": { "set": "san-nha", "actors": [ { "characterId": "di-ut", "spot": "cuoi-san", "anim": "talk" } ] },
+      "next": null,
+      "choices": [
+        { "id": "a", "style": "kheo", "text": "Dạ đủ sống thôi dì, mà dì dạo này có khỏe không ạ?", "effects": { "harmony": 5, "stamina": -5 },
+          "reply": "Dì khỏe! Mà con trả lời không đúng câu hỏi nha.", "tipId": "T03" },
+        { "id": "b", "style": "that-tha", "text": "Dạ con chưa muốn nói con số ạ.", "effects": { "harmony": -5, "stamina": 5 },
+          "reply": "Thôi, dì đoán là cao lắm nên con ngại." },
+        { "id": "c", "style": "lay", "text": "Đủ mua quà biếu dì thôi ạ.", "effects": { "harmony": 3, "stamina": 3, "wallet": -3 },
+          "reply": "Ủa vậy dì đợi quà đó!",
+          "replyByRegion": { "sai-gon": "Ủa vậy dì đợi quà nghen!", "da-nang": "Ủa rứa dì đợi quà nghe!" } }
+      ]
+    },
+    {
+      "id": "roam-ut-dt", "stageId": "buoc-vao-nha", "roamOnly": true, "characterId": "di-ut", "personas": ["doc-than-27"],
+      "line": "Bao giờ cưới để dì còn xếp lịch? Dì có mối này tốt lắm, con nhà bà Sáu.",
+      "lineByRegion": {
+        "da-nang": "Bao giờ cưới để dì còn xếp lịch? Dì có mối ni tốt lắm, con nhà bà Sáu.",
+        "sai-gon": "Bao giờ cưới để dì còn xếp lịch nghen? Dì có mối này tốt lắm, con nhà bà Sáu."
+      },
+      "stage3d": { "set": "san-nha", "actors": [ { "characterId": "di-ut", "spot": "cuoi-san", "anim": "talk" } ] },
+      "next": null,
+      "choices": [
+        { "id": "a", "style": "kheo", "text": "Dạ khi nào có duyên con báo dì đầu tiên ạ.", "effects": { "harmony": 5, "stamina": -5 },
+          "reply": "Nhớ đó, dì giữ chỗ trong sổ rồi.",
+          "replyByRegion": { "sai-gon": "Nhớ đó nghen, dì giữ chỗ trong sổ rồi.", "da-nang": "Nhớ đó nghe, dì giữ chỗ trong sổ rồi." } },
+        { "id": "b", "style": "that-tha", "text": "Dạ con chưa có kế hoạch, mong dì đừng giới thiệu ạ.", "effects": { "harmony": -5, "stamina": 5 },
+          "reply": "Ừ... thôi dì không ép. Mà dì vẫn giữ số điện thoại đó." },
+        { "id": "c", "style": "lay", "text": "Dì giới thiệu giỏi vậy sao dì không mở công ty mai mối?", "effects": { "harmony": 3, "stamina": -3 },
+          "reply": "Mở rồi, bà Sáu là khách hàng đầu tiên đó con." }
       ]
     }
   ],
@@ -426,5 +484,62 @@
     { "id": "E8", "title": "Chiến thần né câu hỏi", "description": "Không câu nào chạm được bạn.",
       "when": { "stamina": { "min": 60 } } },
     { "id": "E9", "title": "Về quê sống sót", "description": "Không hoàn hảo, nhưng bạn đã về. Dù sao vẫn phải về nhà." }
+  ],
+  "maps": [
+    {
+      "id": "san-nha", "setId": "san-nha", "playerId": "ban",
+      "npcs": [
+        { "characterId": "co-hai", "spot": "ghe-1", "behavior": "stand", "aware": 0, "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["bvn-1-dl", "bvn-1-dt", "bvn-1-sv"], "after": "Ăn miếng bánh đi con, đứng đó làm gì." } },
+        { "characterId": "bac-ca", "spot": "ghe-2", "behavior": "stand", "aware": 0, "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["bvn-2"], "after": "Hôm nay bác nói vậy thôi, đừng để bụng." } },
+        { "characterId": "ba-tam", "spot": "ghe-3", "behavior": "stand", "aware": 0, "prompt": "Chào",
+          "action": { "kind": "talk", "sceneIds": ["bvn-3"], "after": "Bà đăng rồi nhé, 47 người thả tim đó!" } },
+        { "characterId": "vang", "spot": "goc-san", "behavior": "approach", "speed": 1.9, "leash": 3.5, "aware": 6, "stopDist": 1.0, "reach": 1.5,
+          "prompt": "Vuốt ve",
+          "action": { "kind": "pet", "line": "Vàng dụi đầu vào tay bạn, vẫy đuôi tít mù. Bạn thấy khỏe hẳn ra.",
+            "effects": { "stamina": 8 }, "after": "Vàng liếm tay bạn, rồi lại chạy đi đâu mất." } },
+        { "characterId": "bin", "spot": "be-de", "behavior": "approach", "speed": 2.6, "leash": 3, "aware": 9, "stopDist": 0.95,
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["roam-bin"], "after": "Em cảm ơn anh/chị! Em đi quay clip đây." } },
+        { "characterId": "di-ut", "spot": "cuoi-san", "behavior": "wander", "speed": 1.0, "leash": 2.2, "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["roam-ut-sv", "roam-ut-dl", "roam-ut-dt"], "after": "Dì hỏi vậy thôi, đừng giận dì." },
+          "shoots": {
+            "everySec": 3.5, "range": 9, "minRange": 2.5, "speed": 3.0,
+            "questions": ["Dì hỏi cái này nha con!", "Con ơi, dì hỏi chút!"],
+            "questionsByPersona": {
+              "sinh-vien": ["Ra trường làm gì?", "Xin được việc chưa con?", "Học xong chưa con?", "Có người yêu chưa?"],
+              "moi-di-lam": ["Lương bao nhiêu rồi?", "Có thưởng Tết không?", "Mua nhà chưa con?", "Làm ở công ty nào?"],
+              "doc-than-27": ["Bao giờ cưới?", "Có người yêu chưa?", "Bao giờ có cháu?", "Dì giới thiệu nhé?"]
+            },
+            "hitSceneIds": ["roam-ut-sv", "roam-ut-dl", "roam-ut-dt"]
+          } }
+      ],
+      "quests": [
+        { "id": "chao-ho-hang", "title": "Chào hỏi họ hàng",
+          "objectives": [
+            { "id": "co-hai", "text": "Nói chuyện với Cô Hai", "done": { "flags": ["talked:co-hai"] } },
+            { "id": "bac-ca", "text": "Nói chuyện với Bác Cả", "done": { "flags": ["talked:bac-ca"] } },
+            { "id": "ba-tam", "text": "Chào Bà Tám", "done": { "flags": ["talked:ba-tam"] } }
+          ],
+          "reward": { "harmony": 8 }, "rewardLine": "Cả nhà khen bạn biết điều." },
+        { "id": "ne-cau-hoi", "title": "Né câu hỏi của Dì Út",
+          "objectives": [ { "id": "ne-3", "text": "Né được 3 câu hỏi", "done": { "flags": ["dodged:3"] } } ],
+          "reward": { "stamina": 10 }, "rewardLine": "Bạn né câu hỏi như một chiến thần." },
+        { "id": "ban-cua-lu-nho", "title": "Làm bạn với lũ nhỏ",
+          "objectives": [
+            { "id": "vang", "text": "Vuốt ve chó Vàng", "done": { "flags": ["petted:vang"] } },
+            { "id": "bin", "text": "Nói chuyện với bé Bin", "done": { "flags": ["talked:bin"] } }
+          ],
+          "reward": { "harmony": 4 }, "rewardLine": "Lũ nhỏ coi bạn là đồng bọn." },
+        { "id": "qua-san-nha", "title": "Qua ải sân nhà",
+          "objectives": [
+            { "id": "q1", "text": "Hoàn thành \"Chào hỏi họ hàng\"", "done": { "flags": ["quest:chao-ho-hang"] } },
+            { "id": "q2", "text": "Hoàn thành \"Né câu hỏi của Dì Út\"", "done": { "flags": ["quest:ne-cau-hoi"] } },
+            { "id": "q3", "text": "Hoàn thành \"Làm bạn với lũ nhỏ\"", "done": { "flags": ["quest:ban-cua-lu-nho"] } }
+          ],
+          "reward": { "harmony": 5, "stamina": 5 }, "rewardLine": "Bạn sống sót sân nhà. Mâm cơm đang chờ!" }
+      ]
+    }
   ]
 }

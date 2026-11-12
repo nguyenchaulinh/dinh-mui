@@ -6,27 +6,29 @@ import { walkAreaFor } from '../scene3d/walk';
 import { isBlocked, resolveMove } from './collision';
 import { DEFAULT_MOVE, PLAYER_RADIUS, stepMover } from './movement';
 import { createNpcState, stepNpc, type NpcState } from './npc';
-import { ROAM_DEMO, ROAM_NPCS, buildNpcParams } from './roamDemo';
+import { buildNpcParams, getRoamMap } from './roamDemo';
 import { buildRoamWorld, type RoamNpc } from './roamWorld';
 import type { MoverState, Vec2 } from './types';
 
 const content = loadContent();
-const set = SETS[ROAM_DEMO.setId]!;
+const map = getRoamMap(content, 'san-nha')!;
+const set = SETS[map.setId]!;
 const STYLES = ['bac', 'trung', 'nam'] as const;
 
 function npcsFor(): RoamNpc[] {
-  return ROAM_NPCS.map((spec) => ({
-    key: spec.key,
-    look: resolveCharacter(content, spec.key).look,
+  return map.npcs.map((spec) => ({
+    key: spec.characterId,
+    look: resolveCharacter(content, spec.characterId).look,
     spot: spec.spot,
     params: buildNpcParams(spec, set.spots[spec.spot]?.seated === true),
     reach: spec.reach,
+    shoots: spec.shoots,
   }));
 }
 
 describe('buildRoamWorld', () => {
   it('NPC đi lại có vòng va chạm riêng, NPC ngồi/đứng dùng vòng cố định', () => {
-    const area = walkAreaFor('san-nha', 'bac')!;
+    const area = walkAreaFor(map.setId, 'bac')!;
     const { runtimes } = buildRoamWorld(npcsFor(), set, area);
     const byKey = Object.fromEntries(runtimes.map((r) => [r.npc.key, r]));
     expect(byKey['vang']!.dynamic).toBe(true);
@@ -37,7 +39,7 @@ describe('buildRoamWorld', () => {
   });
 
   it('vật cản của NGƯỜI CHƠI không gồm NPC đi lại (tránh soft-lock), nhưng gồm NPC ngồi', () => {
-    const area = walkAreaFor('san-nha', 'bac')!;
+    const area = walkAreaFor(map.setId, 'bac')!;
     const { playerColliders, runtimes } = buildRoamWorld(npcsFor(), set, area);
     for (const r of runtimes) {
       expect(playerColliders.includes(r.col), r.npc.key).toBe(!r.dynamic);
@@ -45,7 +47,7 @@ describe('buildRoamWorld', () => {
   });
 
   it('NPC đi lại tránh người chơi và NPC đi lại khác, nhưng không tránh chính mình', () => {
-    const area = walkAreaFor('san-nha', 'bac')!;
+    const area = walkAreaFor(map.setId, 'bac')!;
     const { runtimes, world } = buildRoamWorld(npcsFor(), set, area);
     const vang = runtimes.find((r) => r.npc.key === 'vang')!;
     const bin = runtimes.find((r) => r.npc.key === 'bin')!;
@@ -55,7 +57,7 @@ describe('buildRoamWorld', () => {
   });
 
   it('spot không tồn tại thì bỏ qua NPC đó, không ném lỗi', () => {
-    const area = walkAreaFor('san-nha', 'bac')!;
+    const area = walkAreaFor(map.setId, 'bac')!;
     const bad: RoamNpc = { ...npcsFor()[0]!, spot: 'khong-co' };
     const built = buildRoamWorld([bad], set, area);
     expect(built.runtimes).toHaveLength(0);
@@ -68,7 +70,7 @@ describe('buildRoamWorld', () => {
  * và từng NPC (stepNpc với vật cản riêng), 60 FPS cố định.
  */
 function simulate(style: (typeof STYLES)[number]) {
-  const area = walkAreaFor('san-nha', style)!;
+  const area = walkAreaFor(map.setId, style)!;
   const built = buildRoamWorld(npcsFor(), set, area);
   const { world, runtimes, playerColliders } = built;
   const states = new Map<string, NpcState>(

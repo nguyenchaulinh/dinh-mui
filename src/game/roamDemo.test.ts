@@ -4,53 +4,43 @@ import { choose, createGame, getView } from '../engine/engine';
 import { SETS } from '../scene3d/registry';
 import { walkAreaFor } from '../scene3d/walk';
 import { isBlocked } from './collision';
-import { PLAYER_RADIUS } from './movement';
 import { INTERACT_ANY_ANGLE_DIST } from './interact';
-import { ROAM_DEMO, ROAM_NPCS, buildNpcParams } from './roamDemo';
+import { PLAYER_RADIUS } from './movement';
+import { buildNpcParams, getRoamMap } from './roamDemo';
 
 const content = loadContent();
-const set = SETS[ROAM_DEMO.setId]!;
+const map = getRoamMap(content, 'san-nha')!;
+const set = SETS[map.setId]!;
 const STYLES = ['bac', 'trung', 'nam'] as const;
 
-describe('dữ liệu NPC chế độ đi lại', () => {
-  it('khoá NPC không trùng và là nhân vật có thật (cả người chơi)', () => {
-    const keys = ROAM_NPCS.map((n) => n.key);
+describe('bản đồ san-nha trong nội dung', () => {
+  it('có bản đồ, tra cứu theo id; id lạ thì null', () => {
+    expect(map).toBeTruthy();
+    expect(getRoamMap(content, 'khong-co')).toBeNull();
+    expect(getRoamMap({ ...content, maps: undefined }, 'san-nha')).toBeNull();
+  });
+
+  it('khoá NPC không trùng và không trùng người chơi', () => {
+    const keys = map.npcs.map((n) => n.characterId);
     expect(new Set(keys).size).toBe(keys.length);
-    for (const k of [...keys, ROAM_DEMO.playerId]) {
-      expect(content.characters.some((c) => c.id === k), k).toBe(true);
-    }
-    expect(keys).not.toContain(ROAM_DEMO.playerId);
+    expect(keys).not.toContain(map.playerId);
   });
 
-  it('vị trí xuất phát (spot) có thật trong set', () => {
-    for (const n of ROAM_NPCS) expect(set.spots[n.spot], n.key).toBeDefined();
-  });
-
-  it('mọi scene hội thoại tồn tại, và mỗi persona đều có ít nhất một scene hợp để nói với từng NPC', () => {
-    for (const n of ROAM_NPCS) {
-      if (n.action.kind !== 'talk') continue;
-      const scenes = n.action.sceneIds.map((id) => content.scenes.find((s) => s.id === id));
-      scenes.forEach((s, i) => expect(s, `${n.key}:${n.action.kind === 'talk' ? n.action.sceneIds[i] : ''}`).toBeDefined());
-      for (const p of content.personas) {
-        const ok = scenes.some((s) => !s!.personas || s!.personas.includes(p.id));
-        expect(ok, `${n.key} thiếu scene cho persona ${p.id}`).toBe(true);
-      }
-    }
-  });
-
-  it('mọi lựa chọn của mọi scene hội thoại đều chơi được và ra phản ứng, với mọi persona × vùng', () => {
+  it('mọi lựa chọn của mọi scene hội thoại (nói chuyện và bị trúng) đều chơi được, với mọi persona × vùng', () => {
     for (const p of content.personas) {
       for (const r of content.regions) {
-        for (const n of ROAM_NPCS) {
-          if (n.action.kind !== 'talk') continue;
-          for (const id of n.action.sceneIds) {
-            const base = createGame(content, p.id, [r.id]);
-            const state = { ...base, sceneId: id };
+        for (const n of map.npcs) {
+          const ids = [...(n.action.kind === 'talk' ? n.action.sceneIds : []), ...(n.shoots?.hitSceneIds ?? [])];
+          for (const id of ids) {
+            const scene = content.scenes.find((s) => s.id === id)!;
+            // Chỉ kiểm tra scene hợp persona (scene khác persona không bao giờ được chọn cho người chơi này).
+            if (scene.personas && !scene.personas.includes(p.id)) continue;
+            const state = { ...createGame(content, p.id, [r.id]), sceneId: id };
             const view = getView(content, state);
-            expect(view, `${n.key}/${id}`).not.toBeNull();
+            expect(view, `${n.characterId}/${id}`).not.toBeNull();
+            expect(view!.choices.length, `${id} không có lựa chọn`).toBeGreaterThan(0);
             for (const ch of view!.choices) {
-              const res = choose(content, state, ch.id);
-              expect(res.reply, `${id}/${ch.id}`).toBeTruthy();
+              expect(choose(content, state, ch.id).reply, `${id}/${ch.id}`).toBeTruthy();
             }
           }
         }
@@ -58,43 +48,44 @@ describe('dữ liệu NPC chế độ đi lại', () => {
     }
   });
 
-  it('scene chỉ dành cho đi lại được đánh dấu roamOnly (không nằm trên luồng chính)', () => {
-    for (const n of ROAM_NPCS) {
-      if (n.action.kind !== 'talk') continue;
-      if (n.key === 'bin') expect(content.scenes.find((s) => s.id === 'roam-bin')?.roamOnly).toBe(true);
-    }
-  });
-
   it('người ngồi luôn đứng yên và không quay mặt, dù dữ liệu ghi hành vi gì', () => {
-    for (const n of ROAM_NPCS) {
+    for (const n of map.npcs) {
       const seated = set.spots[n.spot]?.seated === true;
       const p = buildNpcParams(n, seated);
       if (seated) {
-        expect(p.behavior, n.key).toBe('stand');
-        expect(p.aware, n.key).toBe(0);
+        expect(p.behavior, n.characterId).toBe('stand');
+        expect(p.aware, n.characterId).toBe(0);
       } else {
-        expect(p.behavior, n.key).toBe(n.behavior);
+        expect(p.behavior, n.characterId).toBe(n.behavior);
       }
     }
   });
 
-  it('chỉ NPC không ngồi mới đi lại; có ít nhất một NPC đi lại và một NPC đuổi theo', () => {
-    const dyn = ROAM_NPCS.filter((n) => buildNpcParams(n, set.spots[n.spot]?.seated === true).behavior !== 'stand');
-    expect(dyn.length).toBeGreaterThanOrEqual(2);
+  it('có NPC đi lại, NPC đuổi theo và NPC bắn câu hỏi; chỉ NPC không ngồi mới đi lại', () => {
+    const dyn = map.npcs.filter((n) => buildNpcParams(n, set.spots[n.spot]?.seated === true).behavior !== 'stand');
+    expect(dyn.length).toBeGreaterThanOrEqual(3);
     expect(dyn.every((n) => set.spots[n.spot]?.seated !== true)).toBe(true);
+    expect(map.npcs.some((n) => n.behavior === 'approach')).toBe(true);
+    expect(map.npcs.some((n) => n.shoots)).toBe(true);
+  });
+
+  it('NPC bắn câu hỏi không ngồi (ngồi thì không bắn được vì không có vị trí đi lại hợp lý)', () => {
+    for (const n of map.npcs.filter((x) => x.shoots)) {
+      expect(set.spots[n.spot]?.seated, n.characterId).not.toBe(true);
+    }
   });
 });
 
 describe('thông số tương tác', () => {
   it('NPC đuổi theo dừng trong vùng rất gần để luôn tương tác được dù đứng sau lưng', () => {
-    for (const n of ROAM_NPCS) {
+    for (const n of map.npcs) {
       if (n.behavior !== 'approach') continue;
-      expect(n.stopDist ?? 99, n.key).toBeLessThanOrEqual(INTERACT_ANY_ANGLE_DIST);
+      expect(n.stopDist ?? 99, n.characterId).toBeLessThanOrEqual(INTERACT_ANY_ANGLE_DIST);
     }
   });
 
   it('chó phải lại gần hơn mới vuốt ve được (không đóng băng nó giữa đường chạy)', () => {
-    const vang = ROAM_NPCS.find((n) => n.key === 'vang')!;
+    const vang = map.npcs.find((n) => n.characterId === 'vang')!;
     expect(vang.reach).toBeDefined();
     expect(vang.reach!).toBeLessThan(2.1);
   });
@@ -103,25 +94,24 @@ describe('thông số tương tác', () => {
 describe('NPC không xuất phát trong vật cản, ở cả 3 miền', () => {
   for (const style of STYLES) {
     it(`miền ${style}`, () => {
-      const area = walkAreaFor(ROAM_DEMO.setId, style)!;
-      for (const n of ROAM_NPCS) {
+      const area = walkAreaFor(map.setId, style)!;
+      for (const n of map.npcs) {
         const spot = set.spots[n.spot]!;
-        const seated = spot.seated === true;
-        if (seated) continue; // người ngồi nằm quanh bàn trà, đã có vòng va chạm riêng
-        const r = n.key === 'vang' ? 0.28 : 0.36;
+        if (spot.seated === true) continue; // người ngồi nằm quanh bàn trà, đã có vòng va chạm riêng
+        const r = n.characterId === 'vang' ? 0.28 : 0.36;
         expect(
           isBlocked({ x: spot.pos[0], z: spot.pos[2] }, r, area.colliders, area.bounds),
-          `${n.key} xuất phát trong vật cản (miền ${style})`,
+          `${n.characterId} xuất phát trong vật cản (miền ${style})`,
         ).toBe(false);
       }
     });
 
-    it(`miền ${style}: NPC đi lại không xuất phát trùng người chơi`, () => {
-      const area = walkAreaFor(ROAM_DEMO.setId, style)!;
-      for (const n of ROAM_NPCS) {
+    it(`miền ${style}: NPC không xuất phát trùng người chơi`, () => {
+      const area = walkAreaFor(map.setId, style)!;
+      for (const n of map.npcs) {
         const spot = set.spots[n.spot]!;
         const d = Math.hypot(spot.pos[0] - area.spawn.x, spot.pos[2] - area.spawn.z);
-        expect(d, n.key).toBeGreaterThan(PLAYER_RADIUS + 0.4);
+        expect(d, n.characterId).toBeGreaterThan(PLAYER_RADIUS + 0.4);
       }
     });
   }

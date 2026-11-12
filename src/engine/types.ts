@@ -182,6 +182,78 @@ export interface Ending {
   flags?: string[];
 }
 
+/** Hành động khi tương tác với NPC trong chế độ đi lại. */
+export type NpcAction =
+  /** Nói chuyện: mở scene hội thoại đầu tiên hợp với persona/vùng trong `sceneIds`; xong thì `after` là câu nói lại. */
+  | { kind: 'talk'; sceneIds: string[]; after: string }
+  /** Vuốt ve / tặng quà: một câu và hiệu ứng chỉ số, chỉ có tác dụng một lần; sau đó `after`. */
+  | { kind: 'pet'; line: string; effects: Effects; after: string };
+
+/** NPC "bắn" bong bóng câu hỏi về phía người chơi: né được thì thoát, trúng thì bị kéo vào hội thoại. */
+export interface Shooter {
+  /** Chu kỳ bắn (giây). */
+  everySec: number;
+  /** Chỉ bắn khi người chơi cách trong khoảng này (m); gần hơn `minRange` thì không bắn. */
+  range: number;
+  minRange: number;
+  /** Tốc độ bong bóng (m/s). */
+  speed: number;
+  /** Câu hỏi ngắn hiện thành dòng chữ khi bắn (chọn ngẫu nhiên). Dùng khi vai của người chơi không có danh sách riêng. */
+  questions: string[];
+  /** Câu hỏi theo vai (khoá = id persona) để bong bóng khớp với cảnh hội thoại khi bị trúng. */
+  questionsByPersona?: Record<string, string[]>;
+  /** Scene hội thoại khi bị trúng (scene đầu tiên hợp persona/vùng). */
+  hitSceneIds: string[];
+}
+
+export type NpcBehavior = 'stand' | 'wander' | 'approach';
+
+export interface MapNpc {
+  /** Id nhân vật trong `characters` (cũng là khoá của NPC trên bản đồ). */
+  characterId: string;
+  /** Vị trí xuất phát = tên spot trong registry của set. */
+  spot: string;
+  behavior: NpcBehavior;
+  speed?: number;
+  leash?: number;
+  aware?: number;
+  stopDist?: number;
+  /** Tầm tương tác (m); thiếu thì dùng mặc định. */
+  reach?: number;
+  /** Chữ trên nút tương tác, ví dụ "Nói chuyện". */
+  prompt: string;
+  action: NpcAction;
+  shoots?: Shooter;
+}
+
+/** Một mục tiêu của nhiệm vụ; hoàn thành khi điều kiện `done` thoả (thường theo cờ tự sinh `talked:<npc>`...). */
+export interface Objective {
+  id: string;
+  text: string;
+  done: Condition;
+}
+
+export interface Quest {
+  id: string;
+  title: string;
+  objectives: Objective[];
+  /** Thưởng chỉ số khi hoàn thành (số nguyên). */
+  reward?: Effects;
+  /** Câu hiện khi hoàn thành. */
+  rewardLine?: string;
+}
+
+/** Bản đồ chế độ đi lại: bộ cảnh 3D, người chơi, NPC và nhiệm vụ. */
+export interface RoamMap {
+  id: string;
+  /** Id bộ cảnh 3D (registry.ts); phải có vùng đi lại (walk.ts). */
+  setId: string;
+  /** Nhân vật của người chơi. */
+  playerId: string;
+  npcs: MapNpc[];
+  quests: Quest[];
+}
+
 export interface Content {
   version: number;
   regions: Region[];
@@ -193,6 +265,8 @@ export interface Content {
   tips: Tip[];
   /** Duyệt từ trên xuống, cái đầu tiên khớp thắng. Cái cuối phải là mặc định. */
   endings: Ending[];
+  /** Bản đồ chế độ đi lại (không bắt buộc: dữ liệu cũ không có). */
+  maps?: RoamMap[];
 }
 
 export type Stats = Record<StatKey, number>;
