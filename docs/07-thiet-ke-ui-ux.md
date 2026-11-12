@@ -69,6 +69,7 @@ Nói chuyện: bong bóng của NPC trên đầu họ; dock đáy (≤ 42%) ch�
 | Điện thoại | `.phone` | Rộng tối đa 340px, cao tối đa 56%, cuộn bên trong |
 | Cuộc gọi đến | `.callcard` | Thẻ nhỏ trên cùng, nút Nghe xanh |
 | Bấm NÉ | `.banner-warn`, `.qte` | Băng rôn đỏ + vòng thời gian + nút NÉ! tròn đỏ viền vàng |
+| Hoạt cảnh | `src/game/action.ts` | Không phải thành phần giao diện nhưng quyết định nhịp: dùng máy tính / nhặt đồ thì nhân vật làm động tác thật (ngồi 0.45 s, với tay 0.9 s) rồi mới mở bảng; điều khiển khoá trong lúc đó (chi tiết ở [08](08-thiet-ke-choi-truoc-que.md)) |
 | Chữ nổi | `.flash` | "NÉ ĐƯỢC!" vàng / "SỚM QUÁ!", "BỊ BẮT RỒI!" đỏ, viền mực, tự tắt 1.1s |
 | Nút tương tác | `.prompt`, `.roam-action` | Pill kính tối viền vàng; nút tròn sáng vàng khi có thứ để bấm |
 | Thẻ nổi | `.modal` | Rộng tối đa 320px, kính tối đậm, tiêu đề vàng 20-22px |
