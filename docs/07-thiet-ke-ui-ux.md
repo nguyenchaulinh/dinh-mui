@@ -19,7 +19,7 @@ Ngày 12/11/2026. Thay bản 1 ("Tết giấy đỏ") sau phản hồi: nhân v�
 
 - **Cảnh 3D là nhân vật chính.** Giao diện nhỏ, nằm ở mép màn hình, trong mờ. Không phần nào che quá 42% chiều cao màn hình (feed điện thoại tối đa 56%).
 - **Kính tối + chữ kem + vàng lì xì.** Mọi lớp dùng chung kiểu kính tối (`--glass`), viền mảnh sáng, chữ kem; vàng cho điểm nhấn/việc chính; đỏ Tết cho nút chính và cảnh báo.
-- **Lời nói gắn với người nói.** Ai đang đứng trong cảnh thì lời của họ là bong bóng trên đầu họ. Người không có mặt (Bé Dê dẫn chuyện, Mẹ gọi điện, máy tính) thì lời nằm trong dock. **Tối đa một bong bóng mỗi lúc** (người chơi và NPC đứng sát nhau, hai bong bóng đè lên nhau): câu người chơi vừa chọn là một dòng nhỏ trong dock (`src/game/speech.ts`, có test).
+- **Lời nói gắn với người nói.** Ai đang đứng trong cảnh thì lời của họ là bong bóng trên đầu họ. Người không có mặt (Bé Dê dẫn chuyện, Mẹ gọi điện, máy tính) thì lời nằm trong dock. **Hai người cùng nói thì hai bong bóng bung ra hai phía ngược nhau** kiểu truyện tranh (ai bên trái màn hình bung sang trái, đuôi chỉ về người nói), nên câu bạn vừa chọn và lời NPC đáp hiện cùng lúc mà không đè nhau (`src/game/speech.ts`, có test).
 - **Một màn, một việc.** Mở game chỉ có ô nhập tên; vai và thành phố bốc ngẫu nhiên.
 
 ## 2. Token
@@ -63,7 +63,7 @@ Nói chuyện: bong bóng của NPC trên đầu họ; dock đáy (≤ 42%) ch�
 | HUD | `.hud`, `.meters` | Tên (vàng), vai · thành phố, 3 thanh nhỏ; thanh ≤ 25 nhấp nháy |
 | Việc cần làm | `.tasks` | Thu/mở; việc của nhiệm vụ đích lên đầu, màu vàng |
 | Bong bóng thoại | `.speech` (drei `Html`) | Nền trắng, tên màu áo, tối đa 230px; `.speech-alert` viền đỏ rung khi lao tới hỏi |
-| Dock lựa chọn | `.dock`, `.opt` | Tối đa 42% chiều cao; nhãn phím (A, B, C, D) và nhãn kiểu đáp màu ở đầu dòng; phím A–D hoặc 1–4 chọn không cần chuột. Sau khi chọn: câu của bạn thành bong bóng trên đầu bạn (~1.6s hoặc bấm Tiếp), rồi tới bong bóng NPC đáp |
+| Dock lựa chọn | `.dock`, `.opt` | Tối đa 42% chiều cao; nhãn phím (A, B, C, D) và nhãn kiểu đáp màu ở đầu dòng; phím A–D hoặc 1–4 chọn không cần chuột. Sau khi chọn: câu của bạn (trên đầu bạn) và lời NPC đáp hiện cùng lúc, hai phía ngược nhau; dock chỉ còn nút Tiếp nổi (thêm thẻ mẹo nếu có) |
 | Thẻ mẹo | `.tip` | Nền vàng, chữ mực, ghi nguồn |
 | Điện thoại | `.phone` | Rộng tối đa 340px, cao tối đa 56%, cuộn bên trong |
 | Cuộc gọi đến | `.callcard` | Thẻ nhỏ trên cùng, nút Nghe xanh |
