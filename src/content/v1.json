@@ -77,7 +77,7 @@
           "reply": "Giỏ quà to thế này, cả họ phải mở trong ba ngày." },
         { "id": "b", "style": "that-tha", "text": "Vài hộp bánh vừa túi tiền.", "effects": { "wallet": -5 },
           "reply": "Quà nhỏ mà có lòng là được." },
-        { "id": "c", "style": "lay", "text": "Con về là món quà lớn nhất rồi.", "effects": { "harmony": -3, "stamina": 3 },
+        { "id": "c", "style": "lay", "text": "Con về là món quà lớn nhất rồi.", "effects": { "harmony": -3, "stamina": 3, "wallet": -5 },
           "reply": "Câu này nói với mẹ thì được, nói với Cô Hai thì chưa chắc." }
       ]
     },
@@ -90,9 +90,9 @@
       "choices": [
         { "id": "a", "style": "that-tha", "text": "Xe buýt cho rẻ.", "effects": { "wallet": -1, "stamina": -10 },
           "reply": "Đứng ép giữa xe, vali kẹp giữa hai chân. Nhưng rẻ." },
-        { "id": "b", "style": "kheo", "text": "Gọi xe ôm công nghệ.", "effects": { "wallet": -5, "stamina": -3 },
+        { "id": "b", "style": "kheo", "text": "Gọi xe ôm công nghệ.", "effects": { "wallet": -5, "stamina": -6 },
           "reply": "Xe tới nhanh. Kẹt xe thì không nhanh bằng.", "next": "rb-shipper" },
-        { "id": "c", "style": "lay", "text": "Nhờ bạn thân chở.", "effects": { "harmony": 3, "stamina": -5 },
+        { "id": "c", "style": "lay", "text": "Nhờ bạn thân chở.", "effects": { "harmony": 3, "stamina": -5, "wallet": -5 },
           "reply": "Bạn chở luôn cả giỏ quà. Giỏ quà bị bẹp một góc, tình bạn thì không." }
       ]
     },
@@ -136,11 +136,11 @@
           { "characterId": "ba-tam", "spot": "ghe-3" }, { "characterId": "ban", "spot": "nguoi-choi" }, { "characterId": "vang", "spot": "goc-san" } ] },
       "next": "bvn-1-dt",
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ cũng đủ sống cô ạ. Mà cô dạo này khỏe không?", "effects": { "harmony": 5, "stamina": -5 },
+        { "id": "a", "style": "kheo", "text": "Dạ cũng đủ sống cô ạ. Mà cô dạo này khỏe không?", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Cô khỏe! Mà con ốm đi hay sao ấy...", "tipId": "T03" },
         { "id": "b", "style": "that-tha", "text": "Dạ con chưa muốn nói chuyện này ạ.", "effects": { "harmony": -8, "stamina": 5 },
           "reply": "Ơ hay, cô hỏi cho vui thôi mà." },
-        { "id": "c", "style": "lay", "text": "Đủ mua vé về thăm cô thôi ạ.", "effects": { "harmony": 3, "stamina": 5 },
+        { "id": "c", "style": "lay", "text": "Đủ mua vé về thăm cô thôi ạ.", "effects": { "harmony": 3, "stamina": 5, "wallet": -5 },
           "reply": "Cái đứa này nhanh miệng ghê!" },
         { "id": "d", "style": "phan-don", "text": "Thế lương của cô bao nhiêu ạ?", "effects": { "harmony": -15, "stamina": 10 },
           "reply": "... (cả sân im lặng ba giây)" }
@@ -158,11 +158,11 @@
           { "characterId": "ba-tam", "spot": "ghe-3" }, { "characterId": "ban", "spot": "nguoi-choi" }, { "characterId": "vang", "spot": "goc-san" } ] },
       "next": "bvn-1-sv",
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ duyên chưa tới cô ạ. Mà cô dạo này khỏe không?", "effects": { "harmony": 5, "stamina": -5 },
+        { "id": "a", "style": "kheo", "text": "Dạ duyên chưa tới cô ạ. Mà cô dạo này khỏe không?", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Khỏe, khỏe. Duyên thì phải đi tìm chứ ai mang tới tận nhà.", "tipId": "T03" },
         { "id": "b", "style": "that-tha", "text": "Dạ con đang ổn với cuộc sống hiện tại ạ.", "effects": { "harmony": -5, "stamina": 5 },
           "reply": "Ổn bây giờ, chứ về già thì sao?" },
-        { "id": "c", "style": "lay", "text": "Dạ con đợi lương cao hơn nữa ạ.", "effects": { "harmony": 3, "stamina": 5 },
+        { "id": "c", "style": "lay", "text": "Dạ con đợi lương cao hơn nữa ạ.", "effects": { "harmony": 3, "stamina": 5, "wallet": -5 },
           "reply": "Đợi lương cao thì tới năm con Dê sau nữa!" },
         { "id": "d", "style": "phan-don", "text": "Thế cô định bao giờ thôi hỏi ạ?", "effects": { "harmony": -15, "stamina": 10 },
           "reply": "... (Cô Hai đặt chén trà xuống rất nhẹ)" }
@@ -180,11 +180,11 @@
           { "characterId": "ba-tam", "spot": "ghe-3" }, { "characterId": "ban", "spot": "nguoi-choi" }, { "characterId": "vang", "spot": "goc-san" } ] },
       "next": "bvn-2",
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ con đang thực tập, có kế hoạch rồi cô ạ.", "effects": { "harmony": 5, "stamina": -5 },
+        { "id": "a", "style": "kheo", "text": "Dạ con đang thực tập, có kế hoạch rồi cô ạ.", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Thực tập có lương không con?", "tipId": "T03" },
         { "id": "b", "style": "that-tha", "text": "Dạ con chưa biết, con cũng đang lo.", "effects": { "harmony": 2, "stamina": 5 },
           "reply": "Lo là phải. Mà lo thì ăn thêm đi cho có sức." },
-        { "id": "c", "style": "lay", "text": "Dạ ra trường con đi tìm việc ạ.", "effects": { "stamina": 3 },
+        { "id": "c", "style": "lay", "text": "Dạ ra trường con đi tìm việc ạ.", "effects": { "stamina": 3, "wallet": -5 },
           "reply": "Câu trả lời không sai, nhưng cô nghe không vui." }
       ]
     },
@@ -201,7 +201,7 @@
           { "characterId": "ba-tam", "spot": "ghe-3" }, { "characterId": "ban", "spot": "nguoi-choi" }, { "characterId": "be-de", "spot": "be-de" } ] },
       "next": "bvn-3",
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ tại Tết sắp tới nên con tích trữ ạ.", "effects": { "harmony": 3, "stamina": -3 },
+        { "id": "a", "style": "kheo", "text": "Dạ tại Tết sắp tới nên con tích trữ ạ.", "effects": { "harmony": 3, "stamina": -6 },
           "reply": "Ha ha, tích trữ thì ăn bánh chưng cho đúng bài." },
         { "id": "b", "style": "that-tha", "text": "Dạ con thấy bình thường mà bác.", "effects": { "harmony": -2, "stamina": 3 },
           "reply": "Ừ, bình thường, bình thường." },
@@ -217,11 +217,11 @@
           { "characterId": "ba-tam", "spot": "ghe-3", "anim": "talk" }, { "characterId": "ban", "spot": "nguoi-choi" }, { "characterId": "vang", "spot": "goc-san" } ] },
       "next": "bvn-4",
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Tạo dáng, vẫy tay chào cả nhóm.", "effects": { "harmony": 5, "stamina": -5 },
+        { "id": "a", "style": "kheo", "text": "Tạo dáng, vẫy tay chào cả nhóm.", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Đẹp! 47 người thả tim rồi nè." },
         { "id": "b", "style": "that-tha", "text": "Bà ơi đừng đăng, con chưa rửa mặt.", "effects": { "harmony": -3, "stamina": 5 },
           "reply": "Thôi được, bà đăng ảnh con chó vậy." },
-        { "id": "c", "style": "lay", "text": "Cướp máy, quay ngược lại bà.", "effects": { "harmony": 3, "stamina": 3 },
+        { "id": "c", "style": "lay", "text": "Cướp máy, quay ngược lại bà.", "effects": { "harmony": 3, "stamina": 3, "wallet": -5 },
           "reply": "Ơ kìa! Thôi được, cả nhà ơi, bà nè!" }
       ]
     },
@@ -241,7 +241,7 @@
           "reply": "Cô xem lịch giùm con rồi. Mùng 2, 9 giờ sáng." },
         { "id": "b", "style": "that-tha", "text": "Dạ con xin phép không đi ạ.", "effects": { "harmony": -5, "stamina": 5 },
           "reply": "Ừ, thôi, để năm sau." },
-        { "id": "c", "style": "lay", "text": "Cô mai mối giỏi vậy sao cô không mở công ty?", "effects": { "harmony": 3, "stamina": 3 },
+        { "id": "c", "style": "lay", "text": "Cô mai mối giỏi vậy sao cô không mở công ty?", "effects": { "harmony": 3, "stamina": 3, "wallet": -5 },
           "reply": "Mở rồi đó, con là khách hàng đầu tiên." }
       ]
     },
@@ -272,13 +272,13 @@
           { "characterId": "bin", "spot": "ghe-6" } ] },
       "next": "mc-2",
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ con xin ăn thêm miếng nữa cho chắc ạ.", "effects": { "harmony": 8, "stamina": -3 },
+        { "id": "a", "style": "kheo", "text": "Dạ con xin ăn thêm miếng nữa cho chắc ạ.", "effects": { "harmony": 8, "stamina": -6 },
           "reply": "Có tâm! Chú thơ chậm một câu tặng con." },
         { "id": "b", "style": "that-tha", "text": "Dạ con thấy hơi sống thật.", "effects": { "harmony": -5, "stamina": 5 },
           "reply": "Thật thà là một đức tính... dễ bị mời xuống bếp." },
         { "id": "c", "style": "lay", "text": "Chú review thêm món giò đi, con nghe mà đói.",
           "textByRegion": { "da-nang": "Chú review thêm món nem chua đi, con nghe mà đói.", "sai-gon": "Chú review thêm nồi thịt kho đi, con nghe mà đói." },
-          "effects": { "harmony": 5, "stamina": 3 },
+          "effects": { "harmony": 5, "stamina": 3, "wallet": -5 },
           "reply": "Được! Thơ chậm nhé: \"Mâm cơm khói tỏa lưng chừng / Miếng giò chưa cắn đã mừng đoàn viên.\"",
           "replyByRegion": {
             "da-nang": "Được! Thơ chậm nhé: \"Mâm cơm khói tỏa lưng chừng / Miếng nem chưa cắn đã mừng đoàn viên.\"",
@@ -299,11 +299,11 @@
           { "characterId": "bin", "spot": "ghe-6" } ] },
       "next": "mc-2-sv",
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ giỏi quá, để con xin bí quyết bạn ấy ạ.", "effects": { "harmony": 5, "stamina": -5 },
+        { "id": "a", "style": "kheo", "text": "Dạ giỏi quá, để con xin bí quyết bạn ấy ạ.", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Bí quyết là tiết kiệm. Bớt cà phê đi." },
         { "id": "b", "style": "that-tha", "text": "Dạ mỗi người một hoàn cảnh bác ạ.", "effects": { "harmony": -3, "stamina": 5 },
           "reply": "Ừ thì... hoàn cảnh." },
-        { "id": "c", "style": "lay", "text": "Dạ con mua được nhà rồi, trong game ạ.", "effects": { "harmony": 3, "stamina": 5 },
+        { "id": "c", "style": "lay", "text": "Dạ con mua được nhà rồi, trong game ạ.", "effects": { "harmony": 3, "stamina": 5, "wallet": -5 },
           "reply": "Nhà trong game thì bác cũng có, ba căn!" },
         { "id": "d", "style": "phan-don", "text": "Bác ơi, thế bác Tư có hỏi nhà bác chưa?", "effects": { "harmony": -12, "stamina": 8 },
           "reply": "... (Bác Cả gắp miếng giò rất chậm)" }
@@ -322,11 +322,11 @@
           { "characterId": "bin", "spot": "ghe-6" } ] },
       "next": "mc-3",
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ giỏi quá, để con hỏi kinh nghiệm bạn ấy ạ.", "effects": { "harmony": 5, "stamina": -5 },
+        { "id": "a", "style": "kheo", "text": "Dạ giỏi quá, để con hỏi kinh nghiệm bạn ấy ạ.", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Ừ, hỏi đi, đừng ngại." },
         { "id": "b", "style": "that-tha", "text": "Dạ con cũng đang nộp hồ sơ ạ.", "effects": { "harmony": 2, "stamina": 3 },
           "reply": "Nộp nhiều vào, chỗ này không được thì chỗ khác." },
-        { "id": "c", "style": "lay", "text": "Dạ con có công ty nhận rồi, công ty gia đình mình ạ.", "effects": { "harmony": 3, "stamina": 5 },
+        { "id": "c", "style": "lay", "text": "Dạ con có công ty nhận rồi, công ty gia đình mình ạ.", "effects": { "harmony": 3, "stamina": 5, "wallet": -5 },
           "reply": "Công ty gia đình mình thì lương trả bằng bánh chưng!" }
       ]
     },
@@ -347,7 +347,7 @@
           "reply": "Ừ, chở bà thì thôi. Đúng rồi, đã uống thì không lái.", "tipId": "T05" },
         { "id": "b", "style": "that-tha", "text": "Con không uống được chú ạ.", "effects": { "harmony": -3, "stamina": 3 },
           "reply": "Không uống được thì ăn bù vậy." },
-        { "id": "c", "style": "lay", "text": "Rót nước chè, nâng ly: \"Trăm phần trăm!\"", "effects": { "harmony": 5 },
+        { "id": "c", "style": "lay", "text": "Rót nước chè, nâng ly: \"Trăm phần trăm!\"", "effects": { "harmony": 5, "wallet": -5 },
           "reply": "Ha! Nước chè cũng là ly. Dzô!" }
       ]
     },
@@ -360,11 +360,11 @@
           { "characterId": "bin", "spot": "ghe-6", "anim": "dance" } ] },
       "next": "mc-ket",
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Gắp thức ăn mời từng người.", "effects": { "harmony": 10, "stamina": -15 },
+        { "id": "a", "style": "kheo", "text": "Gắp thức ăn mời từng người.", "effects": { "harmony": 10, "stamina": -18 },
           "reply": "Mỗi lần gắp, một câu hỏi vỡ tan. Tay bạn mỏi nhừ." },
         { "id": "b", "style": "that-tha", "text": "Đứng dậy trả lời một lần cho cả nhà.", "effects": { "harmony": -5, "stamina": 10 },
           "reply": "Cả nhà im lặng nghe hết. Rồi Cô Hai hỏi lại câu đầu tiên." },
-        { "id": "c", "style": "lay", "text": "Hỏi ông chuyện Tết ngày xưa.", "effects": { "harmony": 8 },
+        { "id": "c", "style": "lay", "text": "Hỏi ông chuyện Tết ngày xưa.", "effects": { "harmony": 8, "wallet": -5 },
           "reply": "Ông kể chuyện Tết năm ông mười tuổi. Cả mâm quên hết câu hỏi.", "tipId": "T03" },
         { "id": "d", "style": "phan-don", "text": "Hỏi ngược lương các bác.", "effects": { "harmony": -15, "stamina": 10 },
           "reply": "Bin quay TikTok cảnh này. Video đã có 3 lượt xem, cả 3 là người trong họ." }
@@ -482,7 +482,7 @@
     { "id": "E7", "title": "Cháu ngoan quốc dân", "description": "Cả họ khen, riêng bạn thì cần ngủ ba ngày.",
       "when": { "harmony": { "min": 70 } } },
     { "id": "E8", "title": "Chiến thần né câu hỏi", "description": "Không câu nào chạm được bạn.",
-      "when": { "stamina": { "min": 60 } } },
+      "when": { "stamina": { "min": 75 } } },
     { "id": "E9", "title": "Về quê sống sót", "description": "Không hoàn hảo, nhưng bạn đã về. Dù sao vẫn phải về nhà." }
   ],
   "maps": [
