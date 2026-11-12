@@ -11,41 +11,41 @@ import {
   type ChooseResult,
   type SceneView,
 } from './engine/engine';
-import { STAT_KEYS, STAT_MAX, type Content, type GameState, type StatKey, type Style } from './engine/types';
+import { STAT_KEYS, STAT_MAX, type Content, type GameState } from './engine/types';
+import { STAT_LABEL, STYLE_LABEL } from './labels';
 import { RoamScreen } from './game/RoamScreen';
 import type { StageActor } from './scene3d/Stage3DView';
 
 const Stage3DView = lazy(() => import('./scene3d/Stage3DView'));
-
-const STAT_LABEL: Record<StatKey, string> = {
-  harmony: 'Hòa khí',
-  stamina: 'Sức chịu đựng',
-  wallet: 'Ví',
-};
-
-const STYLE_LABEL: Record<Style, string> = {
-  kheo: 'Khéo',
-  'that-tha': 'Thật thà',
-  lay: 'Lầy',
-  'phan-don': 'Phản đòn',
-};
 
 const DISCLAIMER = 'Mọi nhân vật và tình huống là hư cấu, chỉ để giải trí; không nhằm mô tả bất kỳ cá nhân nào.';
 
 /** Hiện đồng hồ FPS khi chạy dev hoặc khi URL có ?fps (để đo trên điện thoại). */
 const SHOW_FPS = DEBUG;
 
+interface Selection {
+  personaId: string | null;
+  regionIds: string[];
+}
+
 function Setup({
   content,
+  selection,
+  onSelect,
   onStart,
   onRoam,
 }: Readonly<{
   content: Content;
+  /** Lựa chọn nằm ở App để không mất khi vào/ra chế độ đi lại. */
+  selection: Selection;
+  onSelect: (s: Selection) => void;
   onStart: (personaId: string, regionIds: string[]) => void;
-  onRoam: (regionId: string) => void;
+  onRoam: (regionId: string, personaId: string | null) => void;
 }>) {
-  const [personaId, setPersonaId] = useState<string | null>(null);
-  const [regionIds, setRegionIds] = useState<string[]>([]);
+  const { personaId, regionIds } = selection;
+  const setPersonaId = (id: string | null) => onSelect({ personaId: id, regionIds });
+  const setRegionIds = (update: string[] | ((cur: string[]) => string[])) =>
+    onSelect({ personaId, regionIds: typeof update === 'function' ? update(regionIds) : update });
   const allIds = content.regions.map((r) => r.id);
   const allSelected = regionIds.length === allIds.length;
   const toggle = (id: string) =>
@@ -83,7 +83,7 @@ function Setup({
       <button
         className="choice"
         disabled={regionIds.length === 0}
-        onClick={() => regionIds[0] && onRoam(regionIds[0])}
+        onClick={() => regionIds[0] && onRoam(regionIds[0], personaId)}
       >
         <strong>Thử chế độ đi lại (bản thử)</strong>
         <br />
@@ -92,6 +92,11 @@ function Setup({
       <footer>{DISCLAIMER}</footer>
     </main>
   );
+}
+
+interface RoamTarget {
+  regionId: string;
+  personaId: string;
 }
 
 /** Diễn viên của scene cho cảnh 3D, đã áp kill-switch, đánh dấu người đang nói. */
@@ -119,13 +124,17 @@ function devJump(content: Content): GameState | null {
   return { ...createGame(content, persona, [region]), sceneId };
 }
 
-/** Chỉ khi dev/bản đo: `?roam=san-nha&region=ha-noi` vào thẳng chế độ đi lại. */
-function devRoam(content: Content): string | null {
+/** Chỉ khi dev/bản đo: `?roam=san-nha&region=ha-noi&persona=moi-di-lam` vào thẳng chế độ đi lại. */
+function devRoam(content: Content): RoamTarget | null {
   if (!ALLOW_JUMP) return null;
   const q = new URLSearchParams(window.location.search);
   if (q.get('roam') !== 'san-nha') return null;
-  const region = q.get('region');
-  return content.regions.some((r) => r.id === region) ? region : content.regions[0]!.id;
+  const regionQ = q.get('region');
+  const personaQ = q.get('persona');
+  return {
+    regionId: content.regions.find((r) => r.id === regionQ)?.id ?? content.regions[0]!.id,
+    personaId: content.personas.find((p) => p.id === personaQ)?.id ?? content.personas[0]!.id,
+  };
 }
 
 /** Hạt giống ngẫu nhiên 31 bit (chỉ để trộn biến thể vùng, không dùng cho bảo mật). */
@@ -138,8 +147,9 @@ function newSeed(): number {
 export function App() {
   const content = useMemo(() => loadContent(), []);
   const [state, setState] = useState<GameState | null>(() => devJump(content));
-  /** Đang ở chế độ đi lại (bản thử) tại vùng này. */
-  const [roamRegion, setRoamRegion] = useState<string | null>(() => devRoam(content));
+  /** Đang ở chế độ đi lại (bản thử) với vùng và persona này. */
+  const [roam, setRoam] = useState<RoamTarget | null>(() => devRoam(content));
+  const [selection, setSelection] = useState<Selection>({ personaId: null, regionIds: [] });
   /** Lựa chọn vừa chọn, chờ người chơi đọc phản ứng rồi bấm Tiếp. Giữ view của scene cũ. */
   const [pending, setPending] = useState<{ result: ChooseResult; view: SceneView } | null>(null);
   /** Bước thoại trong cắt cảnh: 0 = `line`, 1.. = `lines`. */
@@ -150,15 +160,26 @@ export function App() {
   );
   const [fps, setFps] = useState<number | null>(null);
 
-  if (roamRegion) {
-    return <RoamScreen content={content} regionId={roamRegion} onExit={() => setRoamRegion(null)} />;
+  if (roam) {
+    return (
+      <RoamScreen
+        content={content}
+        regionId={roam.regionId}
+        personaId={roam.personaId}
+        onExit={() => setRoam(null)}
+      />
+    );
   }
 
   if (!state) {
     return (
       <Setup
         content={content}
-        onRoam={setRoamRegion}
+        selection={selection}
+        onSelect={setSelection}
+        onRoam={(regionId, personaId) =>
+          setRoam({ regionId, personaId: personaId ?? content.personas[0]!.id })
+        }
         onStart={(p, r) => {
           setState(createGame(content, p, r, newSeed()));
           setSeenStages([]);

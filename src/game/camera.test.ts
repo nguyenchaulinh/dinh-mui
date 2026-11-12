@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_CAM, applyLook, computeCameraPose, smoothPose, yawBehind } from './camera';
+import { DEFAULT_CAM, applyLook, computeCameraPose, computeTalkPose, smoothPose, yawBehind } from './camera';
 import { wrapAngle } from './movement';
 import type { CameraPose, FollowCam, Vec2 } from './types';
 
@@ -266,5 +266,57 @@ describe('smoothPose', () => {
     expect(out.pos).not.toBe(prev.pos);
     expect(prev.pos).toEqual([0, 4, 6]);
     expect(next.pos).toEqual([10, 5, -3]);
+  });
+});
+
+describe('computeTalkPose', () => {
+  const none = () => Infinity;
+  const horiz = (p: CameraPose) => Math.hypot(p.pos[0] - p.lookAt[0], p.pos[2] - p.lookAt[2]);
+
+  it('nhìn vào điểm giữa hai người, camera vuông góc đường nối', () => {
+    const player = { x: 0, z: 0 };
+    const npc = { x: 2, z: 0 }; // đường nối theo +x
+    const p = computeTalkPose(player, npc, 0.5, 0.87, none);
+    expect(p.lookAt[0]).toBeCloseTo(1, 9);
+    expect(p.lookAt[2]).toBeCloseTo(0, 9);
+    // Camera lệch theo trục z (vuông góc đường nối), cùng x với điểm giữa.
+    expect(p.pos[0]).toBeCloseTo(1, 9);
+    expect(Math.abs(p.pos[2])).toBeGreaterThan(2);
+  });
+
+  it('màn hình dọc hẹp thì lùi xa hơn màn hình ngang rộng; có chặn trên và dưới', () => {
+    const player = { x: 0, z: 0 };
+    const npc = { x: 1.3, z: 0 };
+    const portrait = computeTalkPose(player, npc, 0.48, 0.87, none);
+    const landscape = computeTalkPose(player, npc, 1.8, 0.87, none);
+    expect(horiz(portrait)).toBeGreaterThan(horiz(landscape));
+    expect(horiz(portrait)).toBeLessThanOrEqual(8 + 1e-9);
+    // Màn hình rộng: vẫn phải lùi đủ xa để cả người lọt vào phần không bị khung thoại che.
+    expect(horiz(landscape)).toBeGreaterThanOrEqual(4.6 - 1e-9);
+  });
+
+  it('chọn phía còn chỗ trống và không chui vào tường', () => {
+    const player = { x: 0, z: 0 };
+    const npc = { x: 2, z: 0 };
+    // Phía +z bị tường ở cách 1.0 m; phía -z trống.
+    const clip = (_o: Vec2, d: Vec2, maxLen: number) => (d.z > 0 ? Math.min(1.0, maxLen) : maxLen);
+    const p = computeTalkPose(player, npc, 0.48, 0.87, clip);
+    expect(p.pos[2]).toBeLessThan(0);
+    // Cả hai phía bị chặn gần: không bao giờ gần hơn 1.8 m (đã ở trong tường thì cũng không âm).
+    const tight = computeTalkPose(player, npc, 0.48, 0.87, () => 0.2);
+    expect(horiz(tight)).toBeCloseTo(1.8, 6);
+  });
+
+  it('hai người ở nửa trên khung hình: điểm ngắm thấp hơn thân người', () => {
+    const p = computeTalkPose({ x: 0, z: 0 }, { x: 1.3, z: 0 }, 0.48, 0.87, none);
+    expect(p.lookAt[1]).toBeLessThan(0.8);
+    expect(p.pos[1]).toBeCloseTo(1.45, 9);
+  });
+
+  it('hai người trùng nhau hoặc đầu vào hỏng thì không sinh NaN', () => {
+    const same = computeTalkPose({ x: 1, z: 1 }, { x: 1, z: 1 }, 0.5, 0.87, none);
+    expect(same.pos.every(Number.isFinite) && same.lookAt.every(Number.isFinite)).toBe(true);
+    const bad = computeTalkPose({ x: NaN, z: Infinity }, { x: NaN, z: 0 }, NaN, NaN, () => NaN);
+    expect(bad.pos.every(Number.isFinite) && bad.lookAt.every(Number.isFinite)).toBe(true);
   });
 });

@@ -381,6 +381,25 @@
           { "characterId": "bin", "spot": "ghe-6" }, { "characterId": "be-de", "spot": "be-de", "anim": "wave" } ] },
       "next": null,
       "choices": []
+    },
+    {
+      "id": "roam-bin", "stageId": "buoc-vao-nha", "roamOnly": true, "characterId": "bin",
+      "line": "Anh/chị ơi, lì xì em đi! Em hứa năm sau em ngoan.",
+      "lineByRegion": {
+        "da-nang": "Anh/chị ơi, lì xì em đi! Em hứa năm sau em ngoan mà.",
+        "sai-gon": "Anh/chị ơi, lì xì em đi nghen! Em hứa năm sau em ngoan."
+      },
+      "stage3d": { "set": "san-nha",
+        "actors": [ { "characterId": "bin", "spot": "goc-san", "anim": "talk" } ] },
+      "next": null,
+      "choices": [
+        { "id": "a", "style": "kheo", "text": "Đây, mừng tuổi em, mua kẹo nha.", "effects": { "wallet": -5, "harmony": 5 },
+          "reply": "Yeah! Em sẽ quay clip cảm ơn anh/chị đăng lên nhóm chat!" },
+        { "id": "b", "style": "that-tha", "text": "Anh/chị cũng đang nghèo, để năm sau nhé.", "effects": { "harmony": -3, "stamina": 3 },
+          "reply": "Hứ. Em ghi sổ rồi nha, năm sau tính cả lãi." },
+        { "id": "c", "style": "lay", "text": "Em quét mã anh/chị đi, anh/chị trả lương cho em luôn.", "effects": { "harmony": 3, "stamina": 3 },
+          "reply": "Em làm thì được, nhưng giá cao lắm đó!" }
+      ]
     }
   ],
   "tips": [

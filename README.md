@@ -35,7 +35,8 @@ http://localhost:5173/?scene=mc-1&persona=moi-di-lam&region=da-nang
 http://localhost:5173/?roam=san-nha&region=ha-noi
 ```
 
-- Máy tính: **WASD** hoặc phím mũi tên đi, **Shift** chạy, **kéo chuột** xoay camera, **E** tương tác (chưa có đối tượng).
+- Máy tính: **WASD** hoặc phím mũi tên đi, **Shift** chạy, **kéo chuột** xoay camera, **E** tương tác.
+- Lại gần Cô Hai, Bác Cả, Bà Tám (ngồi quanh bàn trà), chó Vàng hoặc bé Bin (chạy theo bạn) thì hiện nút "[E] ..."; bấm để nói chuyện hoặc vuốt ve. `?persona=` đổi câu hỏi theo vai.
 - Điện thoại: joystick bên trái, kéo ở bất cứ đâu để xoay camera, nút "Tương tác" bên phải (thêm `&touch` vào URL để thấy joystick trên máy tính).
 
 **Xem toàn bộ nhân vật:** `http://localhost:5173/gallery.html`.
@@ -56,6 +57,8 @@ src/engine/engine.ts       engine thuần: getView, choose, advance, kết thúc
 src/engine/validate.ts     kiểm tra toàn vẹn nội dung (kể cả set 3D, vị trí đứng, góc máy)
 src/game/                  chế độ đi lại: collision (va chạm), movement (chuyển động), camera (bám góc nhìn thứ ba),
                            input + RoamControls (bàn phím/joystick), RoamView + RoamScreen (ghép), types (hợp đồng toạ độ)
+src/game/npc.ts, interact.ts   hành vi NPC (đứng, lang thang, đuổi theo) và chọn đối tượng tương tác (thuần, có test)
+src/game/roamWorld.ts      dựng vật cản/vị trí NPC (thuần); roamDemo.ts: dữ liệu NPC và hành động; TalkPanel: khung hội thoại
 src/scene3d/walk.ts        vùng đi lại và vật cản của từng cảnh (khớp hình học trong sets.tsx/props.tsx)
 src/content/v1.json        nội dung thật (đang có chặng Ra bến, Đường về (đến làng), Bước vào nhà, Mâm cơm)
 src/scene3d/registry.ts    danh mục bộ cảnh: vị trí đứng, góc máy (dữ liệu thuần)

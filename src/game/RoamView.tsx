@@ -1,27 +1,23 @@
 import { PerformanceMonitor } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Group } from 'three';
-import { publish } from '../debug';
+import type { Group, PerspectiveCamera } from 'three';
+import { DEBUG, publish } from '../debug';
 import type { Look } from '../engine/types';
-import { Figure, type Anim } from '../scene3d/Figure';
+import { Figure } from '../scene3d/Figure';
 import { FpsProbe } from '../scene3d/FpsProbe';
 import { SETS } from '../scene3d/registry';
 import { SetView, envOf } from '../scene3d/sets';
-import { actorCollider } from '../scene3d/walk';
-import { DEFAULT_CAM, applyLook, computeCameraPose, smoothPose, yawBehind } from './camera';
+import { DEFAULT_CAM, applyLook, computeCameraPose, computeTalkPose, smoothPose, yawBehind } from './camera';
 import { clipRay, isBlocked, resolveMove } from './collision';
+import { findInteractable } from './interact';
 import type { InputController } from './input';
 import { DEFAULT_MOVE, PLAYER_RADIUS, stepMover } from './movement';
-import type { CameraPose, Collider, FollowCam, MoverState, Vec2, WalkArea } from './types';
+import { DEFAULT_NPC, createNpcState, stepNpc, type NpcParams, type NpcState } from './npc';
+import { buildRoamWorld, type MutCircle, type NpcRuntime, type RoamNpc, type World } from './roamWorld';
+import type { CameraPose, Collider, FollowCam, MoveInput, MoverState, Vec2, WalkArea } from './types';
 
-export interface RoamNpc {
-  key: string;
-  look?: Look;
-  /** Tên vị trí đứng trong set (xem registry.ts). */
-  spot: string;
-  anim?: Anim;
-}
+export type { RoamNpc } from './roamWorld';
 
 export interface RoamViewProps {
   setId: string;
@@ -30,6 +26,14 @@ export interface RoamViewProps {
   npcs: RoamNpc[];
   area: WalkArea;
   controller: InputController;
+  /** Đang hội thoại: người chơi và NPC đứng yên (trừ người đang nói quay mặt về người chơi). */
+  paused: boolean;
+  /** NPC đang nói chuyện (hiện dấu chỉ trên đầu). */
+  talkingKey: string | null;
+  /** NPC trong tầm tương tác thay đổi (null = không có). Chỉ gọi khi giá trị đổi. */
+  onNearby: (key: string | null) => void;
+  /** Người chơi bấm tương tác khi có NPC trong tầm. */
+  onInteract: (key: string) => void;
   /** Báo FPS mỗi giây (hiện đồng hồ trên màn hình). */
   onFps?: (fps: number) => void;
 }
@@ -56,14 +60,40 @@ const AIM_LIFT = 0.45;
 const STEP = 0.05;
 const MAX_STEPS = 4;
 
-/** Người chơi: đọc đầu vào, chuyển động có va chạm, camera bám, đặt Figure theo vị trí. */
+const IDLE_INPUT: Readonly<MoveInput> = Object.freeze({ x: 0, y: 0, run: false });
+
+/** NPC đang nói chuyện: đứng yên và quay mặt về phía người chơi. */
+const FACE_PLAYER: Readonly<NpcParams> = Object.freeze({
+  ...DEFAULT_NPC,
+  behavior: 'stand',
+  aware: 1e6,
+  turnRate: 10,
+});
+
+function hashKey(key: string): number {
+  let h = 7;
+  for (let i = 0; i < key.length; i++) h = (Math.imul(h, 31) + key.charCodeAt(i)) | 0;
+  return h >>> 0;
+}
+
+/** Người chơi: đọc đầu vào, chuyển động có va chạm, camera bám, tìm NPC trong tầm tương tác. */
 function Player({
   look,
   area,
   colliders,
   controller,
-}: Readonly<{ look?: Look; area: WalkArea; colliders: readonly Collider[]; controller: InputController }>) {
+  world,
+  cbs,
+}: Readonly<{
+  look?: Look;
+  area: WalkArea;
+  colliders: readonly Collider[];
+  controller: InputController;
+  world: World;
+  cbs: { current: Pick<RoamViewProps, 'onNearby' | 'onInteract'> };
+}>) {
   const camera = useThree((s) => s.camera);
+  const size = useThree((s) => s.size);
   const group = useRef<Group>(null);
   const mover = useRef<MoverState>({
     pos: { x: area.spawn.x, z: area.spawn.z },
@@ -76,6 +106,8 @@ function Player({
   const walkingRef = useRef(false);
   const [walking, setWalking] = useState(false);
   const lastPublish = useRef(0);
+  const lastNearby = useRef<string | null>(null);
+  const lastInteract = useRef(controller.state.interactCount);
 
   const resolve = useCallback(
     (from: Vec2, delta: Vec2): Vec2 => resolveMove(from, delta, PLAYER_RADIUS, colliders, area.bounds),
@@ -90,23 +122,67 @@ function Player({
     const g = group.current;
     if (!g) return;
     cam.current = applyLook(cam.current, controller.consumeLook());
+
+    const input = world.paused ? IDLE_INPUT : controller.state.move;
     let m = mover.current;
     let left = Math.min(Number.isFinite(delta) ? delta : 0, STEP * MAX_STEPS);
     for (let i = 0; i < MAX_STEPS && left > 1e-6; i++) {
       const dt = Math.min(left, STEP);
-      m = stepMover(m, controller.state.move, cam.current.yaw, DEFAULT_MOVE, dt, resolve);
+      m = stepMover(m, input, cam.current.yaw, DEFAULT_MOVE, dt, resolve);
       left -= dt;
     }
+
+    // Tương tác: tìm NPC trong tầm; bấm nút thì quay mặt về NPC rồi báo ra ngoài.
+    let key = world.paused ? null : findInteractable(m.pos, m.heading, world.targets);
+    if (key === null && !world.paused && lastNearby.current !== null) {
+      // Giữ mục tiêu cũ thêm một chút (hysteresis): NPC chạy lăng xăng khiến mục tiêu chớp tắt giữa các khung,
+      // lời nhắc vẫn hiện mà phím bấm lại bị bỏ qua.
+      const prev = world.targets.find((x) => x.key === lastNearby.current);
+      if (prev) key = findInteractable(m.pos, m.heading, [prev], 0.5, 0.5);
+    }
+    const count = controller.state.interactCount;
+    if (count !== lastInteract.current) {
+      // Luôn cập nhật mốc (kể cả khi đang hội thoại) để lần bấm lúc đó không bị dồn lại.
+      lastInteract.current = count;
+      if (key !== null) {
+        const t = world.targets.find((x) => x.key === key);
+        // Dừng hẳn và quay mặt về NPC (không để đà chạy/xoay theo vận tốc kéo mặt đi chỗ khác).
+        if (t) m = { ...m, vel: { x: 0, z: 0 }, speed: 0, heading: Math.atan2(t.x - m.pos.x, t.z - m.pos.z) };
+        cbs.current.onInteract(key);
+      }
+    }
+    if (key !== lastNearby.current) {
+      lastNearby.current = key;
+      cbs.current.onNearby(key);
+      publish({ nearby: key });
+    }
+    // Đang hội thoại: giữ mặt hướng về người đang nói chuyện (stepMover vẫn giảm tốc và xoay theo vận tốc dư).
+    const talkTarget = world.talkingKey ? world.targets.find((x) => x.key === world.talkingKey) : undefined;
+    if (talkTarget) m = { ...m, heading: Math.atan2(talkTarget.x - m.pos.x, talkTarget.z - m.pos.z) };
     mover.current = m;
+
+    world.player.x = m.pos.x;
+    world.player.z = m.pos.z;
+    world.playerCol.x = m.pos.x;
+    world.playerCol.z = m.pos.z;
 
     g.position.set(m.pos.x, 0, m.pos.z);
     g.rotation.y = m.heading;
 
-    const next = computeCameraPose(m.pos, cam.current, clip);
+    // Đang hội thoại: camera chuyển sang góc dựng khung cả hai người ở nửa trên màn hình (khung thoại che nửa dưới).
+    const persp = camera as PerspectiveCamera;
+    let next: CameraPose;
+    if (talkTarget) {
+      next = computeTalkPose(m.pos, talkTarget, size.width / Math.max(1, size.height), (persp.fov * Math.PI) / 180, clip);
+    } else {
+      next = computeCameraPose(m.pos, cam.current, clip);
+      // Nâng điểm ngắm TRƯỚC khi làm mượt: nếu cộng sau thì điểm ngắm nhảy tức thời lúc vào/ra hội thoại.
+      next.lookAt[1] += AIM_LIFT;
+    }
     const p = smoothPose(pose.current, next, delta);
     pose.current = p;
     camera.position.set(p.pos[0], p.pos[1], p.pos[2]);
-    camera.lookAt(p.lookAt[0], p.lookAt[1] + AIM_LIFT, p.lookAt[2]);
+    camera.lookAt(p.lookAt[0], p.lookAt[1], p.lookAt[2]);
 
     const w = m.speed > 0.1;
     if (w !== walkingRef.current) {
@@ -114,11 +190,15 @@ function Player({
       setWalking(w);
     }
 
-    const now = performance.now();
-    if (now - lastPublish.current > DEBUG_EVERY_MS) {
+    const now = DEBUG ? performance.now() : 0;
+    if (DEBUG && now - lastPublish.current > DEBUG_EVERY_MS) {
       lastPublish.current = now;
+      const npcs: Record<string, { x: number; z: number }> = {};
+      for (const t of world.targets) npcs[t.key] = { x: t.x, z: t.z };
       publish({
         mode: 'roam',
+        talking: world.talkingKey,
+        npcs,
         player: {
           x: m.pos.x,
           z: m.pos.z,
@@ -137,6 +217,72 @@ function Player({
   );
 }
 
+/** Một NPC: chạy hành vi (đứng, lang thang, đuổi theo), cập nhật vị trí và vòng va chạm. */
+/** Giữ hoạt ảnh "đang đi" thêm chừng này giây sau lần nhích cuối: NPC đuổi theo dừng/đi liên tục nên không để chớp. */
+const MOVING_HOLD = 0.3;
+
+function NpcView({
+  rt,
+  world,
+  index,
+  talking,
+}: Readonly<{ rt: NpcRuntime; world: World; index: number; talking: boolean }>) {
+  const group = useRef<Group>(null);
+  const state = useRef<NpcState>(createNpcState(rt.home, rt.spot.rotY ?? 0, hashKey(rt.npc.key)));
+  const movingRef = useRef(false);
+  const holdRef = useRef(0);
+  const [moving, setMoving] = useState(false);
+
+  const resolve = useCallback(
+    (from: Vec2, delta: Vec2): Vec2 => resolveMove(from, delta, rt.radius, rt.obstacles, world.bounds),
+    [rt, world],
+  );
+
+  useFrame((_, delta) => {
+    const g = group.current;
+    if (!g) return;
+    const isTalking = world.talkingKey === rt.npc.key;
+    // Đang hội thoại: chỉ người đang nói còn cử động (quay mặt về người chơi), còn lại đứng im.
+    // Người ngồi thì không quay (ngồi mà xoay lưng lại bàn thì lạ, và sau đó không có chỗ quay về).
+    if (!world.paused || isTalking) {
+      state.current = stepNpc(
+        isTalking && !rt.seated ? FACE_PLAYER : rt.npc.params,
+        rt.home,
+        state.current,
+        world.player,
+        delta,
+        resolve,
+      );
+    }
+    const s = state.current;
+    if (rt.dynamic) {
+      g.position.set(s.pos.x, 0, s.pos.z);
+      rt.target.x = s.pos.x;
+      rt.target.z = s.pos.z;
+      (rt.col as MutCircle).x = s.pos.x;
+      (rt.col as MutCircle).z = s.pos.z;
+    }
+    g.rotation.y = s.heading;
+    if (rt.dynamic && s.moving && !world.paused) holdRef.current = MOVING_HOLD;
+    else holdRef.current = Math.max(0, holdRef.current - delta);
+    const mv = holdRef.current > 0 && !world.paused;
+    if (mv !== movingRef.current) {
+      movingRef.current = mv;
+      setMoving(mv);
+    }
+  });
+
+  const dog = rt.npc.look?.kind === 'dog';
+  // Chó không có động tác đi: dùng nhảy chân sáo khi chạy.
+  const anim = moving ? (dog ? 'dance' : 'walk') : 'idle';
+  return (
+    <group ref={group} position={[rt.home.x, 0, rt.home.z]} rotation={[0, rt.spot.rotY ?? 0, 0]}>
+      {!rt.seated && <BlobShadow r={dog || rt.npc.look?.build === 'kid' ? 0.25 : 0.35} />}
+      <Figure look={rt.npc.look} anim={anim} seated={rt.seated} speaking={talking} phase={index * 0.7} />
+    </group>
+  );
+}
+
 export default function RoamView({
   setId,
   regionId,
@@ -144,6 +290,10 @@ export default function RoamView({
   npcs,
   area,
   controller,
+  paused,
+  talkingKey,
+  onNearby,
+  onInteract,
   onFps,
 }: Readonly<RoamViewProps>) {
   const def = SETS[setId];
@@ -153,19 +303,19 @@ export default function RoamView({
   useEffect(() => setDpr(1.75), [setId]);
   useEffect(() => publish({ mode: 'roam', setId }), [setId]);
 
-  // Vị trí NPC (theo spot của set) và vật cản của họ.
-  const placed = useMemo(
-    () =>
-      npcs.flatMap((n) => {
-        const spot = def?.spots[n.spot];
-        return spot ? [{ ...n, spot, x: spot.pos[0], z: spot.pos[2] }] : [];
-      }),
-    [npcs, def],
-  );
-  const colliders = useMemo<Collider[]>(
-    () => [...area.colliders, ...placed.map((n) => actorCollider(n.x, n.z))],
-    [area, placed],
-  );
+  // Dựng NPC lúc chạy: vị trí, vòng va chạm (cố định cho người ngồi/đứng, đổi tại chỗ cho người đi lại),
+  // và danh sách vật cản riêng của từng NPC đi lại.
+  const { world, runtimes, playerColliders } = useMemo(() => buildRoamWorld(npcs, def, area), [npcs, def, area]);
+
+  // Đồng bộ trạng thái từ React xuống vòng lặp khung hình (đọc trong useFrame, không gây render lại).
+  useEffect(() => {
+    world.paused = paused;
+    world.talkingKey = talkingKey;
+  }, [world, paused, talkingKey]);
+  const cbs = useRef<Pick<RoamViewProps, 'onNearby' | 'onInteract'>>({ onNearby, onInteract });
+  useEffect(() => {
+    cbs.current = { onNearby, onInteract };
+  }, [onNearby, onInteract]);
 
   return (
     <Canvas
@@ -181,14 +331,18 @@ export default function RoamView({
 
       <SetView setId={setId} regionId={regionId} />
 
-      {placed.map((n, i) => (
-        <group key={n.key} position={[n.x, 0, n.z]} rotation={[0, n.spot.rotY ?? 0, 0]}>
-          {!n.spot.seated && <BlobShadow r={n.look?.kind === 'dog' || n.look?.build === 'kid' ? 0.25 : 0.35} />}
-          <Figure look={n.look} anim={n.anim} seated={n.spot.seated} phase={i * 0.7} />
-        </group>
+      {runtimes.map((rt, i) => (
+        <NpcView key={rt.npc.key} rt={rt} world={world} index={i} talking={talkingKey === rt.npc.key} />
       ))}
 
-      <Player look={playerLook} area={area} colliders={colliders} controller={controller} />
+      <Player
+        look={playerLook}
+        area={area}
+        colliders={playerColliders}
+        controller={controller}
+        world={world}
+        cbs={cbs}
+      />
       <FpsProbe onFps={onFps} />
     </Canvas>
   );
