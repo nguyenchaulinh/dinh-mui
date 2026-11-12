@@ -109,12 +109,12 @@ export function HudMeters({ stats }: Readonly<{ stats: Stats }>) {
 
 export function Nameplate({ ch, name, role }: Readonly<{ ch?: Character | null; name: string; role?: string }>) {
   return (
-    <p className="nameplate">
+    <span className="nameplate">
       <span className="nameplate-name" style={{ background: accentOf(ch) }}>
         {name}
       </span>
       {role && <span className="nameplate-role">{role}</span>}
-    </p>
+    </span>
   );
 }
 

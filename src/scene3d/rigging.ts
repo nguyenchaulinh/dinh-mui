@@ -19,6 +19,77 @@ export type CharacterModel = (typeof CHARACTER_MODELS)[number];
 export const isCharacterModel = (v: unknown): v is CharacterModel =>
   typeof v === 'string' && (CHARACTER_MODELS as readonly string[]).includes(v);
 
+/**
+ * Chiều cao tư thế gốc (đơn vị của file) của từng model, đo từ khung bao POSITION của mesh nhân với biến đổi các node
+ * (xem `bindHeightFromGltf`; test kiểm tra lại với chính file). Không đo lúc chạy: Box3 trên SkinnedMesh trước khi
+ * cập nhật ma trận xương cho số sai ~100 lần (node mesh của FBX2glTF có scale 100), làm nhân vật bé như một chấm.
+ */
+export const BIND_HEIGHT: Readonly<Record<CharacterModel, number>> = {
+  'nam-vest': 1.857,
+  'nam-tho': 1.866,
+  'nam-nong-dan': 1.856,
+  'nam-hoodie': 1.87,
+  'nu-thuong-ngay': 1.852,
+  'nu-cong-so': 1.842,
+  'nu-hoa-tai': 1.883,
+  'cho-pom': 3.096,
+};
+
+type Vec3 = [number, number, number];
+interface GltfNode {
+  children?: number[];
+  mesh?: number;
+  translation?: number[];
+  rotation?: number[];
+  scale?: number[];
+}
+interface GltfJson {
+  nodes: GltfNode[];
+  meshes: { primitives: { attributes: Record<string, number> }[] }[];
+  accessors: { min?: number[]; max?: number[] }[];
+}
+
+/** Ma trận 3x4 (hàng) của một node từ TRS. */
+function trs(n: GltfNode): number[][] {
+  const [tx, ty, tz] = (n.translation ?? [0, 0, 0]) as Vec3;
+  const [x, y, z, w] = (n.rotation ?? [0, 0, 0, 1]) as [number, number, number, number];
+  const [sx, sy, sz] = (n.scale ?? [1, 1, 1]) as Vec3;
+  const r = [
+    [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+    [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+    [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+  ];
+  return [0, 1, 2].map((i) => [r[i]![0]! * sx, r[i]![1]! * sy, r[i]![2]! * sz, [tx, ty, tz][i]!]);
+}
+
+function mul(a: number[][], b: number[][]): number[][] {
+  return [0, 1, 2].map((i) => [0, 1, 2, 3].map((j) => a[i]![0]! * b[0]![j]! + a[i]![1]! * b[1]![j]! + a[i]![2]! * b[2]![j]! + (j === 3 ? a[i]![3]! : 0)));
+}
+
+/** Chiều cao tư thế gốc tính từ JSON của file glTF (dùng để kiểm tra BIND_HEIGHT). */
+export function bindHeightFromGltf(j: GltfJson): number {
+  const parent = new Map<number, number>();
+  j.nodes.forEach((n, i) => n.children?.forEach((c) => parent.set(c, i)));
+  let lo = Infinity;
+  let hi = -Infinity;
+  j.nodes.forEach((n, i) => {
+    if (n.mesh === undefined) return;
+    let m = trs(n);
+    for (let k = parent.get(i); k !== undefined; k = parent.get(k)) m = mul(trs(j.nodes[k]!), m);
+    for (const p of j.meshes[n.mesh]!.primitives) {
+      const a = j.accessors[p.attributes.POSITION!]!;
+      const mn = a.min as Vec3;
+      const mx = a.max as Vec3;
+      for (const x of [mn[0], mx[0]]) for (const y of [mn[1], mx[1]]) for (const z of [mn[2], mx[2]]) {
+        const wy = m[1]![0]! * x + m[1]![1]! * y + m[1]![2]! * z + m[1]![3]!;
+        lo = Math.min(lo, wy);
+        hi = Math.max(hi, wy);
+      }
+    }
+  });
+  return hi - lo;
+}
+
 /** Đường dẫn file (tôn trọng `base` của Vite khi deploy ở thư mục con). */
 export function modelUrl(model: CharacterModel, base = '/'): string {
   return `${base.endsWith('/') ? base : `${base}/`}models/${model}.glb`;
