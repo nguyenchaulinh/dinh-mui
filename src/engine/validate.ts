@@ -2,15 +2,15 @@ import { mapAutoFlags } from './quests';
 import { STAT_KEYS, type ByRegion, type Condition, type Content, type Effects, type MapNpc, type Quest } from './types';
 
 export interface ValidateOptions {
-  /** Các bộ cảnh 3D có thật; có thì kiểm tra set, vị trí đứng và góc máy. */
-  sets?: Record<string, { spots: Record<string, unknown>; cameras: Record<string, unknown> }>;
+  /** Các bộ cảnh 3D có thật; có thì kiểm tra set và vị trí đứng của NPC. */
+  sets?: Record<string, { spots: Record<string, unknown> }>;
   /** Id các set có vùng đi lại (walk.ts); bản đồ phải trỏ tới set nằm trong danh sách này. */
   roamSets?: readonly string[];
 }
 
 /**
  * Kiểm tra toàn vẹn nội dung: tham chiếu chéo, kill-switch, cờ, lịch sử,
- * biến thể vùng, kết thúc mặc định. Trả về danh sách lỗi; rỗng = hợp lệ.
+ * biến thể vùng, bản đồ/NPC/nhiệm vụ, scene mồ côi, kết thúc mặc định. Trả về danh sách lỗi; rỗng = hợp lệ.
  */
 export function validateContent(c: Content, opts: ValidateOptions = {}): string[] {
   const errors: string[] = [];
@@ -33,7 +33,6 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
 
   const regionIds = new Set(c.regions.map((r) => r.id));
   const personaIds = new Set(c.personas.map((p) => p.id));
-  const stageIds = new Set(c.stages.map((s) => s.id));
   const sceneById = new Map(c.scenes.map((s) => [s.id, s]));
   const tipIds = new Set(c.tips.map((t) => t.id));
   const chars = new Map(c.characters.map((x) => [x.id, x]));
@@ -46,7 +45,7 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
   // Cờ có thể được bật: từ lựa chọn hội thoại, và cờ tự sinh của bản đồ đi lại (talked:, petted:, dodged:, quest:...).
   const setFlags = new Set([
     ...c.scenes.flatMap((s) => s.choices.flatMap((ch) => ch.setFlags ?? [])),
-    ...(c.maps ?? []).flatMap(mapAutoFlags),
+    ...c.maps.flatMap(mapAutoFlags),
   ]);
 
   const checkRegions = (where: string, byRegion: ByRegion | undefined) => {
@@ -65,7 +64,7 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
     for (const h of cond.history ?? []) {
       const [sid, cid] = h.split('/');
       const s = sid ? sceneById.get(sid) : undefined;
-      const ok = s && (cid === '>' ? s.kind === 'cutscene' : s.choices.some((x) => x.id === cid));
+      const ok = s && s.choices.some((x) => x.id === cid);
       if (!ok) err(`${where}: lịch sử ${h} không trỏ tới lựa chọn nào`);
     }
   };
@@ -81,24 +80,22 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
     else if (!fb.enabled) err(`character ${ch.id}: fallback ${fb.id} cũng đang tắt`);
   }
 
+  const mapById = new Map(c.maps.map((m) => [m.id, m]));
   for (const st of c.stages) {
-    if (!sceneById.has(st.firstSceneId)) err(`stage ${st.id}: firstSceneId ${st.firstSceneId} không tồn tại`);
+    if (!mapById.has(st.mapId)) err(`stage ${st.id}: mapId ${st.mapId} không tồn tại`);
+  }
+  dup('mapId của chặng', c.stages.map((s) => s.mapId));
+  for (const m of c.maps) {
+    if (!c.stages.some((s) => s.mapId === m.id)) err(`map ${m.id}: không chặng nào dùng bản đồ này`);
   }
 
   for (const s of c.scenes) {
     const at = `scene ${s.id}`;
-    if (!stageIds.has(s.stageId)) err(`${at}: stageId ${s.stageId} không tồn tại`);
     checkChar(at, s.characterId);
-    if (s.next != null && !sceneById.has(s.next)) err(`${at}: next ${s.next} không tồn tại`);
     checkCond(at, { personas: s.personas, regions: s.regions });
     checkCond(at, s.if);
     checkRegions(at, s.lineByRegion);
-
-    if (s.kind === 'cutscene') {
-      if (s.choices.length > 0) err(`${at}: cắt cảnh không được có lựa chọn`);
-    } else if (s.choices.length < 1) {
-      err(`${at}: cần ít nhất 1 lựa chọn`);
-    }
+    if (s.choices.length < 1) err(`${at}: cần ít nhất 1 lựa chọn`);
 
     for (const [i, l] of (s.lines ?? []).entries()) {
       if (l.characterId) checkChar(`${at} line ${i}`, l.characterId);
@@ -106,23 +103,10 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
       checkRegions(`${at} line ${i}`, l.byRegion);
     }
 
-    if (s.stage3d) {
-      const def = opts.sets?.[s.stage3d.set];
-      if (opts.sets && !def) err(`${at}: set 3D ${s.stage3d.set} không tồn tại`);
-      if (def && s.stage3d.camera && !(s.stage3d.camera in def.cameras)) {
-        err(`${at}: góc máy ${s.stage3d.camera} không có trong set ${s.stage3d.set}`);
-      }
-      for (const a of s.stage3d.actors ?? []) {
-        checkChar(`${at} actor`, a.characterId);
-        if (def && !(a.spot in def.spots)) err(`${at}: vị trí ${a.spot} không có trong set ${s.stage3d.set}`);
-      }
-    }
-
     dup(`choice trong ${at}`, s.choices.map((x) => x.id));
     for (const ch of s.choices) {
       const where = `choice ${s.id}/${ch.id}`;
       if (ch.tipId && !tipIds.has(ch.tipId)) err(`${where}: tipId ${ch.tipId} không tồn tại`);
-      if (ch.next != null && !sceneById.has(ch.next)) err(`${where}: next ${ch.next} không tồn tại`);
       checkCond(where, ch.if);
       checkRegions(where, ch.textByRegion);
       checkRegions(where, ch.replyByRegion);
@@ -131,6 +115,20 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
         if (!Number.isInteger(v)) err(`${where}: effect ${k} phải là số nguyên`);
       }
     }
+  }
+
+  // Scene mồ côi: không NPC nào gọi tới thì không bao giờ chơi được (nội dung chết trong runtime).
+  // (Dữ liệu viết tay có thể thiếu trường: lỗi cụ thể được báo ở phần bản đồ bên dưới, ở đây chỉ gom những gì đọc được.)
+  const used = new Set(
+    c.maps.flatMap((m) =>
+      (m.npcs ?? []).flatMap((n) => [
+        ...(n.action?.kind === 'talk' ? (n.action.sceneIds ?? []) : []),
+        ...(n.shoots?.hitSceneIds ?? []),
+      ]),
+    ),
+  );
+  for (const s of c.scenes) {
+    if (!used.has(s.id)) err(`scene ${s.id}: không NPC nào trong bản đồ gọi tới (mồ côi)`);
   }
 
   const MAX_TEXT = 60; // câu hỏi trên bong bóng/nút: dài hơn là tràn màn hình điện thoại
@@ -153,7 +151,6 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
         err(`${where}: scene ${id} không tồn tại`);
         continue;
       }
-      if (s.kind === 'cutscene') err(`${where}: scene ${id} là cắt cảnh, cần có lựa chọn`);
       if (s.characterId !== speakerId) err(`${where}: scene ${id} do ${s.characterId} nói, không phải ${speakerId}`);
     }
     for (const p of c.personas) {
@@ -236,8 +233,8 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
     return null;
   };
 
-  dup('map', (c.maps ?? []).map((m) => m.id));
-  for (const m of c.maps ?? []) {
+  dup('map', c.maps.map((m) => m.id));
+  for (const m of c.maps) {
     const at = `map ${m.id}`;
     // Dữ liệu thiếu trường (JSON viết tay) phải ra danh sách lỗi dễ đọc, không phải TypeError thô.
     try {
@@ -266,6 +263,7 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
         }
         checkEffects(`${w} reward`, q.reward);
       }
+      if (!m.quests.some((q) => q.id === m.goalQuestId)) err(`${at}: goalQuestId ${m.goalQuestId} không phải nhiệm vụ nào của bản đồ`);
       const cyc = questCycle(m.quests);
       if (cyc) err(`${at}: vòng phụ thuộc giữa các nhiệm vụ (quest:${cyc} chờ chính nó)`);
     } catch (e) {

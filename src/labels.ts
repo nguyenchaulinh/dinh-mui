@@ -12,3 +12,5 @@ export const STYLE_LABEL: Record<Style, string> = {
   lay: 'Lầy',
   'phan-don': 'Phản đòn',
 };
+
+export const DISCLAIMER = 'Mọi nhân vật và tình huống là hư cấu, chỉ để giải trí; không nhằm mô tả bất kỳ cá nhân nào.';

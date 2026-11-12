@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type RefObject } from 'react';
 import type { Group, Mesh } from 'three';
-import type { Actor, Look } from '../engine/types';
+import type { Look } from '../engine/types';
 
 /**
  * Nhân vật low-poly kiểu đồ chơi, dựng từ `Look`. Đầu to, thân nhỏ (chibi).
@@ -13,7 +13,8 @@ const HEX = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 const color = (v: string | undefined, fallback: string): string => (v && HEX.test(v) ? v : fallback);
 const INK = '#1f1410';
 
-export type Anim = NonNullable<Actor['anim']>;
+/** Bộ chuyển động có sẵn của nhân vật. */
+export type Anim = 'idle' | 'talk' | 'wave' | 'dance' | 'sit' | 'walk' | 'cry';
 
 interface FigureProps {
   look?: Look;

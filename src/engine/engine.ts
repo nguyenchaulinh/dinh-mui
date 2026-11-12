@@ -18,7 +18,7 @@ import {
 const DEFAULT_START = 50;
 
 /** Phần state dùng để quyết định scene/lựa chọn/thoại nào hiện. */
-type Ctx = Pick<GameState, 'personaId' | 'regionIds' | 'seed' | 'flags' | 'history'>;
+type Ctx = Pick<GameState, 'personaId' | 'regionId' | 'flags' | 'history'>;
 
 export interface ChoiceView {
   id: string;
@@ -31,11 +31,9 @@ export interface LineView {
   text: string;
 }
 
-/** Mọi thứ UI cần để vẽ scene hiện tại, đã lọc điều kiện và đổi giọng theo vùng. */
+/** Mọi thứ UI cần để vẽ một cuộc hội thoại, đã lọc điều kiện và đổi giọng theo vùng. */
 export interface SceneView {
   scene: Scene;
-  /** Vùng dùng cho scene này (khi chọn nhiều vùng, mỗi scene lấy một vùng). */
-  regionId: string;
   speaker: Character;
   line: string;
   lines: LineView[];
@@ -43,10 +41,10 @@ export interface SceneView {
 }
 
 export interface ChooseResult {
-  /** State sau khi áp hiệu ứng và đã trỏ sang scene kế (hoặc đã kết thúc). */
+  /** State sau khi áp hiệu ứng; đã có `endingId` nếu lựa chọn này kết thúc game. */
   state: GameState;
-  /** Phản ứng của nhân vật, đã đổi theo vùng. Null với cắt cảnh. */
-  reply: string | null;
+  /** Phản ứng của nhân vật, đã đổi theo vùng. */
+  reply: string;
   tip: Tip | null;
 }
 
@@ -61,6 +59,20 @@ export function applyEffects(stats: Stats, effects: Effects): Stats {
   return next;
 }
 
+export function matches(cond: Condition | undefined, ctx: Ctx): boolean {
+  if (!cond) return true;
+  if (cond.flags && !cond.flags.every((f) => ctx.flags.includes(f))) return false;
+  if (cond.notFlags?.some((f) => ctx.flags.includes(f))) return false;
+  if (cond.personas && !cond.personas.includes(ctx.personaId)) return false;
+  if (cond.regions && !cond.regions.includes(ctx.regionId)) return false;
+  if (cond.history && !cond.history.every((h) => ctx.history.includes(h))) return false;
+  return true;
+}
+
+function isVisible(scene: Scene, ctx: Ctx): boolean {
+  return matches({ personas: scene.personas, regions: scene.regions }, ctx) && matches(scene.if, ctx);
+}
+
 /** FNV-1a 32-bit. Chỉ để chọn biến thể nội dung ổn định, không dùng cho bảo mật. */
 function hash(s: string): number {
   let h = 0x811c9dc5;
@@ -71,102 +83,29 @@ function hash(s: string): number {
   return h >>> 0;
 }
 
-export function matches(cond: Condition | undefined, ctx: Ctx): boolean {
-  if (!cond) return true;
-  if (cond.flags && !cond.flags.every((f) => ctx.flags.includes(f))) return false;
-  if (cond.notFlags?.some((f) => ctx.flags.includes(f))) return false;
-  if (cond.personas && !cond.personas.includes(ctx.personaId)) return false;
-  if (cond.regions && !cond.regions.some((r) => ctx.regionIds.includes(r))) return false;
-  if (cond.history && !cond.history.every((h) => ctx.history.includes(h))) return false;
-  return true;
-}
-
-function isVisible(scene: Scene, ctx: Ctx): boolean {
-  return matches({ personas: scene.personas, regions: scene.regions }, ctx) && matches(scene.if, ctx);
-}
-
-/** Vùng dùng cho một scene: chọn 1 vùng thì cố định, chọn nhiều thì lấy theo seed. */
-export function sceneRegion(ctx: Ctx, sceneId: string): string {
-  const ids = ctx.regionIds;
-  if (ids.length === 1) return ids[0]!;
-  const r = ids[hash(`${ctx.seed}:${sceneId}`) % ids.length];
+/**
+ * Chọn một vùng trong các vùng người chơi đã tích: chọn một thì lấy luôn, chọn nhiều thì lấy theo `seed`
+ * (cùng seed + cùng khoá thì cùng kết quả). Không dùng cho bảo mật.
+ */
+export function pickRegion(regionIds: readonly string[], seed: number, key = ''): string {
+  const r = regionIds[hash(`${seed}:${key}`) % Math.max(1, regionIds.length)];
   if (!r) throw new Error('Chưa chọn vùng');
   return r;
 }
 
-const pick = (base: string, byRegion: ByRegion | undefined, regionId: string): string =>
-  byRegion?.[regionId] ?? base;
+const pick = (base: string, byRegion: ByRegion | undefined, regionId: string): string => byRegion?.[regionId] ?? base;
 
-function stageIndexOf(c: Content, scene: Scene): number {
-  return c.stages.findIndex((s) => s.id === scene.stageId);
-}
-
-/**
- * Tìm scene hợp lệ đầu tiên bắt đầu từ `startId` (null = hết chặng hiện tại),
- * bỏ qua scene không thỏa điều kiện, rồi sang các chặng kế.
- * Trả về null khi hết game. Ném lỗi nếu nội dung có vòng lặp khi bỏ qua scene.
- */
-function resolveNextScene(c: Content, ctx: Ctx, startId: string | null, fromStageIndex: number): string | null {
-  const scenes = new Map(c.scenes.map((s) => [s.id, s]));
-  let id = startId;
-  let stageIndex = fromStageIndex;
-  const visited = new Set<string>();
-
-  for (;;) {
-    if (id === null) {
-      stageIndex += 1;
-      const stage = c.stages[stageIndex];
-      if (!stage) return null;
-      id = stage.firstSceneId;
-    }
-    if (visited.has(id)) throw new Error(`Nội dung bị vòng lặp tại scene ${id}`);
-    visited.add(id);
-
-    const scene = scenes.get(id);
-    if (!scene) throw new Error(`Scene không tồn tại: ${id}`);
-    if (isVisible(scene, ctx)) return scene.id;
-
-    id = scene.next ?? null;
-    stageIndex = stageIndexOf(c, scene);
-  }
-}
-
-export function createGame(c: Content, personaId: string, regionIds: readonly string[], seed = 0): GameState {
+export function createGame(c: Content, personaId: string, regionId: string): GameState {
   const persona = c.personas.find((p) => p.id === personaId);
   if (!persona) throw new Error(`Persona không tồn tại: ${personaId}`);
-  if (regionIds.length === 0) throw new Error('Cần chọn ít nhất 1 vùng');
-  const known = new Set(c.regions.map((r) => r.id));
-  const unknown = regionIds.find((r) => !known.has(r));
-  if (unknown) throw new Error(`Vùng không tồn tại: ${unknown}`);
-  if (!Number.isInteger(seed)) throw new Error('seed phải là số nguyên');
+  if (!c.regions.some((r) => r.id === regionId)) throw new Error(`Vùng không tồn tại: ${regionId}`);
 
   const stats: Stats = { harmony: DEFAULT_START, stamina: DEFAULT_START, wallet: DEFAULT_START };
   for (const k of STAT_KEYS) {
     const v = persona.startStats?.[k];
     if (v !== undefined) stats[k] = clamp(v);
   }
-
-  const first = c.stages[0];
-  if (!first) throw new Error('Nội dung không có chặng nào');
-
-  const base: GameState = {
-    personaId,
-    regionIds: [...new Set(regionIds)],
-    seed,
-    sceneId: null,
-    stats,
-    flags: [],
-    tipsSeen: [],
-    history: [],
-    endingId: null,
-  };
-  const sceneId = resolveNextScene(c, base, first.firstSceneId, 0);
-  return sceneId === null ? finish(c, base) : { ...base, sceneId };
-}
-
-export function getScene(c: Content, state: GameState): Scene | null {
-  if (state.sceneId === null) return null;
-  return c.scenes.find((s) => s.id === state.sceneId) ?? null;
+  return { personaId, regionId, stats, flags: [], tipsSeen: [], history: [], endingId: null };
 }
 
 /** Áp kill-switch: nhân vật bị tắt thì trả về bản thay thế trung tính. */
@@ -180,13 +119,25 @@ export function resolveCharacter(c: Content, characterId: string): Character {
   return fb;
 }
 
-export function getView(c: Content, state: GameState): SceneView | null {
-  const scene = getScene(c, state);
-  if (!scene) return null;
-  const regionId = sceneRegion(state, scene.id);
+/**
+ * Scene đầu tiên trong `ids` hợp với persona/vùng/điều kiện của người chơi, hoặc null nếu không có.
+ * (Cùng một NPC có thể hỏi mỗi vai một câu khác nhau.)
+ */
+export function pickScene(c: Content, state: Ctx, ids: readonly string[]): Scene | null {
+  for (const id of ids) {
+    const s = c.scenes.find((x) => x.id === id);
+    if (s && isVisible(s, state)) return s;
+  }
+  return null;
+}
+
+/** Cảnh hội thoại đã lọc điều kiện và đổi giọng theo vùng. Ném lỗi nếu scene không tồn tại. */
+export function getView(c: Content, state: Ctx, sceneId: string): SceneView {
+  const scene = c.scenes.find((s) => s.id === sceneId);
+  if (!scene) throw new Error(`Scene không tồn tại: ${sceneId}`);
+  const regionId = state.regionId;
   return {
     scene,
-    regionId,
     speaker: resolveCharacter(c, scene.characterId),
     line: pick(scene.line, scene.lineByRegion, regionId),
     lines: (scene.lines ?? [])
@@ -216,8 +167,18 @@ export function pickEnding(c: Content, stats: Stats, flags: readonly string[] = 
   return last;
 }
 
-function finish(c: Content, state: GameState): GameState {
-  return { ...state, sceneId: null, endingId: pickEnding(c, state.stats, state.flags).id };
+/** Kết thúc game ngay với danh hiệu hợp chỉ số và cờ hiện tại. Thuần (không đổi state vào). */
+export function finishGame(c: Content, state: GameState): GameState {
+  return { ...state, endingId: pickEnding(c, state.stats, state.flags).id };
+}
+
+/**
+ * Sau khi xong chặng thứ `stageIndex`: sang chặng kế (giữ nguyên chỉ số/cờ) hoặc kết thúc game
+ * (hết chặng, hoặc game đã có kết thúc từ trước, ví dụ một chỉ số về 0). Thuần.
+ */
+export function afterStage(c: Content, stageIndex: number, state: GameState): { next: number } | { end: GameState } {
+  if (state.endingId !== null) return { end: state };
+  return stageIndex + 1 < c.stages.length ? { next: stageIndex + 1 } : { end: finishGame(c, state) };
 }
 
 /** Một chỉ số về 0 thì game kết thúc ngay. */
@@ -225,55 +186,35 @@ function isDepleted(stats: Stats): boolean {
   return STAT_KEYS.some((k) => stats[k] <= STAT_MIN);
 }
 
-/** Chuyển sang scene kế từ `target` (đã có state mới), hoặc kết thúc. */
-function moveOn(c: Content, next: GameState, scene: Scene, target: string | null): GameState {
-  const nextId = resolveNextScene(c, next, target, stageIndexOf(c, scene));
-  return nextId === null ? finish(c, next) : { ...next, sceneId: nextId };
-}
-
 /**
- * Áp một lựa chọn ở scene hội thoại. Thuần (không đổi state vào). Ném lỗi nếu
- * game đã kết thúc, scene là cắt cảnh, hoặc lựa chọn không thuộc/không mở ở scene hiện tại.
+ * Áp một lựa chọn ở scene `sceneId` lên `state` (nên là state MỚI NHẤT của lượt chơi). Thuần (không đổi state vào).
+ * Ném lỗi nếu game đã kết thúc, scene không tồn tại, hoặc lựa chọn không thuộc/không mở ở scene này.
+ * Lựa chọn có `end`, hoặc làm một chỉ số về 0, thì kết thúc game ngay.
  */
-export function choose(c: Content, state: GameState, choiceId: string): ChooseResult {
-  const scene = getScene(c, state);
-  if (!scene) throw new Error('Game đã kết thúc');
-  if (scene.kind === 'cutscene') throw new Error(`Scene ${scene.id} là cắt cảnh, dùng advance()`);
+export function choose(c: Content, state: GameState, sceneId: string, choiceId: string): ChooseResult {
+  if (state.endingId !== null) throw new Error('Game đã kết thúc');
+  const scene = c.scenes.find((s) => s.id === sceneId);
+  if (!scene) throw new Error(`Scene không tồn tại: ${sceneId}`);
   const choice = scene.choices.find((x) => x.id === choiceId);
   if (!choice || !matches(choice.if, state)) {
     throw new Error(`Lựa chọn không hợp lệ ở scene ${scene.id}: ${choiceId}`);
   }
 
-  const regionId = sceneRegion(state, scene.id);
   const stats = applyEffects(state.stats, choice.effects);
   const tip = choice.tipId ? (c.tips.find((t) => t.id === choice.tipId) ?? null) : null;
-  const flags = [...new Set([...state.flags, ...(choice.setFlags ?? [])])];
-
-  let next: GameState = {
+  const next: GameState = {
     ...state,
     stats,
-    flags,
+    flags: [...new Set([...state.flags, ...(choice.setFlags ?? [])])],
     history: [...state.history, `${scene.id}/${choice.id}`],
     tipsSeen: tip && !state.tipsSeen.includes(tip.id) ? [...state.tipsSeen, tip.id] : state.tipsSeen,
   };
 
-  if (choice.end || isDepleted(stats)) {
-    next = finish(c, next);
-  } else {
-    const target = choice.next !== undefined ? choice.next : (scene.next ?? null);
-    next = moveOn(c, next, scene, target);
-  }
-
-  return { state: next, reply: pick(choice.reply, choice.replyByRegion, regionId), tip };
-}
-
-/** Qua cắt cảnh hiện tại. Ném lỗi nếu scene hiện tại không phải cắt cảnh. */
-export function advance(c: Content, state: GameState): GameState {
-  const scene = getScene(c, state);
-  if (!scene) throw new Error('Game đã kết thúc');
-  if (scene.kind !== 'cutscene') throw new Error(`Scene ${scene.id} không phải cắt cảnh`);
-  const next: GameState = { ...state, history: [...state.history, `${scene.id}/>`] };
-  return moveOn(c, next, scene, scene.next ?? null);
+  return {
+    state: choice.end || isDepleted(stats) ? finishGame(c, next) : next,
+    reply: pick(choice.reply, choice.replyByRegion, state.regionId),
+    tip,
+  };
 }
 
 export function getEnding(c: Content, state: GameState): Ending | null {

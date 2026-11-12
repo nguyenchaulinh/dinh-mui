@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
-import type { Character, GameState, Tip } from '../engine/types';
+import type { Character, Tip } from '../engine/types';
 import type { SceneView } from '../engine/engine';
 import { STYLE_LABEL } from '../labels';
 
 /** Một cuộc nói chuyện đang diễn ra trong chế độ đi lại. */
 export type Talk =
   /** Đang chọn câu đáp (scene hội thoại dùng lại từ engine). */
-  | { kind: 'choose'; key: string; state: GameState; view: SceneView; /** Bị bong bóng câu hỏi trúng (không phải chủ động nói chuyện). */ hit?: boolean }
+  | { kind: 'choose'; key: string; sceneId: string; view: SceneView; /** Bị bong bóng câu hỏi trúng (không phải chủ động nói chuyện). */ hit?: boolean }
   /** Nhân vật phản ứng sau lựa chọn, có thể kèm thẻ mẹo. */
   | { kind: 'reply'; key: string; speaker: Character; reply: string; tip: Tip | null }
   /** Một câu thoại đơn (vuốt ve chó, hoặc lời chào lại khi đã nói chuyện xong). */

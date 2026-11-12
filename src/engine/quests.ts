@@ -29,7 +29,7 @@ export function mapAutoFlags(map: RoamMap): string[] {
   return flags;
 }
 
-type Ctx = Pick<GameState, 'personaId' | 'regionIds' | 'seed' | 'flags' | 'history'>;
+type Ctx = Pick<GameState, 'personaId' | 'regionId' | 'flags' | 'history'>;
 
 export function objectiveDone(o: Objective, state: Ctx): boolean {
   return matches(o.done, state);
@@ -65,6 +65,12 @@ export function completeQuests(quests: readonly Quest[], state: GameState): { st
     }
   }
   return { state: cur, completed };
+}
+
+/** Chặng của bản đồ đã xong: nhiệm vụ đích đã được ghi nhận. */
+export function mapGoalReached(map: RoamMap, state: Ctx): boolean {
+  const q = map.quests.find((x) => x.id === map.goalQuestId);
+  return q !== undefined && questRecorded(q, state);
 }
 
 /** Thêm cờ nếu chưa có (không đổi state vào). */
