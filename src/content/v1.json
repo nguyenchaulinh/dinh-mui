@@ -33,7 +33,7 @@
     { "id": "be-de", "name": "Bé Dê", "role": "Dẫn chuyện", "enabled": true,
       "look": { "kind": "goat", "skin": "#f5ead7", "outfit": "#b91c1c", "accessory": "scarf" } },
     { "id": "ban", "name": "Bạn", "role": "Người chơi", "enabled": true,
-      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#2563eb", "accessory": "none", "model": "nam-hoodie", "pants": "#374151" } },
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#d9363e", "accessory": "none", "model": "nam-hoodie", "pants": "#374151" } },
     { "id": "vang", "name": "Vàng", "role": "Chó nhà", "enabled": true,
       "look": { "kind": "dog", "skin": "#e08a2e", "model": "cho-pom" } },
     { "id": "anh-shipper", "name": "Anh Shipper Tết", "role": "Shipper", "enabled": true,

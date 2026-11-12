@@ -14,6 +14,7 @@ import { DEFAULT_CAM, applyLook, computeCameraPose, computeTalkPose, smoothPose,
 import { clipRay, isBlocked, resolveMove } from './collision';
 import { createAmbushState, stepAmbush, type ActiveAmbush, type AmbushState, type AmbusherRuntime } from './ambush';
 import { findInteractable, type Target } from './interact';
+import type { SpeechBubble } from './speech';
 import type { InputController } from './input';
 import { DEFAULT_MOVE, PLAYER_RADIUS, stepMover } from './movement';
 import { DEFAULT_NPC, createNpcState, stepNpc, type NpcParams, type NpcState } from './npc';
@@ -40,16 +41,7 @@ export interface RoamObject {
 /** Tầm với đồ vật (m): đồ nằm trên bàn/quầy nên cho với xa hơn NPC một chút. */
 const OBJECT_REACH = 1.7;
 
-/** Bong bóng thoại trên đầu một nhân vật (`key` = id NPC, hoặc 'player'). */
-export interface SpeechBubble {
-  key: string;
-  name: string;
-  text: string;
-  /** Màu tên người nói (màu áo). */
-  color: string;
-  /** Câu hỏi khi lao tới (viền đỏ, nhấp nháy). */
-  alert?: boolean;
-}
+export type { SpeechBubble } from './speech';
 
 /** Độ cao đặt bong bóng theo vóc dáng (m). */
 function bubbleY(look: Look | undefined): number {

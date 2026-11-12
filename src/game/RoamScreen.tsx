@@ -29,7 +29,8 @@ import { DodgeQte, type QteView } from './DodgeQte';
 import { InputController } from './input';
 import { RoamControls } from './RoamControls';
 import { buildNpcParams, getRoamMap } from './roamDemo';
-import type { RoamNpc, RoamObject, SpeechBubble } from './RoamView';
+import type { RoamNpc, RoamObject } from './RoamView';
+import { speechBubbles } from './speech';
 import { TalkDock, type Talk } from './TalkDock';
 
 const RoamView = lazy(() => import('./RoamView'));
@@ -413,27 +414,14 @@ export function RoamScreen({
     .sort((a, b) => Number(b.q.id === map.goalQuestId) - Number(a.q.id === map.goalQuestId));
   const todo = pending.flatMap(({ q }) => objectivesFor(q, game).filter((o) => !objectiveDone(o, game)).map((o) => ({ q, o })));
 
-  // Bong bóng thoại trên đầu nhân vật đang đứng trong cảnh.
+  // Bong bóng thoại trên đầu nhân vật đang đứng trong cảnh (tối đa một, xem speech.ts).
   const onMap = (key: string) => myNpcs.some((n) => n.characterId === key);
-  const bubbles: SpeechBubble[] = [];
-  if (qte) bubbles.push({ key: qte.key, name: qte.name, text: qte.text, color: accentOf(resolveCharacter(content, qte.key)), alert: true });
-  let speakerOnMap = false;
-  if (talk && talk.kind !== 'call') {
-    const k = talk.key;
-    if (talk.kind === 'choose' && onMap(k) && talk.view.scene.ui !== 'feed') {
-      speakerOnMap = true;
-      bubbles.push({ key: k, name: talk.view.speaker.name, text: talk.view.line, color: accentOf(talk.view.speaker) });
-    } else if (talk.kind === 'reply') {
-      if (talk.said && !talk.feed) bubbles.push({ key: 'player', name: game.playerName || 'Bạn', text: talk.said, color: 'var(--gold-dark)' });
-      if (onMap(k)) {
-        speakerOnMap = true;
-        bubbles.push({ key: k, name: talk.speaker.name, text: talk.reply, color: accentOf(talk.speaker) });
-      }
-    } else if (talk.kind === 'line' && talk.speaker && onMap(k)) {
-      speakerOnMap = true;
-      bubbles.push({ key: k, name: talk.speaker.name, text: talk.text, color: accentOf(talk.speaker) });
-    }
-  }
+  const { bubbles, speakerOnMap } = speechBubbles(
+    talk,
+    qte && { key: qte.key, name: qte.name, text: qte.text, speaker: resolveCharacter(content, qte.key) },
+    onMap,
+    accentOf,
+  );
   const actionLabel = qte ? 'NÉ!' : nearNpc ? nearNpc.prompt : nearObj ? nearObj.prompt : 'Tương tác';
 
   return (
@@ -535,6 +523,7 @@ export function RoamScreen({
             <TalkDock
               talk={talk}
               speakerOnMap={speakerOnMap}
+              playerName={game.playerName}
               onChoose={onChoose}
               onClose={() => setTalk(null)}
               onAnswer={onAnswer}

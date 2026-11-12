@@ -19,7 +19,7 @@ Ngày 12/11/2026. Thay bản 1 ("Tết giấy đỏ") sau phản hồi: nhân v�
 
 - **Cảnh 3D là nhân vật chính.** Giao diện nhỏ, nằm ở mép màn hình, trong mờ. Không phần nào che quá 42% chiều cao màn hình (feed điện thoại tối đa 56%).
 - **Kính tối + chữ kem + vàng lì xì.** Mọi lớp dùng chung kiểu kính tối (`--glass`), viền mảnh sáng, chữ kem; vàng cho điểm nhấn/việc chính; đỏ Tết cho nút chính và cảnh báo.
-- **Lời nói gắn với người nói.** Ai đang đứng trong cảnh thì lời của họ là bong bóng trên đầu họ. Người không có mặt (Bé Dê dẫn chuyện, Mẹ gọi điện, máy tính) thì lời nằm trong dock.
+- **Lời nói gắn với người nói.** Ai đang đứng trong cảnh thì lời của họ là bong bóng trên đầu họ. Người không có mặt (Bé Dê dẫn chuyện, Mẹ gọi điện, máy tính) thì lời nằm trong dock. **Tối đa một bong bóng mỗi lúc** (người chơi và NPC đứng sát nhau, hai bong bóng đè lên nhau): câu người chơi vừa chọn là một dòng nhỏ trong dock (`src/game/speech.ts`, có test).
 - **Một màn, một việc.** Mở game chỉ có ô nhập tên; vai và thành phố bốc ngẫu nhiên.
 
 ## 2. Token
