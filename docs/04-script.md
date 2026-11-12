@@ -2,7 +2,9 @@
 
 Ngày 12/11/2026. Đi kèm [02-plan.md](02-plan.md) (plan đang chạy) và [03-cameo.md](03-cameo.md) (quy tắc nhân vật nhại).
 
-**Hướng đã chốt:** mỗi chặng là một cảnh 3D low-poly, camera dẫn theo kịch bản, hội thoại hiện trong cảnh. Hành trình đi từ thành phố (Hà Nội, Đà Nẵng hoặc Sài Gòn) về quê rồi quay lại thành phố.
+> **Cập nhật 12/11 (sau khi chốt 3D 100%):** đây là kịch bản gốc. Mỗi chặng giờ là một **bản đồ đi lại được** (xem [05-gameplay.md](05-gameplay.md)), không còn là cảnh xem + hộp thoại. **Số hiệu ứng trong các bảng dưới là bản nháp, nguồn thật là `src/content/v1.json`** (đã cân bằng lại: Lầy tốn Ví, Khéo tốn thêm Sức). Hiện chỉ chặng 5 được dựng thành bản đồ đi lại; lời thoại các chặng 3, 4, 6 đã gỡ khỏi `v1.json` và còn trong lịch sử git (commit `442c7d9`), sẽ chuyển lại khi làm bản đồ tương ứng.
+
+**Hướng đã chốt:** mỗi chặng là một cảnh 3D low-poly mà người chơi đi lại và nói chuyện với nhân vật (kịch bản gốc ghi là "camera dẫn"). Hành trình đi từ thành phố (Hà Nội, Đà Nẵng hoặc Sài Gòn) về quê rồi quay lại thành phố.
 
 **Chưa làm chi tiết (theo yêu cầu):** tỉnh quê cụ thể của từng thành phố. Kịch bản dùng "quê" chung theo vùng (Bắc, Trung, Nam).
 
@@ -623,6 +625,7 @@ Nhân vật nhại chỉ nhận diện qua trang phục và đạo cụ, không 
 | Bé Dê | Gốc | Dê con, khăn quàng đỏ | Nhảy, chỉ tay |
 | Mẹ, bố, ông bà | Gốc | Áo len (Bắc) / áo bà ba (Nam) theo vùng | Nấu, vẫy tay, gói đồ |
 | Cô Hai, Bác Cả, Chú Ba Ăn Nhậu | Gốc | Màu áo khác nhau, Chú Ba cầm ly | Ngồi, chỉ trỏ, nâng ly |
+| Dì Út | Gốc (thêm khi làm chế độ đi lại, chưa có trong kịch bản gốc) | Áo hồng, tóc búi, điện thoại | Đi lang thang, bắn bong bóng câu hỏi theo vai người chơi |
 | Bin (Gen Alpha) | Gốc | Tai nghe to, điện thoại | Quay video, nhảy trend |
 | Bà Tám Nhóm Chat | Gốc | Điện thoại có gậy selfie | Livestream |
 | Chị Chốt Đơn | Gốc | Vòng đèn livestream | Nói nhanh, giơ tay "chốt" |

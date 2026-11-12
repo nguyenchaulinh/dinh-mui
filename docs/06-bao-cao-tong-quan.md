@@ -2,6 +2,8 @@
 
 Ngày 12/11/2026. Đây là bản chụp trạng thái thật của repo sau khi đọc code, `v1.json` và các tài liệu 01–05, kèm 323 test pass, typecheck sạch, build thành công.
 
+> **Cập nhật sau khi gỡ luồng hộp thoại (12/11, commit `6ca0340` trở đi).** Báo cáo này viết **trước** khi bỏ luồng hộp thoại, nên các mục sau đã lỗi thời: **mục 1** (không còn hai lối chơi: chỉ còn 3D đi lại), **mục 2.2** (luồng hộp thoại đã gỡ), **mục 4** (E5 đã gỡ vì cần scene bvn-4; E8 đổi thành kết thúc theo kỹ năng, cờ `dodged:5`; phân bố mới ở `src/content/content.test.ts`), **mục 9.2** (đã có: `ErrorBoundary`, CI, email liên hệ qua biến môi trường, thẻ chặng) và **mục 10 giai đoạn 0–1** (đã làm phần lớn). Hiện trạng chính xác nằm ở README và các bảng trạng thái trong 02-plan, 05-gameplay.
+
 **Cách đọc:** mỗi mục ghi rõ cái nào **đang chạy trong code**, cái nào **mới có trong kịch bản/plan**, cái nào **mình đề xuất mới** (đánh dấu *Đề xuất*). Nguồn sự thật cho số liệu game là [src/content/v1.json](../src/content/v1.json), không phải bảng số trong [04-script.md](04-script.md) (bảng đó là bản nháp, đã lệch sau đợt cân bằng ngày 12/11).
 
 ---

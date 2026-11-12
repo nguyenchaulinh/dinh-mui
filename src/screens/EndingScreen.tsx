@@ -1,5 +1,6 @@
 import { STAT_KEYS, STAT_MAX, type Ending, type Stats } from '../engine/types';
-import { DISCLAIMER, STAT_LABEL } from '../labels';
+import { STAT_LABEL } from '../labels';
+import { Footer } from './Footer';
 
 /** Màn kết thúc: danh hiệu của lượt chơi, chỉ số cuối, chơi lại. */
 export function EndingScreen({
@@ -23,7 +24,7 @@ export function EndingScreen({
       <button className="choice start" onClick={onReplay}>
         Chơi lại
       </button>
-      <footer>{DISCLAIMER}</footer>
+      <Footer />
     </main>
   );
 }

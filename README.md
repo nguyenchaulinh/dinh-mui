@@ -4,7 +4,7 @@ Game web 3D về quê ăn Tết, sống sót qua những câu hỏi của họ h
 
 ## Chạy local
 
-Yêu cầu: Node.js 20+ (đã test với Node 24) và npm.
+Yêu cầu: Node.js 22.12+ (xem `.nvmrc`; đã test với Node 22 và 24) và npm.
 
 ```bash
 npm install        # lần đầu

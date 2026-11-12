@@ -1,5 +1,5 @@
 import type { Content } from '../engine/types';
-import { DISCLAIMER } from '../labels';
+import { Footer } from './Footer';
 
 export interface Selection {
   personaId: string | null;
@@ -63,7 +63,7 @@ export function Setup({
       >
         Lên đường về quê
       </button>
-      <footer>{DISCLAIMER}</footer>
+      <Footer />
     </main>
   );
 }
