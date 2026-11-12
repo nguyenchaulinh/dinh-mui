@@ -321,9 +321,9 @@ function CuoiNam({ regionId, variant }: Readonly<{ regionId: string; variant: Ro
       </group>
       <BlossomTree kind="quat" position={[L.plants[0].x, 0, L.plants[0].z]} scale={1.1} />
       <BlossomTree kind={BLOSSOM[s]} position={[L.plants[1].x, 0, L.plants[1].z]} scale={1.0} />
-      <Lantern position={[-2.5, 2.7, -1.2]} />
-      <Lantern position={[1.5, 2.7, -1.2]} />
-      <Lantern position={[1.5, 2.7, 2.0]} />
+      {/* Phòng không có trần (dàn cảnh hở cho camera): đèn lồng treo sát tường sau, hai bên băng rôn, không lơ lửng giữa phòng. */}
+      <Lantern position={[-2.6, 2.35, L.wallBackZ + 0.3]} />
+      <Lantern position={[1.8, 2.35, L.wallBackZ + 0.3]} />
     </group>
   );
 }

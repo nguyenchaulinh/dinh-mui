@@ -33,30 +33,30 @@
     { "id": "be-de", "name": "Bé Dê", "role": "Dẫn chuyện", "enabled": true,
       "look": { "kind": "goat", "skin": "#f5ead7", "outfit": "#b91c1c", "accessory": "scarf" } },
     { "id": "ban", "name": "Bạn", "role": "Người chơi", "enabled": true,
-      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#2563eb", "accessory": "none" } },
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#2563eb", "accessory": "none", "model": "nam-hoodie", "pants": "#374151" } },
     { "id": "vang", "name": "Vàng", "role": "Chó nhà", "enabled": true,
-      "look": { "kind": "dog", "skin": "#d9a441" } },
+      "look": { "kind": "dog", "skin": "#e08a2e", "model": "cho-pom" } },
     { "id": "anh-shipper", "name": "Anh Shipper Tết", "role": "Shipper", "enabled": true,
-      "look": { "kind": "human", "skin": "#d9a27a", "hair": "#1f1410", "hairStyle": "short", "outfit": "#16a34a", "accessory": "hat" } },
+      "look": { "kind": "human", "skin": "#d9a27a", "hair": "#1f1410", "hairStyle": "short", "outfit": "#16a34a", "accessory": "hat", "model": "nam-tho" } },
     { "id": "co-hai", "name": "Cô Hai", "role": "Chuyên mục: Thu nhập", "enabled": true,
-      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#2b1d15", "hairStyle": "bun", "outfit": "#d97706", "accessory": "none" } },
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#2b1d15", "hairStyle": "bun", "outfit": "#d97706", "accessory": "none", "model": "nu-cong-so", "pants": "#3f2a1d" } },
     { "id": "bac-ca", "name": "Bác Cả", "role": "Chuyên mục: Con nhà người ta", "enabled": true,
-      "look": { "kind": "human", "skin": "#e8b98f", "hair": "#9ca3af", "hairStyle": "short", "outfit": "#4b5563", "build": "elder", "accessory": "glasses" } },
+      "look": { "kind": "human", "skin": "#e8b98f", "hair": "#9ca3af", "hairStyle": "short", "outfit": "#4b5563", "build": "elder", "accessory": "glasses", "model": "nam-nong-dan", "pants": "#3b3b3b" } },
     { "id": "chu-ba", "name": "Chú Ba Ăn Nhậu", "role": "Chuyên mục: Một ly thôi", "enabled": true,
-      "look": { "kind": "human", "skin": "#d9a27a", "hair": "#1f1410", "hairStyle": "bald", "outfit": "#0f766e", "accessory": "cup" } },
+      "look": { "kind": "human", "skin": "#d9a27a", "hair": "#1f1410", "hairStyle": "bald", "outfit": "#0f766e", "accessory": "cup", "model": "nam-tho" } },
     { "id": "ba-tam", "name": "Bà Tám Nhóm Chat", "role": "Phóng viên gia đình", "enabled": true,
-      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#e5e7eb", "hairStyle": "bun", "outfit": "#be185d", "build": "elder", "accessory": "phone" } },
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#e5e7eb", "hairStyle": "bun", "outfit": "#be185d", "build": "elder", "accessory": "phone", "model": "nu-thuong-ngay", "pants": "#2b2b2b" } },
     { "id": "bin", "name": "Bin", "role": "Em họ Gen Alpha", "enabled": true,
-      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#facc15", "build": "kid", "accessory": "headphones" } },
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#facc15", "build": "kid", "accessory": "headphones", "model": "nam-hoodie", "pants": "#1e3a8a" } },
     { "id": "di-ut", "name": "Dì Út", "role": "Chuyên mục: Bao giờ cưới", "enabled": true,
-      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#2b1d15", "hairStyle": "bun", "outfit": "#db2777", "accessory": "phone" } },
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#2b1d15", "hairStyle": "bun", "outfit": "#db2777", "accessory": "phone", "model": "nu-hoa-tai" } },
     { "id": "ong", "name": "Ông", "role": "Ông nội", "enabled": true,
-      "look": { "kind": "human", "skin": "#e0b088", "hair": "#f3f4f6", "hairStyle": "short", "outfit": "#78350f", "build": "elder", "accessory": "none" } },
+      "look": { "kind": "human", "skin": "#e0b088", "hair": "#f3f4f6", "hairStyle": "short", "outfit": "#78350f", "build": "elder", "accessory": "none", "model": "nam-nong-dan", "pants": "#4b3621" } },
     { "id": "duy-den-cay", "name": "Duy Đèn Cầy", "role": "Chuyên mục: Review mâm cỗ", "enabled": true,
       "parody": true, "fallbackId": "chu-tu",
-      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#7c3aed", "accessory": "spoon" } },
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#7c3aed", "accessory": "spoon", "model": "nam-vest" } },
     { "id": "chu-tu", "name": "Chú Tư", "role": "Chuyên mục: Review mâm cỗ (bản trung tính)", "enabled": true,
-      "look": { "kind": "human", "skin": "#e0b088", "hair": "#3b2a20", "hairStyle": "short", "outfit": "#1d4ed8", "accessory": "spoon" } },
+      "look": { "kind": "human", "skin": "#e0b088", "hair": "#3b2a20", "hairStyle": "short", "outfit": "#1d4ed8", "accessory": "spoon", "model": "nam-vest" } },
     {
       "id": "tu",
       "name": "Tú",
@@ -68,7 +68,9 @@
         "hair": "#3b2a20",
         "hairStyle": "short",
         "outfit": "#ea580c",
-        "accessory": "cup"
+        "accessory": "cup",
+        "model": "nu-thuong-ngay",
+        "pants": "#1f2937"
       }
     },
     {
@@ -82,7 +84,8 @@
         "hair": "#1f1410",
         "hairStyle": "short",
         "outfit": "#1e3a8a",
-        "accessory": "glasses"
+        "accessory": "glasses",
+        "model": "nam-vest"
       }
     },
     {
@@ -96,7 +99,9 @@
         "hair": "#2b1d15",
         "hairStyle": "long",
         "outfit": "#0d9488",
-        "accessory": "phone"
+        "accessory": "phone",
+        "model": "nu-cong-so",
+        "pants": "#1f2937"
       }
     },
     {
@@ -110,7 +115,9 @@
         "hair": "#2b1d15",
         "hairStyle": "bun",
         "outfit": "#7c3aed",
-        "accessory": "glasses"
+        "accessory": "glasses",
+        "model": "nu-cong-so",
+        "pants": "#312e81"
       }
     },
     {
@@ -124,7 +131,9 @@
         "hair": "#1f1410",
         "hairStyle": "short",
         "outfit": "#0284c7",
-        "accessory": "headphones"
+        "accessory": "headphones",
+        "model": "nam-hoodie",
+        "pants": "#111827"
       }
     },
     {
@@ -138,7 +147,9 @@
         "hair": "#2b1d15",
         "hairStyle": "bun",
         "outfit": "#be123c",
-        "accessory": "phone"
+        "accessory": "phone",
+        "model": "nu-thuong-ngay",
+        "pants": "#3f2a1d"
       }
     }
   ],
@@ -724,11 +735,12 @@
           "leash": 2.0,
           "prompt": "Chúc Tết",
           "action": {  "kind": "talk", "sceneIds": ["sep-thuong"], "after": "Về quê vui vẻ, ra Tết làm tiếp nhé!" },
-          "shoots": {
+          "ambush": {
             "everySec": 4,
             "range": 8,
             "minRange": 2.5,
-            "speed": 2.8,
+            "warnSec": 1.6,
+            "windowSec": 0.5,
             "questions": ["Em ơi, xem giúp anh file này!", "Họp năm phút thôi nhé!", "Làm nốt cái báo cáo nha!"],
             "hitSceneIds": ["sep-nho-viec"]
           }
@@ -760,11 +772,12 @@
           "leash": 2.0,
           "prompt": "Nói chuyện",
           "action": {  "kind": "talk", "sceneIds": ["lt-gop-tien"], "after": "Ra Tết nhớ quay lại đóng quỹ nha!" },
-          "shoots": {
+          "ambush": {
             "everySec": 4,
             "range": 8,
             "minRange": 2.5,
-            "speed": 2.8,
+            "warnSec": 1.6,
+            "windowSec": 0.5,
             "questions": ["Góp tiền liên hoan chưa?", "Nộp quỹ lớp đi!", "Còn thiếu mỗi mày đó!"],
             "hitSceneIds": ["lt-nho-viec"]
           }
@@ -905,9 +918,8 @@
           "action": { "kind": "talk", "sceneIds": ["roam-bin"], "after": "Em cảm ơn anh/chị! Em đi quay clip đây." } },
         { "characterId": "di-ut", "spot": "cuoi-san", "behavior": "wander", "speed": 1.0, "leash": 2.2, "prompt": "Nói chuyện",
           "action": { "kind": "talk", "sceneIds": ["roam-ut-sv", "roam-ut-dl", "roam-ut-dt"], "after": "Dì hỏi vậy thôi, đừng giận dì." },
-          "shoots": {
-            "everySec": 3.5, "range": 9, "minRange": 2.5, "speed": 3.0,
-            "questions": ["Dì hỏi cái này nha con!", "Con ơi, dì hỏi chút!"],
+          "ambush": {
+            "everySec": 3.5, "range": 9, "minRange": 2.5, "warnSec": 1.6, "windowSec": 0.5, "questions": ["Dì hỏi cái này nha con!", "Con ơi, dì hỏi chút!"],
             "questionsByPersona": {
               "sinh-vien": ["Ra trường làm gì?", "Xin được việc chưa con?", "Học xong chưa con?", "Có người yêu chưa?"],
               "moi-di-lam": ["Lương bao nhiêu rồi?", "Có thưởng Tết không?", "Mua nhà chưa con?", "Làm ở công ty nào?"],

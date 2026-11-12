@@ -29,7 +29,7 @@ Ngày 12/11/2026. Đi kèm [02-plan.md](02-plan.md) và [04-script.md](04-script
 |---|---|---|---|
 | Nói chuyện | Mọi chặng | Lại gần, bấm nút, chọn câu đáp | Như kịch bản hiện tại |
 | Chào hỏi | 5, 6, 8 | Bấm nút cúi chào khi đứng trước người lớn | Hòa khí + nhỏ; bỏ sót người lớn thì Hòa khí − |
-| **Né câu hỏi** | 5 | Họ hàng đuổi theo, câu hỏi bay ra thành bong bóng. Né được thì giữ sức; trúng thì bị kéo vào hội thoại | Sức, Hòa khí |
+| **Né câu hỏi** | 1, 5 | Họ hàng/Sếp lao tới hỏi, báo trước rồi bấm NÉ đúng lúc (như Một Ngày Làm Chó). Né được thì giữ sức; bị bắt thì bị kéo vào hội thoại | Sức, Hòa khí |
 | Nhặt, mang đồ | 3, 9 | Giỏ quà, vali, thùng xốp mẹ gói. Mang đồ thì đi chậm, va chạm có thể làm rơi | Ví, Hòa khí |
 | Đưa đồ | 6, 8 | Đi tới từng đứa trẻ đưa lì xì; mời trà; gắp thức ăn ở mâm | Ví, Hòa khí |
 | Băng qua đường | 3 | Dòng xe máy chở đào/mai chạy liên tục; bị quẹt thì mất sức | Sức |
@@ -75,6 +75,7 @@ Mỗi bước kết thúc bằng một bản chạy được. Ở các **điểm
 | 4 (một phần) | **Né câu hỏi:** Dì Út bắn bong bóng bay thẳng về chỗ bạn đứng; trúng thì bị kéo vào hội thoại theo vai, né được thì tính điểm (3 câu xong nhiệm vụ, 5 câu mở kết thúc "Chiến thần né câu hỏi"). Còn thiếu: Bà Tám livestream, mâm cơm gắp mời | 3 ngày | **Có**: playtest vòng 1 với vài người | một phần xong 12/11 |
 | 4b | **Gỡ luồng hộp thoại, 3D 100%:** chặng trỏ thẳng tới bản đồ, kết thúc khi xong nhiệm vụ đích hoặc chỉ số về 0, màn chọn vai và màn kết thúc | | | xong 12/11 |
 | 4c | **Chặng "Cuối năm ở phố" (văn phòng / lớp học)** + giao diện mới theo [07](07-thiet-ke-ui-ux.md): dùng đồ vật, nhặt đồ, cửa ra có điều kiện, sự kiện (cuộc gọi của mẹ), feed săn vé, NPC theo vai, kết thúc E4. Chi tiết ở [08](08-thiet-ke-choi-truoc-que.md) | | | xong 12/11 |
+| 4d | **Nâng cấp theo Một Ngày Làm Chó** ([07](07-thiet-ke-ui-ux.md)): nhân vật model CC0 có xương (Quaternius) đổi màu theo nhân vật, chó Vàng thành Pomeranian; giao diện kính tối gọn, bong bóng thoại trên đầu, việc cần làm hiện sẵn; né câu hỏi đổi sang bấm NÉ đúng lúc | | **Có**: xem lại trên điện thoại | xong code 12/11 |
 | 5 | **Chặng 3 + 4:** đi phố, mua quà, băng qua đường, xe ôm; lái xe máy quốc lộ, trạm dừng chân | 4 ngày | | chưa |
 | 6 | **Chặng 6 (mâm cơm):** đi quanh nhà trên, gắp mời, boss "cả mâm hỏi cùng lúc" | 3 ngày | | chưa |
 | 7 | **Chặng 1 + 2:** văn phòng/KTX đi lại, điện thoại săn vé; tiệc tất niên đi giữa các bàn | 3 ngày | | chưa |

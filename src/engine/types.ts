@@ -66,6 +66,13 @@ export interface Look {
   /** Tầm vóc: trẻ con thấp hơn, người già hơi khom. */
   build?: 'kid' | 'adult' | 'elder';
   accessory?: Accessory;
+  /**
+   * Model có xương trong public/models (xem src/scene3d/rigging.ts, CHARACTER_MODELS). Có thì dùng model đó và đổi màu
+   * áo (`outfit`), quần (`pants`), tóc (`hair`), da (`skin`; với chó là lông); không có thì dựng bằng code (Bé Dê).
+   */
+  model?: string;
+  /** Màu quần (model có xương). */
+  pants?: string;
 }
 
 export interface Character {
@@ -114,7 +121,7 @@ export interface Line {
 
 /**
  * Một cuộc hội thoại có lựa chọn. Không đứng một mình: scene chỉ chơi được khi một NPC trong bản đồ
- * (`MapNpc.action.sceneIds` hoặc `shoots.hitSceneIds`) gọi tới nó; validate bắt scene mồ côi.
+ * (`MapNpc.action.sceneIds` hoặc `ambush.hitSceneIds`) gọi tới nó; validate bắt scene mồ côi.
  */
 export interface Scene {
   id: string;
@@ -173,20 +180,25 @@ export type NpcAction =
   /** Vuốt ve / tặng quà: một câu và hiệu ứng chỉ số, chỉ có tác dụng một lần; sau đó `after`. */
   | { kind: 'pet'; line: string; effects: Effects; after: string };
 
-/** NPC "bắn" bong bóng câu hỏi về phía người chơi: né được thì thoát, trúng thì bị kéo vào hội thoại. */
-export interface Shooter {
-  /** Chu kỳ bắn (giây). */
+/**
+ * NPC thỉnh thoảng lao tới hỏi: báo trước `warnSec` giây (vòng thời gian thu nhỏ), người chơi bấm NÉ khi còn
+ * <= `windowSec` giây thì né được; bấm sớm hoặc không bấm thì bị kéo vào hội thoại (`hitSceneIds`).
+ */
+export interface Ambush {
+  /** Chu kỳ trung bình giữa hai lần hỏi (giây). */
   everySec: number;
-  /** Chỉ bắn khi người chơi cách trong khoảng này (m); gần hơn `minRange` thì không bắn. */
+  /** Chỉ hỏi khi người chơi cách trong [minRange, range] (m). */
   range: number;
   minRange: number;
-  /** Tốc độ bong bóng (m/s). */
-  speed: number;
-  /** Câu hỏi ngắn hiện thành dòng chữ khi bắn (chọn ngẫu nhiên). Dùng khi vai của người chơi không có danh sách riêng. */
+  /** Thời gian báo trước (giây), mặc định 1.6. */
+  warnSec?: number;
+  /** Khung bấm NÉ cuối lượt báo trước (giây), mặc định 0.5. */
+  windowSec?: number;
+  /** Câu hỏi hiện lúc báo trước (chọn ngẫu nhiên). Dùng khi vai của người chơi không có danh sách riêng. */
   questions: string[];
-  /** Câu hỏi theo vai (khoá = id persona) để bong bóng khớp với cảnh hội thoại khi bị trúng. */
+  /** Câu hỏi theo vai (khoá = id persona) để khớp với cảnh hội thoại khi bị bắt. */
   questionsByPersona?: Record<string, string[]>;
-  /** Scene hội thoại khi bị trúng (scene đầu tiên hợp persona/vùng). */
+  /** Scene hội thoại khi bị bắt (scene đầu tiên hợp persona/vùng). */
   hitSceneIds: string[];
 }
 
@@ -209,7 +221,7 @@ export interface MapNpc {
   /** Chữ trên nút tương tác, ví dụ "Nói chuyện". */
   prompt: string;
   action: NpcAction;
-  shoots?: Shooter;
+  ambush?: Ambush;
 }
 
 /** Một mục tiêu của nhiệm vụ; hoàn thành khi điều kiện `done` thoả (thường theo cờ tự sinh `talked:<npc>`...). */

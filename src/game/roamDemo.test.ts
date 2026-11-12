@@ -30,7 +30,7 @@ describe('bản đồ san-nha trong nội dung', () => {
     for (const p of content.personas) {
       for (const r of content.regions) {
         for (const n of map.npcs) {
-          const ids = [...(n.action.kind === 'talk' ? n.action.sceneIds : []), ...(n.shoots?.hitSceneIds ?? [])];
+          const ids = [...(n.action.kind === 'talk' ? n.action.sceneIds : []), ...(n.ambush?.hitSceneIds ?? [])];
           for (const id of ids) {
             const scene = content.scenes.find((s) => s.id === id)!;
             // Chỉ kiểm tra scene hợp persona (scene khác persona không bao giờ được chọn cho người chơi này).
@@ -65,11 +65,11 @@ describe('bản đồ san-nha trong nội dung', () => {
     expect(dyn.length).toBeGreaterThanOrEqual(3);
     expect(dyn.every((n) => set.spots[n.spot]?.seated !== true)).toBe(true);
     expect(map.npcs.some((n) => n.behavior === 'approach')).toBe(true);
-    expect(map.npcs.some((n) => n.shoots)).toBe(true);
+    expect(map.npcs.some((n) => n.ambush)).toBe(true);
   });
 
   it('NPC bắn câu hỏi không ngồi (ngồi thì không bắn được vì không có vị trí đi lại hợp lý)', () => {
-    for (const n of map.npcs.filter((x) => x.shoots)) {
+    for (const n of map.npcs.filter((x) => x.ambush)) {
       expect(set.spots[n.spot]?.seated, n.characterId).not.toBe(true);
     }
   });

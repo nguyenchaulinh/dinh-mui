@@ -1,22 +1,18 @@
-import { PerformanceMonitor } from '@react-three/drei';
+import { Html, PerformanceMonitor } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CanvasTexture, SRGBColorSpace, type Group, type PerspectiveCamera, type Sprite } from 'three';
+import type { Group, PerspectiveCamera } from 'three';
 import { DEBUG, publish } from '../debug';
 import type { Look, ObjectModel } from '../engine/types';
 import { Figure } from '../scene3d/Figure';
+import { preloadModels } from '../scene3d/Rigged';
+import { isCharacterModel } from '../scene3d/rigging';
 import { FpsProbe } from '../scene3d/FpsProbe';
 import { SETS } from '../scene3d/registry';
 import { SetView, envOf } from '../scene3d/sets';
 import { DEFAULT_CAM, applyLook, computeCameraPose, computeTalkPose, smoothPose, yawBehind } from './camera';
 import { clipRay, isBlocked, resolveMove } from './collision';
-import {
-  MAX_BUBBLES,
-  createBubbleState,
-  stepBubbles,
-  type BubbleState,
-  type ShooterRuntime,
-} from './bubbles';
+import { createAmbushState, stepAmbush, type ActiveAmbush, type AmbushState, type AmbusherRuntime } from './ambush';
 import { findInteractable, type Target } from './interact';
 import type { InputController } from './input';
 import { DEFAULT_MOVE, PLAYER_RADIUS, stepMover } from './movement';
@@ -44,6 +40,37 @@ export interface RoamObject {
 /** Tầm với đồ vật (m): đồ nằm trên bàn/quầy nên cho với xa hơn NPC một chút. */
 const OBJECT_REACH = 1.7;
 
+/** Bong bóng thoại trên đầu một nhân vật (`key` = id NPC, hoặc 'player'). */
+export interface SpeechBubble {
+  key: string;
+  name: string;
+  text: string;
+  /** Màu tên người nói (màu áo). */
+  color: string;
+  /** Câu hỏi khi lao tới (viền đỏ, nhấp nháy). */
+  alert?: boolean;
+}
+
+/** Độ cao đặt bong bóng theo vóc dáng (m). */
+function bubbleY(look: Look | undefined): number {
+  if (look?.kind === 'dog') return 0.75;
+  if (look?.build === 'kid') return 1.45;
+  return 2.05;
+}
+
+function BubbleHtml({ b, y }: Readonly<{ b: SpeechBubble; y: number }>) {
+  return (
+    <Html position={[0, y, 0]} center zIndexRange={[15, 0]} pointerEvents="none">
+      <div className={b.alert ? 'speech speech-alert' : 'speech'}>
+        <span className="speech-name" style={{ color: b.color }}>
+          {b.name}
+        </span>
+        <span className="speech-text">{b.text}</span>
+      </div>
+    </Html>
+  );
+}
+
 export interface RoamViewProps {
   setId: string;
   regionId: string;
@@ -58,21 +85,23 @@ export interface RoamViewProps {
   paused: boolean;
   /** NPC đang nói chuyện (hiện dấu chỉ trên đầu). */
   talkingKey: string | null;
+  /** Bong bóng thoại đang hiện (trên đầu NPC hoặc người chơi). */
+  bubbles?: SpeechBubble[];
   /** NPC trong tầm tương tác thay đổi (null = không có). Chỉ gọi khi giá trị đổi. */
   onNearby: (key: string | null) => void;
   /** Người chơi bấm tương tác khi có NPC trong tầm. */
   onInteract: (key: string) => void;
-  /** NPC vừa bắn một bong bóng câu hỏi (để hiện chữ). */
-  onShoot?: (key: string, text: string) => void;
-  /** Người chơi né được một bong bóng. */
+  /** Một NPC bắt đầu lao tới hỏi: hiện báo trước + vòng thời gian, chờ bấm NÉ. */
+  onAmbush?: (a: ActiveAmbush) => void;
+  /** Người chơi bấm NÉ đúng lúc. */
   onDodge?: (key: string) => void;
-  /** Người chơi bị bong bóng trúng (bị kéo vào hội thoại). */
-  onHit?: (key: string) => void;
+  /** Người chơi bị bắt (bấm sớm hoặc không bấm): bị kéo vào hội thoại. */
+  onHit?: (key: string, early: boolean) => void;
   /** Báo FPS mỗi giây (hiện đồng hồ trên màn hình). */
   onFps?: (fps: number) => void;
 }
 
-type Callbacks = Pick<RoamViewProps, 'onNearby' | 'onInteract' | 'onShoot' | 'onDodge' | 'onHit'>;
+type Callbacks = Pick<RoamViewProps, 'onNearby' | 'onInteract' | 'onAmbush' | 'onDodge' | 'onHit'>;
 
 /** Bóng giả dưới chân: rẻ hơn nhiều so với shadow map trên điện thoại. */
 function BlobShadow({ r }: Readonly<{ r: number }>) {
@@ -98,6 +127,16 @@ const MAX_STEPS = 4;
 
 const IDLE_INPUT: Readonly<MoveInput> = Object.freeze({ x: 0, y: 0, run: false });
 
+/** NPC đang lao tới hỏi: chạy thẳng tới chỗ người chơi, dừng sát trước mặt. */
+const RUSH: Readonly<NpcParams> = Object.freeze({
+  ...DEFAULT_NPC,
+  behavior: 'approach',
+  speed: 3.2,
+  aware: 1e6,
+  stopDist: 1.1,
+  turnRate: 12,
+});
+
 /** NPC đang nói chuyện: đứng yên và quay mặt về phía người chơi. */
 const FACE_PLAYER: Readonly<NpcParams> = Object.freeze({
   ...DEFAULT_NPC,
@@ -115,6 +154,7 @@ function hashKey(key: string): number {
 /** Người chơi: đọc đầu vào, chuyển động có va chạm, camera bám, tìm NPC trong tầm tương tác. */
 function Player({
   look,
+  bubble,
   area,
   colliders,
   controller,
@@ -122,6 +162,7 @@ function Player({
   cbs,
 }: Readonly<{
   look?: Look;
+  bubble?: SpeechBubble;
   area: WalkArea;
   colliders: readonly Collider[];
   controller: InputController;
@@ -139,8 +180,8 @@ function Player({
   });
   const cam = useRef<FollowCam>({ ...DEFAULT_CAM, yaw: yawBehind(area.spawn.rotY) });
   const pose = useRef<CameraPose | null>(null);
-  const walkingRef = useRef(false);
-  const [walking, setWalking] = useState(false);
+  const walkingRef = useRef<'idle' | 'walk' | 'run'>('idle');
+  const [walking, setWalking] = useState<'idle' | 'walk' | 'run'>('idle');
   const lastPublish = useRef(0);
   const lastNearby = useRef<string | null>(null);
   const lastInteract = useRef(controller.state.interactCount);
@@ -152,6 +193,16 @@ function Player({
   const clip = useCallback(
     (origin: Vec2, dir: Vec2, maxLen: number): number => clipRay(origin, dir, maxLen, colliders),
     [colliders],
+  );
+  // Lúc nói chuyện góc máy đứng yên nên coi MỌI vật cản tĩnh (cột cổng, thân dừa, móc áo...) là vật che, để không
+  // dựng khung hai người sau một cái cột. Khi đi lại thì không làm vậy (vật mảnh sẽ làm camera giật).
+  const talkColliders = useMemo(
+    () => colliders.filter((c) => c.id !== 'npc').map((c) => ({ ...c, blocksCamera: true })),
+    [colliders],
+  );
+  const talkClip = useCallback(
+    (origin: Vec2, dir: Vec2, maxLen: number): number => clipRay(origin, dir, maxLen, talkColliders),
+    [talkColliders],
   );
 
   useFrame((_, delta) => {
@@ -169,8 +220,9 @@ function Player({
     }
 
     // Tương tác: tìm NPC trong tầm; bấm nút thì quay mặt về NPC rồi báo ra ngoài.
-    let key = world.paused ? null : findInteractable(m.pos, m.heading, world.targets);
-    if (key === null && !world.paused && lastNearby.current !== null) {
+    // Đang có người lao tới hỏi: nút tương tác dùng để NÉ, không mở hội thoại.
+    let key = world.paused || world.ambushKey ? null : findInteractable(m.pos, m.heading, world.targets);
+    if (key === null && !world.paused && !world.ambushKey && lastNearby.current !== null) {
       // Giữ mục tiêu cũ thêm một chút (hysteresis): NPC chạy lăng xăng khiến mục tiêu chớp tắt giữa các khung,
       // lời nhắc vẫn hiện mà phím bấm lại bị bỏ qua.
       const prev = world.targets.find((x) => x.key === lastNearby.current);
@@ -209,7 +261,7 @@ function Player({
     const persp = camera as PerspectiveCamera;
     let next: CameraPose;
     if (talkTarget) {
-      next = computeTalkPose(m.pos, talkTarget, size.width / Math.max(1, size.height), (persp.fov * Math.PI) / 180, clip);
+      next = computeTalkPose(m.pos, talkTarget, size.width / Math.max(1, size.height), (persp.fov * Math.PI) / 180, talkClip);
     } else {
       next = computeCameraPose(m.pos, cam.current, clip);
       // Nâng điểm ngắm TRƯỚC khi làm mượt: nếu cộng sau thì điểm ngắm nhảy tức thời lúc vào/ra hội thoại.
@@ -220,7 +272,7 @@ function Player({
     camera.position.set(p.pos[0], p.pos[1], p.pos[2]);
     camera.lookAt(p.lookAt[0], p.lookAt[1], p.lookAt[2]);
 
-    const w = m.speed > 0.1;
+    const w = m.speed > 3 ? 'run' : m.speed > 0.1 ? 'walk' : 'idle';
     if (w !== walkingRef.current) {
       walkingRef.current = w;
       setWalking(w);
@@ -248,114 +300,47 @@ function Player({
   return (
     <group ref={group} position={[area.spawn.x, 0, area.spawn.z]} rotation={[0, area.spawn.rotY, 0]}>
       <BlobShadow r={0.38} />
-      <Figure look={look} anim={walking ? 'walk' : 'idle'} />
+      <Figure look={look} anim={walking} />
+      {bubble && <BubbleHtml b={bubble} y={bubbleY(look)} />}
     </group>
   );
 }
 
-const MAX_SPRITES = MAX_BUBBLES;
-const BUBBLE_Y = 1.5;
-
-/** Vẽ một bong bóng thoại (tròn trắng, viền đỏ, dấu "?" đỏ) lên canvas làm kết cấu; không cần tải gì từ mạng. */
-function makeBubbleTexture(): CanvasTexture {
-  const c = document.createElement('canvas');
-  c.width = 128;
-  c.height = 128;
-  const g = c.getContext('2d');
-  if (g) {
-    g.fillStyle = '#ffffff';
-    g.strokeStyle = '#b91c1c';
-    g.lineWidth = 8;
-    g.beginPath();
-    g.arc(64, 60, 48, 0, Math.PI * 2);
-    g.fill();
-    g.stroke();
-    g.beginPath(); // đuôi bóng thoại
-    g.moveTo(44, 98);
-    g.lineTo(34, 122);
-    g.lineTo(70, 104);
-    g.closePath();
-    g.fill();
-    g.fillStyle = '#b91c1c';
-    g.font = '700 74px system-ui, sans-serif';
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.fillText('?', 64, 64);
-  }
-  const tex = new CanvasTexture(c);
-  tex.colorSpace = SRGBColorSpace; // không đặt thì màu đỏ/trắng bị nhạt trên màn hình
-  return tex;
-}
-
-/** Bong bóng câu hỏi bay về phía người chơi: mô phỏng (bubbles.ts) + vẽ bằng nhóm sprite dùng lại. */
-function BubbleLayer({
+/**
+ * Lượt "bấm NÉ đúng lúc" (ambush.ts): đếm giờ, đọc lần bấm nút tương tác, báo sự kiện ra ngoài.
+ * Vòng thời gian và nút NÉ vẽ bằng DOM ở RoamScreen; ở đây chỉ chạy luật trong vòng lặp khung hình.
+ */
+function AmbushLayer({
   runtimes,
   world,
-  obstacles,
+  controller,
   cbs,
-}: Readonly<{
-  runtimes: NpcRuntime[];
-  world: World;
-  obstacles: readonly Collider[];
-  cbs: { current: Callbacks };
-}>) {
-  const sim = useRef<BubbleState>(createBubbleState(hashKey('bong-bong')));
-  const sprites = useRef<(Sprite | null)[]>([]);
-  const tex = useMemo(() => makeBubbleTexture(), []);
-  useEffect(() => () => tex.dispose(), [tex]);
-
-  const shooters = useMemo<ShooterRuntime[]>(
-    () =>
-      runtimes.flatMap((r) =>
-        r.npc.shoots
-          ? [{ key: r.npc.key, pos: r.target, ...r.npc.shoots }]
-          : [],
-      ),
+}: Readonly<{ runtimes: NpcRuntime[]; world: World; controller: InputController; cbs: { current: Callbacks } }>) {
+  const sim = useRef<AmbushState>(createAmbushState(hashKey('hoi-han')));
+  const lastPress = useRef(controller.state.interactCount);
+  const ambushers = useMemo<AmbusherRuntime[]>(
+    () => runtimes.flatMap((r) => (r.npc.ambush ? [{ key: r.npc.key, pos: r.target, ...r.npc.ambush }] : [])),
     [runtimes],
   );
 
   useFrame((_, delta) => {
-    if (shooters.length === 0) return;
-    const r = stepBubbles(sim.current, delta, {
+    const count = controller.state.interactCount;
+    const pressed = count !== lastPress.current;
+    lastPress.current = count;
+    if (ambushers.length === 0) return;
+    const r = stepAmbush(sim.current, delta, {
       player: world.player,
-      playerRadius: PLAYER_RADIUS,
-      shooters,
-      obstacles,
-      bounds: world.bounds,
+      ambushers,
       paused: world.paused,
+      press: pressed && sim.current.active !== null,
     });
     sim.current = r.state;
-    for (const b of r.events.spawned) cbs.current.onShoot?.(b.key, b.text);
-    for (const b of r.events.dodged) cbs.current.onDodge?.(b.key);
-    const hit = r.events.hit[0];
-    if (hit) cbs.current.onHit?.(hit.key);
-
-    const list = r.state.bubbles;
-    for (let i = 0; i < MAX_SPRITES; i++) {
-      const sp = sprites.current[i];
-      if (!sp) continue;
-      const b = list[i];
-      sp.visible = b !== undefined;
-      if (b) sp.position.set(b.x, BUBBLE_Y + Math.sin(b.age * 9) * 0.08, b.z);
-    }
+    world.ambushKey = r.state.active?.key ?? null;
+    if (r.events.warned) cbs.current.onAmbush?.(r.events.warned);
+    if (r.events.dodged) cbs.current.onDodge?.(r.events.dodged);
+    if (r.events.hit) cbs.current.onHit?.(r.events.hit.key, r.events.hit.early);
   });
-
-  return (
-    <group>
-      {Array.from({ length: MAX_SPRITES }, (_, i) => (
-        <sprite
-          key={i}
-          ref={(el) => {
-            sprites.current[i] = el;
-          }}
-          visible={false}
-          scale={[0.75, 0.75, 0.75]}
-        >
-          <spriteMaterial map={tex} transparent depthWrite={false} />
-        </sprite>
-      ))}
-    </group>
-  );
+  return null;
 }
 
 /** Độ cao đặt hình dựng của đồ vật (mặt bàn, mặt quầy, móc áo). */
@@ -455,7 +440,8 @@ function NpcView({
   world,
   index,
   talking,
-}: Readonly<{ rt: NpcRuntime; world: World; index: number; talking: boolean }>) {
+  bubble,
+}: Readonly<{ rt: NpcRuntime; world: World; index: number; talking: boolean; bubble?: SpeechBubble }>) {
   const group = useRef<Group>(null);
   const state = useRef<NpcState>(createNpcState(rt.home, rt.spot.rotY ?? 0, hashKey(rt.npc.key)));
   const movingRef = useRef(false);
@@ -474,8 +460,9 @@ function NpcView({
     // Đang hội thoại: chỉ người đang nói còn cử động (quay mặt về người chơi), còn lại đứng im.
     // Người ngồi thì không quay (ngồi mà xoay lưng lại bàn thì lạ, và sau đó không có chỗ quay về).
     if (!world.paused || isTalking) {
+      const rushing = world.ambushKey === rt.npc.key && rt.dynamic;
       state.current = stepNpc(
-        isTalking && !rt.seated ? FACE_PLAYER : rt.npc.params,
+        isTalking && !rt.seated ? FACE_PLAYER : rushing ? RUSH : rt.npc.params,
         rt.home,
         state.current,
         world.player,
@@ -508,6 +495,8 @@ function NpcView({
     <group ref={group} position={[rt.home.x, 0, rt.home.z]} rotation={[0, rt.spot.rotY ?? 0, 0]}>
       {!rt.seated && <BlobShadow r={dog || rt.npc.look?.build === 'kid' ? 0.25 : 0.35} />}
       <Figure look={rt.npc.look} anim={anim} seated={rt.seated} speaking={talking} phase={index * 0.7} />
+      {/* Model có xương chưa có hoạt ảnh ngồi nên người "ngồi" vẫn hiện đứng cạnh bàn: bong bóng không hạ thấp. */}
+      {bubble && <BubbleHtml b={bubble} y={rt.seated && !rt.npc.look?.model ? bubbleY(rt.npc.look) - 0.5 : bubbleY(rt.npc.look)} />}
     </group>
   );
 }
@@ -523,9 +512,10 @@ export default function RoamView({
   controller,
   paused,
   talkingKey,
+  bubbles = [],
   onNearby,
   onInteract,
-  onShoot,
+  onAmbush,
   onDodge,
   onHit,
   onFps,
@@ -535,6 +525,10 @@ export default function RoamView({
   const [dpr, setDpr] = useState(1.75);
 
   useEffect(() => setDpr(1.75), [setId]);
+  // Tải trước model có xương của mọi người trong cảnh (song song, thay vì lần lượt khi từng người hiện ra).
+  useEffect(() => {
+    preloadModels([playerLook?.model, ...npcs.map((n) => n.look?.model)].filter(isCharacterModel));
+  }, [playerLook, npcs]);
   useEffect(() => publish({ mode: 'roam', setId }), [setId]);
 
   // Dựng NPC lúc chạy: vị trí, vòng va chạm (cố định cho người ngồi/đứng, đổi tại chỗ cho người đi lại),
@@ -554,10 +548,10 @@ export default function RoamView({
     world.paused = paused;
     world.talkingKey = talkingKey;
   }, [world, paused, talkingKey]);
-  const cbs = useRef<Callbacks>({ onNearby, onInteract, onShoot, onDodge, onHit });
+  const cbs = useRef<Callbacks>({ onNearby, onInteract, onAmbush, onDodge, onHit });
   useEffect(() => {
-    cbs.current = { onNearby, onInteract, onShoot, onDodge, onHit };
-  }, [onNearby, onInteract, onShoot, onDodge, onHit]);
+    cbs.current = { onNearby, onInteract, onAmbush, onDodge, onHit };
+  }, [onNearby, onInteract, onAmbush, onDodge, onHit]);
 
   return (
     <Canvas
@@ -578,13 +572,21 @@ export default function RoamView({
       ))}
 
       {runtimes.map((rt, i) => (
-        <NpcView key={rt.npc.key} rt={rt} world={world} index={i} talking={talkingKey === rt.npc.key} />
+        <NpcView
+          key={rt.npc.key}
+          rt={rt}
+          world={world}
+          index={i}
+          talking={talkingKey === rt.npc.key}
+          bubble={bubbles.find((b) => b.key === rt.npc.key)}
+        />
       ))}
 
-      <BubbleLayer runtimes={runtimes} world={world} obstacles={playerColliders} cbs={cbs} />
+      <AmbushLayer runtimes={runtimes} world={world} controller={controller} cbs={cbs} />
 
       <Player
         look={playerLook}
+        bubble={bubbles.find((b) => b.key === 'player')}
         area={area}
         colliders={playerColliders}
         controller={controller}

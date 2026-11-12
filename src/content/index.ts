@@ -1,6 +1,7 @@
 import { validateContent } from '../engine/validate';
 import type { Content } from '../engine/types';
 import { SETS } from '../scene3d/registry';
+import { CHARACTER_MODELS } from '../scene3d/rigging';
 import { ROAM_SETS } from '../scene3d/walk';
 import v1 from './v1.json';
 
@@ -10,7 +11,7 @@ import v1 from './v1.json';
  */
 export function loadContent(raw: unknown = v1): Content {
   const content = raw as Content;
-  const errors = validateContent(content, { sets: SETS, roamSets: ROAM_SETS });
+  const errors = validateContent(content, { sets: SETS, roamSets: ROAM_SETS, models: CHARACTER_MODELS });
   if (errors.length > 0) {
     throw new Error(`Nội dung không hợp lệ:\n- ${errors.join('\n- ')}`);
   }

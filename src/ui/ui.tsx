@@ -80,6 +80,31 @@ export function StatBars({ stats, compact = false }: Readonly<{ stats: Stats; co
   );
 }
 
+/** Nhãn ngắn trên HUD (in hoa, giống thanh trạng thái của game hành động). */
+const SHORT: Record<StatKey, string> = { harmony: 'Hòa khí', stamina: 'Sức', wallet: 'Ví' };
+
+/** Ba thanh chỉ số nhỏ nằm ngang cho HUD trong màn chơi. Chỉ số thấp (<= 25) thì nhấp nháy. */
+export function HudMeters({ stats }: Readonly<{ stats: Stats }>) {
+  return (
+    <ul className="meters" aria-label="Chỉ số">
+      {STAT_KEYS.map((k) => {
+        const v = Math.max(0, Math.min(STAT_MAX, stats[k]));
+        return (
+          <li key={k} className={v <= 25 ? `meter meter-${k} meter-low` : `meter meter-${k}`}>
+            <StatIcon k={k} />
+            <span className="meter-body">
+              <span className="meter-bar" role="meter" aria-label={STAT_LABEL[k]} aria-valuemin={0} aria-valuemax={STAT_MAX} aria-valuenow={v}>
+                <span className="meter-fill" style={{ width: `${(v / STAT_MAX) * 100}%` }} />
+              </span>
+              <span className="meter-label">{SHORT[k]}</span>
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 // ---------- Bảng tên người nói ----------
 
 export function Nameplate({ ch, name, role }: Readonly<{ ch?: Character | null; name: string; role?: string }>) {
