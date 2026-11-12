@@ -1,4 +1,4 @@
-import type { Look } from '../engine/types';
+import type { Look, Shooter } from '../engine/types';
 import type { SetDef, Spot } from '../scene3d/registry';
 import { actorCollider } from '../scene3d/walk';
 import type { Target } from './interact';
@@ -20,6 +20,8 @@ export interface RoamNpc {
   params: NpcParams;
   /** Tầm tương tác riêng (m); thiếu thì mặc định. */
   reach?: number;
+  /** Có thì NPC này bắn bong bóng câu hỏi về phía người chơi. */
+  shoots?: Shooter;
 }
 
 export type MutCircle = Extract<Collider, { kind: 'circle' }>;

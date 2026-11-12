@@ -82,7 +82,7 @@ function Setup({
       </button>
       <button
         className="choice"
-        disabled={regionIds.length === 0}
+        disabled={regionIds.length === 0 || !content.maps?.length}
         onClick={() => regionIds[0] && onRoam(regionIds[0], personaId)}
       >
         <strong>Thử chế độ đi lại (bản thử)</strong>
@@ -95,6 +95,7 @@ function Setup({
 }
 
 interface RoamTarget {
+  mapId: string;
   regionId: string;
   personaId: string;
 }
@@ -128,10 +129,12 @@ function devJump(content: Content): GameState | null {
 function devRoam(content: Content): RoamTarget | null {
   if (!ALLOW_JUMP) return null;
   const q = new URLSearchParams(window.location.search);
-  if (q.get('roam') !== 'san-nha') return null;
+  const mapId = content.maps?.find((m) => m.id === q.get('roam'))?.id;
+  if (!mapId) return null;
   const regionQ = q.get('region');
   const personaQ = q.get('persona');
   return {
+    mapId,
     regionId: content.regions.find((r) => r.id === regionQ)?.id ?? content.regions[0]!.id,
     personaId: content.personas.find((p) => p.id === personaQ)?.id ?? content.personas[0]!.id,
   };
@@ -164,6 +167,7 @@ export function App() {
     return (
       <RoamScreen
         content={content}
+        mapId={roam.mapId}
         regionId={roam.regionId}
         personaId={roam.personaId}
         onExit={() => setRoam(null)}
@@ -177,9 +181,10 @@ export function App() {
         content={content}
         selection={selection}
         onSelect={setSelection}
-        onRoam={(regionId, personaId) =>
-          setRoam({ regionId, personaId: personaId ?? content.personas[0]!.id })
-        }
+        onRoam={(regionId, personaId) => {
+          const mapId = content.maps?.[0]?.id;
+          if (mapId) setRoam({ mapId, regionId, personaId: personaId ?? content.personas[0]!.id });
+        }}
         onStart={(p, r) => {
           setState(createGame(content, p, r, newSeed()));
           setSeenStages([]);

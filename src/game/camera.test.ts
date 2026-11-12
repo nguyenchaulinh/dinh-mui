@@ -276,7 +276,7 @@ describe('computeTalkPose', () => {
   it('nhìn vào điểm giữa hai người, camera vuông góc đường nối', () => {
     const player = { x: 0, z: 0 };
     const npc = { x: 2, z: 0 }; // đường nối theo +x
-    const p = computeTalkPose(player, npc, 0.5, 0.87, none);
+    const p = computeTalkPose(player, npc, 1.0, 0.87, none);
     expect(p.lookAt[0]).toBeCloseTo(1, 9);
     expect(p.lookAt[2]).toBeCloseTo(0, 9);
     // Camera lệch theo trục z (vuông góc đường nối), cùng x với điểm giữa.
@@ -311,6 +311,18 @@ describe('computeTalkPose', () => {
     const p = computeTalkPose({ x: 0, z: 0 }, { x: 1.3, z: 0 }, 0.48, 0.87, none);
     expect(p.lookAt[1]).toBeLessThan(0.8);
     expect(p.pos[1]).toBeCloseTo(1.45, 9);
+  });
+
+  it('hai người xa nhau tới mức không thể lùi đủ xa (màn dọc hẹp) thì dựng khung người chơi, không đẩy cả hai ra ngoài', () => {
+    const player = { x: 1, z: 2 };
+    const farNpc = { x: 1, z: 8 }; // cách 6 m
+    const p = computeTalkPose(player, farNpc, 0.56, 0.87, none);
+    // Điểm ngắm là người chơi, không phải điểm giữa.
+    expect(p.lookAt[0]).toBeCloseTo(1, 9);
+    expect(p.lookAt[2]).toBeCloseTo(2, 9);
+    // Gần thì vẫn dựng khung cả hai.
+    const near = computeTalkPose(player, { x: 1, z: 3 }, 0.56, 0.87, none);
+    expect(near.lookAt[2]).toBeCloseTo(2.5, 9);
   });
 
   it('hai người trùng nhau hoặc đầu vào hỏng thì không sinh NaN', () => {
