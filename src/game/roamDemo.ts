@@ -8,7 +8,7 @@ import { DEFAULT_NPC, type NpcParams } from './npc';
 
 /** Tìm bản đồ theo id; không có thì null. */
 export function getRoamMap(content: Content, id: string): RoamMap | null {
-  return content.maps?.find((m) => m.id === id) ?? null;
+  return content.maps.find((m) => m.id === id) ?? null;
 }
 
 /**

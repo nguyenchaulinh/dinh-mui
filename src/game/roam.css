@@ -35,15 +35,15 @@
 }
 .roam-look[data-active='true'] { cursor: grabbing; }
 
-/* Joystick: đế ~120px, vùng chạm nới thêm 20px mỗi phía cho ngón cái. */
+/* Joystick: đế trắng trong mờ, núm trắng (giống các game hành động trên điện thoại). */
 .roam-joystick {
   position: absolute;
-  left: max(20px, calc(env(safe-area-inset-left) + 12px));
-  bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px));
-  width: 120px;
-  height: 120px;
+  left: max(18px, calc(env(safe-area-inset-left) + 10px));
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px));
+  width: 116px;
+  height: 116px;
   border-radius: 50%;
-  background: rgb(0 0 0 / 0.28);
+  background: rgb(255 255 255 / 0.12);
   border: 2px solid rgb(255 255 255 / 0.55);
   pointer-events: auto;
   touch-action: none;
@@ -59,58 +59,59 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 52px;
-  height: 52px;
-  margin: -26px 0 0 -26px;
+  width: 50px;
+  height: 50px;
+  margin: -25px 0 0 -25px;
   border-radius: 50%;
-  background: rgb(255 247 237 / 0.88);
+  background: rgb(255 255 255 / 0.85);
   box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
-  /* Vị trí knob do script đặt trực tiếp bằng transform, không nhận chạm. */
   pointer-events: none;
   will-change: transform;
 }
 
-/* Nút hành động tròn góc dưới phải (vùng chạm lớn hơn 44px). */
+/* Nút hành động: kính tối viền vàng, nhãn theo ngữ cảnh; sáng lên khi có thứ để tương tác. */
 .roam-action {
   position: absolute;
-  right: max(20px, calc(env(safe-area-inset-right) + 12px));
-  bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px));
-  width: 84px;
-  height: 84px;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0;
+  right: max(18px, calc(env(safe-area-inset-right) + 10px));
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px));
+  width: 78px;
+  height: 78px;
+  padding: 6px;
   display: grid;
   place-items: center;
-  font: 700 0.8rem/1.15 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: #fff;
-  background: rgb(185 28 28 / 0.88);
-  border: 2px solid rgb(255 255 255 / 0.6);
+  font: 800 11px/1.15 var(--font, system-ui, sans-serif);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--cream, #fff6e5);
+  background: var(--glass-strong, rgb(22 14 10 / 0.86));
+  border: 2px solid rgb(246 195 67 / 0.5);
   border-radius: 50%;
-  box-shadow: 0 2px 10px rgb(0 0 0 / 0.35);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.35);
   pointer-events: auto;
   touch-action: none;
   cursor: pointer;
 }
-.roam-action:active {
-  background: rgb(153 27 27 / 0.95);
-  transform: scale(0.94);
+.roam-action[data-hot='true'] {
+  color: var(--ink, #23160f);
+  background: var(--gold, #f6c343);
+  border-color: #fff;
+  box-shadow: 0 0 18px rgb(246 195 67 / 0.7);
 }
+.roam-action:active { transform: scale(0.95); }
 
 /* Dòng gợi ý trên máy tính. */
 .roam-hint {
   position: absolute;
-  left: 50%;
+  left: max(12px, env(safe-area-inset-left));
   bottom: max(10px, env(safe-area-inset-bottom));
-  transform: translateX(-50%);
   margin: 0;
-  padding: 4px 12px;
-  max-width: calc(100% - 24px);
-  font-size: 0.72rem;
+  padding: 4px 10px;
+  font-size: 11px;
   white-space: nowrap;
-  color: #fff;
-  background: rgb(0 0 0 / 0.45);
-  border-radius: 10px;
+  color: var(--cream-soft, rgb(255 246 229 / 0.72));
+  background: var(--glass, rgb(22 14 10 / 0.68));
+  border-radius: 999px;
   pointer-events: none;
 }
 
@@ -118,5 +119,5 @@
 @media (max-height: 420px) {
   .roam-joystick { width: 104px; height: 104px; }
   .roam-knob { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
-  .roam-action { width: 72px; height: 72px; }
+  .roam-action { width: 66px; height: 66px; }
 }
