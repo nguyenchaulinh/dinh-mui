@@ -35,7 +35,7 @@
     { "id": "ban", "name": "Bạn", "role": "Người chơi", "enabled": true,
       "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#d9363e", "accessory": "none", "model": "nam-hoodie", "pants": "#374151" } },
     { "id": "vang", "name": "Vàng", "role": "Chó nhà", "enabled": true,
-      "look": { "kind": "dog", "skin": "#e08a2e", "model": "cho-pom" } },
+      "look": { "kind": "dog", "skin": "#f4f2ee", "hair": "#ffffff", "model": "cho-pom" } },
     { "id": "anh-shipper", "name": "Anh Shipper Tết", "role": "Shipper", "enabled": true,
       "look": { "kind": "human", "skin": "#d9a27a", "hair": "#1f1410", "hairStyle": "short", "outfit": "#16a34a", "accessory": "hat", "model": "nam-tho" } },
     { "id": "co-hai", "name": "Cô Hai", "role": "Chuyên mục: Thu nhập", "enabled": true,
