@@ -167,12 +167,15 @@ export function RiggedFigure({
     current.current = next;
   }, [anim, kind, actions, phase]);
 
+  // Dọn: chỉ dừng hoạt ảnh, KHÔNG uncacheRoot. `actions` được memo giữ lại qua lần chạy lại effect (React StrictMode ở dev,
+  // hoặc `look` đổi), nên xoá cache của mixer làm lần `play()` kế tiếp nổ TypeError trong `_lendBinding` (trên iOS Safari:
+  // "firstInactiveBinding._cacheIndex"). Mixer tự bị thu gom cùng root, không cần xoá tay. Xoá `current` để effect trên phát lại.
   useEffect(
     () => () => {
       mixer.stopAllAction();
-      mixer.uncacheRoot(root);
+      current.current = null;
     },
-    [mixer, root],
+    [mixer],
   );
 
   useFrame((state, dt) => {
