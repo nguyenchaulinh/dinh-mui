@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../content';
 import credits from '../../public/models/CREDITS.md?raw';
-import { BIND_HEIGHT, BONES, CHARACTER_MODELS, POM_BONES, SIT_POSE, rotateX, sanitizeName, bindHeightFromGltf, clipFor, heightFor, isCharacterModel, modelUrl, partOf, roleOf } from './rigging';
+import { BIND_HEIGHT, BONES, CHARACTER_MODELS, POM_BONES, POM_DROP, POM_LEG, nodeWorldY, SIT_POSE, rotateX, sanitizeName, bindHeightFromGltf, clipFor, heightFor, isCharacterModel, modelUrl, partOf, roleOf } from './rigging';
 
 /** Nội dung thô của các file GLB (đọc qua Vite, không cần API của node). */
 const FILES = import.meta.glob('../../public/models/*.glb', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
@@ -109,6 +109,20 @@ describe('luật đổi màu, chiều cao, hoạt ảnh', () => {
       const names = new Set(((glbJson(fileOf(m)!).nodes ?? []) as { name?: string }[]).map((n) => sanitizeName(n.name ?? '')));
       const need = m.startsWith('cho-') ? Object.keys(POM_BONES) : [BONES.hips, BONES.head, ...BONES.thighs, ...BONES.shins];
       for (const b of need) expect(names.has(sanitizeName(b)), `${m}: ${b}`).toBe(true);
+    }
+  });
+
+  it('Pomeranian chân ngắn: độ dài chân khớp file, cả bốn chân ngắn đi đúng POM_DROP nên vẫn chạm đất', () => {
+    const j = glbJson(fileOf('cho-pom')!);
+    const foot = (nodeWorldY(j, 'FF.L') + nodeWorldY(j, 'FFB.L')) / 2; // điểm chạm đất của chân
+    const front = nodeWorldY(j, 'FrontUpperLeg.L') - foot;
+    const back = nodeWorldY(j, 'BackLeg.L') - foot;
+    expect(Math.abs(front - POM_LEG.front) / POM_LEG.front).toBeLessThan(0.03);
+    expect(Math.abs(back - POM_LEG.back) / POM_LEG.back).toBeLessThan(0.03);
+    for (const [bone, len] of [['FrontUpperLeg.L', POM_LEG.front], ['FrontUpperLeg.R', POM_LEG.front], ['BackLeg.L', POM_LEG.back], ['BackLeg.R', POM_LEG.back]] as const) {
+      const s = POM_BONES[bone]!;
+      expect(s, bone).toBeLessThan(1); // ngắn hơn
+      expect((1 - s) * len, bone).toBeCloseTo(POM_DROP, 2); // hụt đúng bằng phần hạ thân
     }
   });
 });

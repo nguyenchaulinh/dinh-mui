@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { AnimationMixer, LoopOnce, LoopRepeat, Quaternion, Vector3, type AnimationAction, type Bone, type Material, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Look } from '../engine/types';
-import { BIND_HEIGHT, BONES, HIP_ABOVE_SEAT, POM_BONES, POM_FUR, SIT_POSE, clipFor, heightFor, sanitizeName, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
+import { BIND_HEIGHT, BONES, HIP_ABOVE_SEAT, POM_BONES, POM_DROP, POM_FUR, SIT_POSE, clipFor, heightFor, sanitizeName, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
 
 const HEX = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 /** Không dùng Draco/Meshopt: file không nén theo kiểu đó, và tránh tự tải bộ giải mã từ CDN ngoài. */
@@ -12,6 +12,9 @@ const NO_DRACO = false;
 const NO_MESHOPT = false;
 
 export const urlOf = (model: CharacterModel) => modelUrl(model, import.meta.env.BASE_URL);
+
+/** Hệ số xương Pomeranian theo tên đã chuẩn hoá (three.js bỏ dấu chấm: FrontUpperLeg.L -> FrontUpperLegL). */
+const POM_SCALE = new Map(Object.entries(POM_BONES).map(([k, v]) => [sanitizeName(k), v]));
 
 /**
  * Tư thế điều khiển từ ngoài, đọc mỗi khung (không render lại React): `sit` 0..1 (0 đứng, 1 ngồi hẳn),
@@ -59,7 +62,7 @@ function colorFor(role: MatRole, look: Look): string | null {
     case 'fur':
       return ok(look.skin) ?? POM_FUR.main;
     case 'fur-light':
-      return POM_FUR.light;
+      return ok(look.hair) ?? POM_FUR.light;
     default:
       return null;
   }
@@ -119,9 +122,11 @@ export function RiggedFigure({
     // 3. Chỉnh dáng Pomeranian (scale đặt lên xương, hoạt ảnh không ghi đè).
     if (model === 'cho-pom') {
       root.traverse((o) => {
-        const s = POM_BONES[sanitizeName(o.name)];
+        const s = POM_SCALE.get(sanitizeName(o.name));
         if (s !== undefined && (o as { isBone?: boolean }).isBone) o.scale.setScalar(s);
       });
+      // Chân ngắn đi POM_DROP: hạ cả con xuống đúng bằng đó để chân vẫn chạm đất.
+      root.position.y = -POM_DROP;
     }
     // 4. Xương dùng cho tư thế (người).
     const byName = new Map<string, Bone>();

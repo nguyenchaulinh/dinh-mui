@@ -159,12 +159,40 @@ export function clipFor(anim: string | undefined, kind: 'human' | 'dog' | 'goat'
 }
 
 /**
- * Chỉnh dáng Shiba thành Pomeranian (cùng họ Spitz): bờm cổ phồng, đầu tròn hơi to, đuôi xù. Hệ số scale đặt lên
- * xương (hoạt ảnh chỉ đổi xoay/vị trí nên không ghi đè). Xương con nhận scale của cha: Head bù lại phần Neck1.
+ * Pomeranian chân ngắn: thân hạ xuống POM_DROP (đơn vị của file, ~10% chiều cao), mỗi chân thu lại đúng phần đó.
+ * Chân trước xoay quanh khớp FrontUpperLeg (cao POM_LEG.front so với bàn chân), chân sau quanh BackLeg (POM_LEG.back);
+ * hai chân dài khác nhau nên hệ số khác nhau: s = 1 - POM_DROP / chiều dài chân. Test tính lại từ file GLB.
  */
-export const POM_BONES: Readonly<Record<string, number>> = { Neck1: 1.28, Head: 0.9, Tail1: 1.45 };
-/** Màu lông Pomeranian cam kem mặc định (nếu Look không ghi). */
-export const POM_FUR = { main: '#e08a2e', light: '#f7e3c4' };
+export const POM_DROP = 0.3;
+export const POM_LEG = { front: 1.344, back: 1.615 } as const;
+const legScale = (len: number) => Math.round((1 - POM_DROP / len) * 1000) / 1000;
+
+/**
+ * Chỉnh dáng Shiba thành Pomeranian (cùng họ Spitz): bờm cổ phồng, đầu tròn hơi to, đuôi xù, chân ngắn. Hệ số scale
+ * đặt lên xương (hoạt ảnh chỉ đổi xoay/vị trí nên không ghi đè). Xương con nhận scale của cha: Head bù lại phần Neck1.
+ */
+export const POM_BONES: Readonly<Record<string, number>> = {
+  Neck1: 1.28,
+  Head: 0.9,
+  Tail1: 1.45,
+  'FrontUpperLeg.L': legScale(POM_LEG.front),
+  'FrontUpperLeg.R': legScale(POM_LEG.front),
+  'BackLeg.L': legScale(POM_LEG.back),
+  'BackLeg.R': legScale(POM_LEG.back),
+};
+/** Màu lông Pomeranian mặc định: trắng tinh (lông chính hơi ngà để còn thấy khối, lông ngực/mõm trắng hẳn). */
+export const POM_FUR = { main: '#f4f2ee', light: '#ffffff' };
+
+/** Độ cao (trục y, đơn vị file) của một node theo tên trong tư thế gốc, tính từ JSON của glTF (để test). */
+export function nodeWorldY(j: GltfJson, name: string): number {
+  const parent = new Map<number, number>();
+  j.nodes.forEach((n, i) => n.children?.forEach((c) => parent.set(c, i)));
+  const i = (j.nodes as (GltfNode & { name?: string })[]).findIndex((n) => n.name === name);
+  if (i < 0) return Number.NaN;
+  let m = trs(j.nodes[i]!);
+  for (let k = parent.get(i); k !== undefined; k = parent.get(k)) m = mul(trs(j.nodes[k]!), m);
+  return m[1]![3]!;
+}
 
 /**
  * Tư thế ngồi dựng bằng xương (bộ model không có hoạt ảnh ngồi). Xoay quanh trục ngang CỦA NHÂN VẬT (trục +X trong
