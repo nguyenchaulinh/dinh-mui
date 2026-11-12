@@ -176,7 +176,7 @@ Số ngẫu nhiên dùng bộ sinh giả ngẫu nhiên (mulberry32) theo hạt g
 
 Mỗi NPC chỉ nói chuyện **một lần** (đánh dấu để không lặp hội thoại và không cộng chỉ số hai lần), sau đó là câu `after`.
 
-### 6.1 Cơ chế bong bóng câu hỏi của Dì Út ([bubbles.ts](../src/game/bubbles.ts))
+### 6.1 Cơ chế bong bóng câu hỏi của Dì Út (**đã thay**, nay là bấm NÉ đúng lúc ở [ambush.ts](../src/game/ambush.ts), xem [07](07-thiet-ke-ui-ux.md) và [08](08-thiet-ke-choi-truoc-que.md); phần dưới là cơ chế cũ)
 
 - Cách người chơi 2.5–9 m thì Dì Út bắn: chu kỳ 3.5 s (nhân ngẫu nhiên 0.8–1.2), **lần đầu sau 5.25 s** để người chơi kịp nhìn quanh. Bong bóng bay thẳng về **vị trí người chơi lúc bắn** (3 m/s, không bám theo), tối đa 8 bóng cùng lúc.
 - Câu hỏi hiện thành chữ và theo vai: SV "Ra trường làm gì?", ĐL "Lương bao nhiêu rồi?", ĐT "Bao giờ cưới?"...
