@@ -69,7 +69,8 @@ Mỗi bước kết thúc bằng một bản chạy được. Ở các **điểm
 | Bước | Việc | Ước tính | Điểm dừng |
 |---|---|---|---|
 | 0 | Đẩy code lên GitHub | xong | |
-| 1 | **Bộ điều khiển:** nhân vật đi/chạy, joystick + bàn phím, camera bám, va chạm. Thử trong cảnh sân nhà | 2–3 ngày | **Có**: cảm giác điều khiển + FPS trên điện thoại |
+| 1 | **Đã làm 12/11:** bộ điều khiển (bàn phím, joystick, kéo xoay), va chạm, camera bám, vùng đi lại sân nhà 3 miền, `npm run perf`. Còn chờ: bạn thử trên điện thoại thật | xong code | **Chờ bạn thử máy thật** |
+| 1 (kế hoạch gốc) | **Bộ điều khiển:** nhân vật đi/chạy, joystick + bàn phím, camera bám, va chạm. Thử trong cảnh sân nhà | 2–3 ngày | **Có**: cảm giác điều khiển + FPS trên điện thoại |
 | 2 | **Tương tác cơ bản:** lại gần thì hiện nút, mở hội thoại sẵn có, bong bóng thoại, chào hỏi; NPC đứng, lang thang, đuổi theo | 2–3 ngày | **Có**: chơi chặng Bước vào nhà bản tương tác |
 | 3 | **Lớp nhiệm vụ + schema bản đồ** trong JSON, validate, test | 2 ngày | |
 | 4 | **Chặng 5 + 6 đầy đủ:** né câu hỏi, chơi với chó, Bà Tám livestream, mâm cơm gắp mời | 3 ngày | **Có**: playtest vòng 1 với vài người |
