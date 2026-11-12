@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { loadContent } from './content';
 import { ALLOW_JUMP } from './debug';
 import { afterStage, createGame, getEnding, pickRegion } from './engine/engine';
@@ -36,8 +36,17 @@ function newSeed(): number {
   return (a[0] ?? 0) >>> 1;
 }
 
+/** Tải trước cảnh 3D (khối lớn nhất) lúc trình duyệt rảnh, để bấm "Lên đường" là vào được ngay. */
+function prefetchScene(): void {
+  const load = () => void import('./game/RoamView');
+  // Safari (chưa có requestIdleCallback ở nhiều bản) rơi về setTimeout.
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(load);
+  else window.setTimeout(load, 1500);
+}
+
 export function App() {
   const content = useMemo(() => loadContent(), []);
+  useEffect(prefetchScene, []);
   const [selection, setSelection] = useState<Selection>({ personaId: null, regionIds: [] });
   const [playing, setPlaying] = useState<Playing | null>(() => devJump(content));
   /** Có giá trị khi lượt chơi đã kết thúc. */
