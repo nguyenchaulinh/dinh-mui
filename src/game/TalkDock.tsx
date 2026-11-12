@@ -9,10 +9,10 @@ export type Talk =
   /** Đang chọn câu đáp (scene hội thoại của NPC, đồ vật hoặc sự kiện). */
   | { kind: 'choose'; key: string; sceneId: string; view: SceneView; /** Bị bắt khi lao tới hỏi. */ hit?: boolean }
   /**
-   * Sau lựa chọn: trước hết câu bạn vừa nói hiện thành bong bóng trên đầu bạn (`showSaid`), rồi tới phản ứng của NPC
-   * (bong bóng trên đầu họ) kèm thẻ mẹo nếu có. Mỗi lúc chỉ một bong bóng.
+   * Sau lựa chọn: câu bạn vừa nói (bong bóng trên đầu bạn) và phản ứng của NPC (bong bóng trên đầu họ) hiện cùng lúc,
+   * bung ra hai phía ngược nhau; kèm thẻ mẹo nếu có.
    */
-  | { kind: 'reply'; key: string; speaker: Character; said: string; reply: string; tip: Tip | null; feed?: boolean; showSaid: boolean }
+  | { kind: 'reply'; key: string; speaker: Character; said: string; reply: string; tip: Tip | null; feed?: boolean }
   /** Một câu thoại đơn (vuốt ve chó, lời chào lại, đồ chưa dùng được). */
   | { kind: 'line'; key: string; speaker: Character | null; title?: string; text: string }
   /** Cuộc gọi video đến (sự kiện): bấm Nghe thì vào hội thoại. */
@@ -50,12 +50,11 @@ function NextButton({ label, onClick, tone = 'primary' }: Readonly<{ label: stri
 /**
  * Phần hội thoại ở đáy màn hình (docs/07). Người nói đang đứng trong cảnh thì lời của họ là bong bóng trên đầu
  * (RoamView) và dock chỉ còn lựa chọn / nút Tiếp; người nói không có trong cảnh (Bé Dê, Mẹ qua điện thoại, máy tính)
- * thì lời nằm trong dock. Câu bạn vừa chọn là bong bóng trên đầu bạn (bước đầu của `reply`).
+ * thì lời nằm trong dock. Câu bạn vừa chọn là bong bóng trên đầu bạn, hiện cùng lúc với lời NPC đáp.
  */
 export function TalkDock({
   talk,
   speakerOnMap,
-  playerName,
   onChoose,
   onClose,
   onAnswer,
@@ -63,7 +62,6 @@ export function TalkDock({
   talk: Talk;
   /** Lời nói đã nằm trong bong bóng trên đầu ai đó trong cảnh (dock không nhắc lại). */
   speakerOnMap: boolean;
-  playerName: string;
   onChoose: (choiceId: string) => void;
   onClose: () => void;
   onAnswer: () => void;
@@ -85,27 +83,30 @@ export function TalkDock({
 
   if (talk.kind === 'choose') return <ChooseDock talk={talk} speakerOnMap={speakerOnMap} onChoose={onChoose} />;
 
-  // Bước "câu bạn vừa nói": bong bóng trên đầu bạn, dock chỉ có nút Tiếp. Bước NPC đáp: thêm thẻ mẹo.
-  const saying = talk.kind === 'reply' && talk.showSaid;
   const speaker = talk.speaker;
   const text = talk.kind === 'reply' ? talk.reply : talk.text;
+  const showText = !speakerOnMap || speaker === null;
+  const tip = talk.kind === 'reply' ? talk.tip : null;
+  // Lời nói đã nằm hết trong bong bóng và không có thẻ mẹo: chỉ còn nút Tiếp nổi gọn, không khung.
+  if (!showText && !tip) {
+    return (
+      <div className="next-float">
+        <NextButton label="Tiếp ▸" onClick={onClose} />
+      </div>
+    );
+  }
   return (
     <section className="dock dock-slim" aria-live="polite">
-      {saying && !speakerOnMap && (
-        <p className="dock-say">
-          <strong className="dock-me">{playerName || 'Bạn'}:</strong> <span>{talk.kind === 'reply' ? talk.said : ''}</span>
-        </p>
-      )}
-      {!saying && (!speakerOnMap || speaker === null) && (
+      {showText && (
         <p className="dock-say">
           {speaker ? <Nameplate ch={speaker} name={speaker.name} /> : talk.kind === 'line' && talk.title && <Nameplate name={talk.title} />}
           <span>{text}</span>
         </p>
       )}
-      {!saying && talk.kind === 'reply' && talk.tip && (
+      {tip && (
         <aside className="tip">
-          <strong>Mẹo thật</strong> {talk.tip.text}
-          <small>Nguồn: {talk.tip.source}</small>
+          <strong>Mẹo thật</strong> {tip.text}
+          <small>Nguồn: {tip.source}</small>
         </aside>
       )}
       <div className="dock-actions">

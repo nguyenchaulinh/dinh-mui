@@ -1,7 +1,7 @@
 import { Html, PerformanceMonitor } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Group, PerspectiveCamera } from 'three';
+import { Vector3, type Group, type PerspectiveCamera } from 'three';
 import { DEBUG, publish } from '../debug';
 import type { Look, ObjectModel } from '../engine/types';
 import { Figure } from '../scene3d/Figure';
@@ -16,7 +16,7 @@ import { clipRay, isBlocked, resolveMove } from './collision';
 import { startAction, stepAction, type ActionRun, type ActionStep, type PlayerAction } from './action';
 import { createAmbushState, stepAmbush, type ActiveAmbush, type AmbushState, type AmbusherRuntime } from './ambush';
 import { findInteractable, type Target } from './interact';
-import type { SpeechBubble } from './speech';
+import { bubbleSides, type BubbleSide, type SpeechBubble } from './speech';
 import type { InputController } from './input';
 import { DEFAULT_MOVE, PLAYER_RADIUS, stepMover } from './movement';
 import { DEFAULT_NPC, createNpcState, stepNpc, type NpcParams, type NpcState } from './npc';
@@ -45,6 +45,32 @@ const OBJECT_REACH = 1.7;
 
 export type { SpeechBubble } from './speech';
 
+/**
+ * Khi người chơi và NPC cùng có bong bóng: chiếu đầu hai người lên màn hình mỗi khung để chọn phía bung của từng
+ * bong bóng (speech.ts, bubbleSides). Chỉ báo ra ngoài khi phía đổi, không render lại mỗi khung.
+ */
+function BubbleSideTracker({
+  world,
+  npcKey,
+  onSides,
+}: Readonly<{ world: World; npcKey: string; onSides: (s: { player: BubbleSide; npc: BubbleSide }) => void }>) {
+  const camera = useThree((s) => s.camera);
+  const prev = useRef<{ player: BubbleSide; npc: BubbleSide } | null>(null);
+  const v = useMemo(() => new Vector3(), []);
+  useFrame(() => {
+    const t = world.targets.find((x) => x.key === npcKey);
+    if (!t) return;
+    const px = v.set(world.player.x, 1.7, world.player.z).project(camera).x;
+    const nx = v.set(t.x, 1.7, t.z).project(camera).x;
+    const s = bubbleSides(px, nx, prev.current ?? undefined);
+    if (!prev.current || s.player !== prev.current.player) {
+      prev.current = s;
+      onSides(s);
+    }
+  });
+  return null;
+}
+
 /** Độ cao đặt bong bóng theo vóc dáng (m). */
 function bubbleY(look: Look | undefined): number {
   if (look?.kind === 'dog') return 0.75;
@@ -52,10 +78,10 @@ function bubbleY(look: Look | undefined): number {
   return 2.05;
 }
 
-function BubbleHtml({ b, y }: Readonly<{ b: SpeechBubble; y: number }>) {
+function BubbleHtml({ b, y, side = 'center' }: Readonly<{ b: SpeechBubble; y: number; side?: BubbleSide }>) {
   return (
     <Html position={[0, y, 0]} center zIndexRange={[15, 0]} pointerEvents="none">
-      <div className={b.alert ? 'speech speech-alert' : 'speech'}>
+      <div className={`speech speech-${side}${b.alert ? ' speech-alert' : ''}`}>
         <span className="speech-name" style={{ color: b.color }}>
           {b.name}
         </span>
@@ -153,6 +179,7 @@ function hashKey(key: string): number {
 function Player({
   look,
   bubble,
+  bubbleSide,
   action,
   area,
   colliders,
@@ -162,6 +189,7 @@ function Player({
 }: Readonly<{
   look?: Look;
   bubble?: SpeechBubble;
+  bubbleSide: BubbleSide;
   action: PlayerAction | null;
   area: WalkArea;
   colliders: readonly Collider[];
@@ -337,7 +365,7 @@ function Player({
     <group ref={group} position={[area.spawn.x, 0, area.spawn.z]} rotation={[0, area.spawn.rotY, 0]}>
       <BlobShadow r={0.38} />
       <Figure look={look} anim={walking} pose={posePlayer} />
-      {bubble && <BubbleHtml b={bubble} y={bubbleY(look)} />}
+      {bubble && <BubbleHtml b={bubble} y={bubbleY(look)} side={bubbleSide} />}
     </group>
   );
 }
@@ -495,7 +523,8 @@ function NpcView({
   index,
   talking,
   bubble,
-}: Readonly<{ rt: NpcRuntime; world: World; index: number; talking: boolean; bubble?: SpeechBubble }>) {
+  bubbleSide = 'center',
+}: Readonly<{ rt: NpcRuntime; world: World; index: number; talking: boolean; bubble?: SpeechBubble; bubbleSide?: BubbleSide }>) {
   const group = useRef<Group>(null);
   const state = useRef<NpcState>(createNpcState(rt.home, rt.spot.rotY ?? 0, hashKey(rt.npc.key)));
   const movingRef = useRef(false);
@@ -552,7 +581,7 @@ function NpcView({
     <group ref={group} position={[rt.home.x, 0, rt.home.z]} rotation={[0, rt.spot.rotY ?? 0, 0]}>
       {!rt.seated && <BlobShadow r={dog || rt.npc.look?.build === 'kid' ? 0.25 : 0.35} />}
       <Figure look={rt.npc.look} anim={anim} seated={rt.seated} speaking={talking} phase={index * 0.7} pose={npcPose} />
-      {bubble && <BubbleHtml b={bubble} y={rt.seated ? bubbleY(rt.npc.look) - 0.5 : bubbleY(rt.npc.look)} />}
+      {bubble && <BubbleHtml b={bubble} y={rt.seated ? bubbleY(rt.npc.look) - 0.5 : bubbleY(rt.npc.look)} side={bubbleSide} />}
     </group>
   );
 }
@@ -592,6 +621,11 @@ export default function RoamView({
   // Dựng NPC lúc chạy: vị trí, vòng va chạm (cố định cho người ngồi/đứng, đổi tại chỗ cho người đi lại),
   // và danh sách vật cản riêng của từng NPC đi lại.
   const { world, runtimes, playerColliders } = useMemo(() => buildRoamWorld(npcs, def, area), [npcs, def, area]);
+  // Hai người cùng nói (người chơi + một NPC): bong bóng bung ra hai phía ngược nhau. Một người nói: ở giữa.
+  const playerBubble = bubbles.find((b) => b.key === 'player');
+  const npcBubble = bubbles.find((b) => b.key !== 'player');
+  const both = playerBubble !== undefined && npcBubble !== undefined;
+  const [sides, setSides] = useState<{ player: BubbleSide; npc: BubbleSide }>({ player: 'left', npc: 'right' });
   // Mục tiêu tương tác = NPC (vị trí đổi tại chỗ mỗi khung) + đồ vật còn dùng được (đứng yên).
   const npcTargets = useMemo<Target[]>(() => runtimes.map((r) => r.target), [runtimes]);
   useEffect(() => {
@@ -637,15 +671,18 @@ export default function RoamView({
           index={i}
           talking={talkingKey === rt.npc.key}
           bubble={bubbles.find((b) => b.key === rt.npc.key)}
+          bubbleSide={both ? sides.npc : 'center'}
         />
       ))}
 
       <AmbushLayer runtimes={runtimes} world={world} controller={controller} cbs={cbs} />
+      {both && <BubbleSideTracker world={world} npcKey={npcBubble.key} onSides={setSides} />}
 
       <Player
         look={playerLook}
         action={action}
-        bubble={bubbles.find((b) => b.key === 'player')}
+        bubble={playerBubble}
+        bubbleSide={both ? sides.player : 'center'}
         area={area}
         colliders={playerColliders}
         controller={controller}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SceneView } from '../engine/engine';
 import type { Character } from '../engine/types';
-import { speechBubbles } from './speech';
+import { bubbleSides, speechBubbles } from './speech';
 import type { Talk } from './TalkDock';
 
 const npc: Character = { id: 'co-hai', name: 'Cô Hai', role: '', enabled: true };
@@ -19,40 +19,64 @@ const qte = { key: 'di-ut', name: 'Dì Út', text: 'Bao giờ cưới?', speaker
 const talks: Talk[] = [
   { kind: 'choose', key: 'co-hai', sceneId: 's', view: view() },
   { kind: 'choose', key: 'obj:may-tinh', sceneId: 's', view: view('feed') },
-  { kind: 'reply', key: 'co-hai', speaker: npc, said: 'Dạ đủ sống ạ', reply: 'Cô khỏe!', tip: null, showSaid: false },
-  { kind: 'reply', key: 'co-hai', speaker: npc, said: 'Dạ đủ sống ạ', reply: 'Cô khỏe!', tip: null, showSaid: true },
+  { kind: 'reply', key: 'co-hai', speaker: npc, said: 'Dạ đủ sống ạ', reply: 'Cô khỏe!', tip: null },
   { kind: 'line', key: 'co-hai', speaker: npc, text: 'Ăn bánh đi con' },
   { kind: 'line', key: 'obj:cua', speaker: null, title: 'Cửa ra', text: 'Chưa về được' },
   { kind: 'call', key: 'ev:me-goi', caller: npc, sceneIds: [] },
+  { kind: 'reply', key: 'ev:me-goi', speaker: npc, said: 'Dạ 28 con về', reply: 'Ừ', tip: null },
+  { kind: 'reply', key: 'obj:may-tinh', speaker: npc, said: 'Nhà xe A', reply: 'Đặt được vé!', tip: null, feed: true },
 ];
 
 describe('bong bóng thoại', () => {
-  it('không bao giờ quá một bong bóng, kể cả khi đang có người lao tới hỏi', () => {
+  it('mỗi nhân vật tối đa một bong bóng, tổng tối đa hai', () => {
     for (const t of [null, ...talks]) {
       for (const q of [null, qte]) {
-        expect(speechBubbles(t, q, onMap, color).bubbles.length, `${t?.kind}/${q ? 'qte' : '-'}`).toBeLessThanOrEqual(1);
+        const b = speechBubbles(t, q, onMap, color).bubbles;
+        expect(b.length, `${t?.kind}`).toBeLessThanOrEqual(2);
+        expect(new Set(b.map((x) => x.key)).size, `${t?.kind}`).toBe(b.length);
       }
     }
   });
 
-  it('sau khi chọn: trước là câu người chơi vừa nói (trên đầu người chơi), sau mới tới NPC đáp, không cùng lúc', () => {
-    const said = speechBubbles(talks[3]!, null, onMap, color, 'Kan');
-    expect(said.bubbles).toEqual([{ key: 'player', name: 'Kan', text: 'Dạ đủ sống ạ', color: 'var(--gold-dark)' }]);
-    const reply = speechBubbles(talks[2]!, null, onMap, color, 'Kan');
-    expect(reply.bubbles).toEqual([{ key: 'co-hai', name: 'Cô Hai', text: 'Cô khỏe!', color: '#f00' }]);
-    expect(reply.speakerOnMap).toBe(true);
+  it('sau khi chọn: câu người chơi (trên đầu người chơi) và lời NPC đáp hiện CÙNG LÚC', () => {
+    const r = speechBubbles(talks[2]!, null, onMap, color, 'Kan');
+    expect(r.bubbles).toEqual([
+      { key: 'player', name: 'Kan', text: 'Dạ đủ sống ạ', color: 'var(--gold-dark)' },
+      { key: 'co-hai', name: 'Cô Hai', text: 'Cô khỏe!', color: '#f00' },
+    ]);
+    expect(r.speakerOnMap).toBe(true);
   });
 
-  it('người nói không đứng trong cảnh (máy tính, feed, cửa) thì không có bong bóng, lời nói nằm trong dock', () => {
-    for (const t of [talks[1]!, talks[5]!, talks[6]!]) {
-      const r = speechBubbles(t, null, onMap, color);
-      expect(r.bubbles, t.key).toEqual([]);
-      expect(r.speakerOnMap, t.key).toBe(false);
+  it('người đối thoại không đứng trong cảnh (Mẹ gọi điện): câu người chơi vẫn là bong bóng, lời đáp nằm trong dock', () => {
+    const r = speechBubbles(talks[6]!, null, onMap, color, 'Kan');
+    expect(r.bubbles.map((b) => b.key)).toEqual(['player']);
+    expect(r.speakerOnMap).toBe(false);
+  });
+
+  it('feed, máy tính, cửa, cuộc gọi: không có bong bóng của NPC', () => {
+    for (const t of [talks[1]!, talks[4]!, talks[5]!, talks[7]!]) {
+      expect(speechBubbles(t, null, onMap, color).bubbles.filter((b) => b.key !== 'player'), t.key).toEqual([]);
     }
   });
 
   it('không có hội thoại thì câu hỏi của người lao tới là bong bóng cảnh báo', () => {
     expect(speechBubbles(null, qte, onMap, color).bubbles).toEqual([{ key: 'di-ut', name: 'Dì Út', text: 'Bao giờ cưới?', color: '#f00', alert: true }]);
+  });
+});
+
+describe('phía bong bóng (không đè nhau khi cả hai cùng nói)', () => {
+  it('ai bên trái màn hình thì bong bóng bung sang trái, người kia sang phải', () => {
+    expect(bubbleSides(-0.2, 0.3)).toEqual({ player: 'left', npc: 'right' });
+    expect(bubbleSides(0.4, -0.1)).toEqual({ player: 'right', npc: 'left' });
+  });
+
+  it('hai người gần như thẳng hàng: giữ phía cũ, không nhảy qua lại; luôn ngược phía nhau', () => {
+    const prev = { player: 'right', npc: 'left' } as const;
+    expect(bubbleSides(0.1, 0.12, prev)).toEqual(prev);
+    for (const [a, b] of [[0, 0], [0.5, 0.5], [-1, 1]] as const) {
+      const s = bubbleSides(a, b);
+      expect(s.player).not.toBe(s.npc);
+    }
   });
 });
 

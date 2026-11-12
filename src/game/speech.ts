@@ -1,7 +1,10 @@
 import type { Character } from '../engine/types';
 import type { Talk } from './TalkDock';
 
-/** Bong bóng thoại trên đầu một nhân vật (`key` = id NPC). */
+/** Phía bong bóng bung ra so với đầu người nói (đuôi chỉ về người nói). */
+export type BubbleSide = 'left' | 'right' | 'center';
+
+/** Bong bóng thoại trên đầu một nhân vật (`key` = id NPC, hoặc 'player'). */
 export interface SpeechBubble {
   key: string;
   name: string;
@@ -13,12 +16,13 @@ export interface SpeechBubble {
 }
 
 /**
- * Bong bóng nào đang hiện. Quy tắc: TỐI ĐA MỘT bong bóng mỗi lúc (người chơi và NPC đứng sát nhau nên hai bong bóng
- * sẽ đè lên nhau, không đọc được). Ưu tiên hội thoại đang mở; không có hội thoại thì là câu hỏi của người đang lao tới.
- * Sau khi chọn: bước đầu là câu người chơi vừa nói (bong bóng trên đầu người chơi, khoá `player`), bước sau là phản
- * ứng của NPC (bong bóng trên đầu NPC); hai bước lần lượt, không cùng lúc. Hàm thuần.
+ * Bong bóng nào đang hiện. Mỗi nhân vật tối đa MỘT bong bóng, tổng tối đa hai (người chơi + một NPC):
+ * - đang chọn: câu hỏi của NPC;
+ * - sau khi chọn: câu người chơi vừa nói (trên đầu người chơi) VÀ phản ứng của NPC, hiện cùng lúc;
+ *   hai bong bóng bung ra hai phía ngược nhau (`bubbleSides`) nên không đè lên nhau.
+ * Người nói không đứng trong cảnh (máy tính, Mẹ gọi điện, Bé Dê) thì lời của họ nằm trong dock. Hàm thuần.
  *
- * `speakerOnMap` = lời nói đã nằm trong bong bóng, dock không cần nhắc lại.
+ * `speakerOnMap` = lời của người đối thoại đã nằm trong bong bóng, dock không cần nhắc lại.
  */
 export function speechBubbles(
   talk: Talk | null,
@@ -33,21 +37,36 @@ export function speechBubbles(
       : { bubbles: [], speakerOnMap: false };
   }
   const k = talk.key;
-  if (talk.kind === 'reply' && talk.showSaid && talk.said) {
-    return { bubbles: [{ key: 'player', name: playerName || 'Bạn', text: talk.said, color: 'var(--gold-dark)' }], speakerOnMap: true };
-  }
-  if (!onMap(k)) return { bubbles: [], speakerOnMap: false };
+  const npcHere = onMap(k);
   switch (talk.kind) {
     case 'choose':
-      if (talk.view.scene.ui === 'feed') return { bubbles: [], speakerOnMap: false };
+      if (talk.view.scene.ui === 'feed' || !npcHere) return { bubbles: [], speakerOnMap: false };
       return { bubbles: [{ key: k, name: talk.view.speaker.name, text: talk.view.line, color: colorOf(talk.view.speaker) }], speakerOnMap: true };
-    case 'reply':
-      return { bubbles: [{ key: k, name: talk.speaker.name, text: talk.reply, color: colorOf(talk.speaker) }], speakerOnMap: true };
+    case 'reply': {
+      const bubbles: SpeechBubble[] = [];
+      if (talk.said && !talk.feed) bubbles.push({ key: 'player', name: playerName || 'Bạn', text: talk.said, color: 'var(--gold-dark)' });
+      if (npcHere) bubbles.push({ key: k, name: talk.speaker.name, text: talk.reply, color: colorOf(talk.speaker) });
+      return { bubbles, speakerOnMap: npcHere };
+    }
     case 'line':
-      return talk.speaker
+      return talk.speaker && npcHere
         ? { bubbles: [{ key: k, name: talk.speaker.name, text: talk.text, color: colorOf(talk.speaker) }], speakerOnMap: true }
         : { bubbles: [], speakerOnMap: false };
     default:
       return { bubbles: [], speakerOnMap: false };
   }
+}
+
+/** Độ trễ (đơn vị màn hình, NDC) để phía không nhảy qua lại khi hai người gần như thẳng hàng trên màn hình. */
+export const SIDE_HYSTERESIS = 0.04;
+
+/**
+ * Phía bong bóng của người chơi và của NPC khi cả hai cùng nói: ai đứng bên trái màn hình thì bong bóng bung sang
+ * trái, người kia sang phải (kiểu truyện tranh), nên hai bong bóng không chồng lên nhau dù hai người đứng sát.
+ * `playerX`, `npcX` là toạ độ ngang trên màn hình (NDC -1..1); `prev` là kết quả lần trước để giữ ổn định.
+ */
+export function bubbleSides(playerX: number, npcX: number, prev?: { player: BubbleSide; npc: BubbleSide }): { player: BubbleSide; npc: BubbleSide } {
+  const d = npcX - playerX;
+  if (prev && prev.player !== 'center' && Math.abs(d) < SIDE_HYSTERESIS) return prev;
+  return d >= 0 ? { player: 'left', npc: 'right' } : { player: 'right', npc: 'left' };
 }
