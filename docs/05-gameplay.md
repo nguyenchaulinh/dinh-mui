@@ -74,6 +74,7 @@ Mỗi bước kết thúc bằng một bản chạy được. Ở các **điểm
 | 3 | **Lớp nhiệm vụ + schema bản đồ** trong JSON (`maps`), validate chặt, thưởng chỉ số | 2 ngày | | xong 12/11 |
 | 4 (một phần) | **Né câu hỏi:** Dì Út bắn bong bóng bay thẳng về chỗ bạn đứng; trúng thì bị kéo vào hội thoại theo vai, né được thì tính điểm (3 câu xong nhiệm vụ, 5 câu mở kết thúc "Chiến thần né câu hỏi"). Còn thiếu: Bà Tám livestream, mâm cơm gắp mời | 3 ngày | **Có**: playtest vòng 1 với vài người | một phần xong 12/11 |
 | 4b | **Gỡ luồng hộp thoại, 3D 100%:** chặng trỏ thẳng tới bản đồ, kết thúc khi xong nhiệm vụ đích hoặc chỉ số về 0, màn chọn vai và màn kết thúc | | | xong 12/11 |
+| 4c | **Chặng "Cuối năm ở phố" (văn phòng / lớp học)** + giao diện mới theo [07](07-thiet-ke-ui-ux.md): dùng đồ vật, nhặt đồ, cửa ra có điều kiện, sự kiện (cuộc gọi của mẹ), feed săn vé, NPC theo vai, kết thúc E4. Chi tiết ở [08](08-thiet-ke-choi-truoc-que.md) | | | xong 12/11 |
 | 5 | **Chặng 3 + 4:** đi phố, mua quà, băng qua đường, xe ôm; lái xe máy quốc lộ, trạm dừng chân | 4 ngày | | chưa |
 | 6 | **Chặng 6 (mâm cơm):** đi quanh nhà trên, gắp mời, boss "cả mâm hỏi cùng lúc" | 3 ngày | | chưa |
 | 7 | **Chặng 1 + 2:** văn phòng/KTX đi lại, điện thoại săn vé; tiệc tất niên đi giữa các bàn | 3 ngày | | chưa |

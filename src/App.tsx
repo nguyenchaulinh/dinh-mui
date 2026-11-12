@@ -1,101 +1,125 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { loadContent } from './content';
 import { ALLOW_JUMP } from './debug';
-import { afterStage, createGame, getEnding, pickRegion } from './engine/engine';
+import { afterStage, createGame, getEnding, pickBySeed } from './engine/engine';
 import type { Content, GameState } from './engine/types';
 import { RoamScreen } from './game/RoamScreen';
-import { EndingScreen } from './screens/EndingScreen';
-import { Setup, type Selection } from './screens/Setup';
+import { EndingCard, PauseCard, StageCard, TitleCard, type Context } from './screens/Cards';
 
-/** Đang chơi chặng `stageIndex`, vào chặng với state `game`. */
-interface Playing {
-  stageIndex: number;
-  game: GameState;
-  /** Bỏ thẻ chặng (chỉ khi nhảy thẳng bằng URL lúc dev). */
-  skipIntro?: boolean;
-}
-
-/**
- * Chỉ khi dev/bản đo: `?roam=san-nha&region=ha-noi&persona=moi-di-lam` vào thẳng bản đồ, bỏ qua màn chọn.
- * Giá trị lạ thì rơi về mục đầu thay vì để `createGame` ném lỗi làm trắng trang.
- */
-function devJump(content: Content): Playing | null {
-  if (!ALLOW_JUMP) return null;
-  const q = new URLSearchParams(window.location.search);
-  const stageIndex = content.stages.findIndex((s) => s.mapId === q.get('roam'));
-  if (stageIndex < 0) return null;
-  const persona = content.personas.find((p) => p.id === q.get('persona'))?.id ?? content.personas[0]!.id;
-  const region = content.regions.find((r) => r.id === q.get('region'))?.id ?? content.regions[0]!.id;
-  return { stageIndex, game: createGame(content, persona, region), skipIntro: true };
-}
-
-/** Hạt giống ngẫu nhiên 31 bit (chỉ để chọn thành phố khi tích nhiều, không dùng cho bảo mật). */
+/** Hạt giống ngẫu nhiên 31 bit từ bộ sinh số của trình duyệt (chỉ để bốc bối cảnh, không dùng cho bảo mật). */
 function newSeed(): number {
   const a = new Uint32Array(1);
   crypto.getRandomValues(a);
   return (a[0] ?? 0) >>> 1;
 }
 
-/** Tải trước cảnh 3D (khối lớn nhất) lúc trình duyệt rảnh, để bấm "Lên đường" là vào được ngay. */
-function prefetchScene(): void {
-  const load = () => void import('./game/RoamView');
-  // Safari (chưa có requestIdleCallback ở nhiều bản) rơi về setTimeout.
-  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(load);
-  else window.setTimeout(load, 1500);
+/** Bốc ngẫu nhiên vai và thành phố cho một lượt chơi. */
+function randomContext(content: Content): Context {
+  const seed = newSeed();
+  return {
+    personaId: pickBySeed(content.personas.map((p) => p.id), seed, 'vai'),
+    regionId: pickBySeed(content.regions.map((r) => r.id), seed, 'thanh-pho'),
+  };
 }
 
+/** Thẻ nổi đang mở trên cảnh (null = đang chơi). */
+type Overlay =
+  | { kind: 'title' }
+  | { kind: 'stage'; justFinished?: string }
+  | { kind: 'pause' }
+  | { kind: 'ending'; game: GameState };
+
+interface Run {
+  /** Đổi mỗi lần chơi lại để dựng lại cảnh từ đầu. */
+  id: number;
+  ctx: Context;
+  stageIndex: number;
+  /** State lúc vào chặng hiện tại. */
+  game: GameState;
+}
+
+/**
+ * Chỉ khi dev/bản đo: `?roam=san-nha&region=ha-noi&persona=moi-di-lam` vào thẳng bản đồ, bỏ qua thẻ mở đầu và thẻ chặng.
+ * Giá trị lạ thì rơi về mục đầu thay vì để `createGame` ném lỗi làm trắng trang.
+ */
+function devJump(content: Content): Run | null {
+  if (!ALLOW_JUMP) return null;
+  const q = new URLSearchParams(window.location.search);
+  const stageIndex = content.stages.findIndex((s) => s.mapId === q.get('roam'));
+  if (stageIndex < 0) return null;
+  const personaId = content.personas.find((p) => p.id === q.get('persona'))?.id ?? content.personas[0]!.id;
+  const regionId = content.regions.find((r) => r.id === q.get('region'))?.id ?? content.regions[0]!.id;
+  return { id: 0, ctx: { personaId, regionId }, stageIndex, game: createGame(content, personaId, regionId, 'Bạn') };
+}
+
+function newRun(content: Content, id: number, name: string): Run {
+  const ctx = randomContext(content);
+  return { id, ctx, stageIndex: 0, game: createGame(content, ctx.personaId, ctx.regionId, name) };
+}
+
+/**
+ * Luồng màn hình (docs/07): cảnh 3D của chặng hiện tại luôn là nền; các màn mở đầu, thẻ chặng, tạm dừng, kết thúc
+ * là thẻ nổi giữa màn hình. Bối cảnh (vai, thành phố) bốc ngẫu nhiên, người chơi chỉ nhập tên.
+ */
 export function App() {
   const content = useMemo(() => loadContent(), []);
-  useEffect(prefetchScene, []);
-  const [selection, setSelection] = useState<Selection>({ personaId: null, regionIds: [] });
-  const [playing, setPlaying] = useState<Playing | null>(() => devJump(content));
-  /** Có giá trị khi lượt chơi đã kết thúc. */
-  const [finished, setFinished] = useState<GameState | null>(null);
+  const [jump] = useState(() => devJump(content));
+  const [run, setRun] = useState<Run>(() => jump ?? newRun(content, 0, ''));
+  const [overlay, setOverlay] = useState<Overlay | null>(() => (jump ? null : { kind: 'title' }));
+  const stage = content.stages[run.stageIndex]!;
 
   const onFinish = useCallback(
     (game: GameState) => {
-      const idx = playing?.stageIndex ?? 0;
-      const step = afterStage(content, idx, game);
-      if ('next' in step) setPlaying({ stageIndex: step.next, game });
-      else {
-        setPlaying(null);
-        setFinished(step.end);
+      const step = afterStage(content, run.stageIndex, game);
+      if ('next' in step) {
+        setRun((r) => ({ ...r, stageIndex: step.next, game }));
+        setOverlay({ kind: 'stage', justFinished: content.stages[run.stageIndex]!.title });
+      } else {
+        setOverlay({ kind: 'ending', game: step.end });
       }
     },
-    [content, playing?.stageIndex],
+    [content, run.stageIndex],
   );
 
-  if (playing) {
-    const stage = content.stages[playing.stageIndex]!;
-    return (
-      <RoamScreen
-        key={stage.id}
-        content={content}
-        stage={stage}
-        initialGame={playing.game}
-        skipIntro={playing.skipIntro}
-        onFinish={onFinish}
-        onExit={() => setPlaying(null)}
-      />
-    );
-  }
+  const restart = useCallback(() => {
+    setRun((r) => newRun(content, r.id + 1, r.game.playerName));
+    setOverlay({ kind: 'stage' });
+  }, [content]);
 
-  const ending = finished ? getEnding(content, finished) : null;
-  if (finished && ending) {
-    return <EndingScreen ending={ending} stats={finished.stats} onReplay={() => setFinished(null)} />;
-  }
+  const ending = overlay?.kind === 'ending' ? getEnding(content, overlay.game) : null;
 
   return (
-    <Setup
-      content={content}
-      selection={selection}
-      onSelect={setSelection}
-      onStart={(personaId, regionIds) =>
-        setPlaying({
-          stageIndex: 0,
-          game: createGame(content, personaId, pickRegion(regionIds, newSeed(), 'luot-choi')),
-        })
-      }
-    />
+    <>
+      <RoamScreen
+        key={`${run.id}:${stage.id}`}
+        content={content}
+        stage={stage}
+        initialGame={run.game}
+        active={overlay === null}
+        onFinish={onFinish}
+        onPause={() => setOverlay({ kind: 'pause' })}
+      />
+      {overlay?.kind === 'title' && (
+        <TitleCard
+          content={content}
+          ctx={run.ctx}
+          onStart={(name) => {
+            setRun((r) => ({ ...r, game: { ...r.game, playerName: name } }));
+            setOverlay({ kind: 'stage' });
+          }}
+        />
+      )}
+      {overlay?.kind === 'stage' && (
+        <StageCard
+          content={content}
+          stage={stage}
+          game={run.game}
+          justFinished={overlay.justFinished}
+          onEnter={() => setOverlay(null)}
+        />
+      )}
+      {overlay?.kind === 'pause' && <PauseCard onResume={() => setOverlay(null)} onRestart={restart} />}
+      {overlay?.kind === 'ending' && ending && <EndingCard ending={ending} game={overlay.game} onReplay={restart} />}
+    </>
   );
 }

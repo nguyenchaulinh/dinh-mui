@@ -43,8 +43,9 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: rgb(0 0 0 / 0.28);
-  border: 2px solid rgb(255 255 255 / 0.55);
+  background: rgb(255 248 236 / 0.22);
+  border: 2px solid rgb(255 248 236 / 0.7);
+  box-shadow: 0 3px 0 rgb(42 26 18 / 0.25);
   pointer-events: auto;
   touch-action: none;
 }
@@ -63,8 +64,9 @@
   height: 52px;
   margin: -26px 0 0 -26px;
   border-radius: 50%;
-  background: rgb(255 247 237 / 0.88);
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+  background: var(--red, #c0262d);
+  border: 3px solid var(--paper, #fff8ec);
+  box-shadow: 0 3px 0 rgb(42 26 18 / 0.35);
   /* Vị trí knob do script đặt trực tiếp bằng transform, không nhận chạm. */
   pointer-events: none;
   will-change: transform;
@@ -82,19 +84,19 @@
   padding: 0;
   display: grid;
   place-items: center;
-  font: 700 0.8rem/1.15 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: #fff;
-  background: rgb(185 28 28 / 0.88);
-  border: 2px solid rgb(255 255 255 / 0.6);
+  font: 700 13px/1.15 var(--font, system-ui, sans-serif);
+  color: var(--paper, #fff8ec);
+  background: var(--red, #c0262d);
+  border: 3px solid var(--gold, #f5b82e);
   border-radius: 50%;
-  box-shadow: 0 2px 10px rgb(0 0 0 / 0.35);
+  box-shadow: 0 4px 0 var(--gold-dark, #b7791f);
   pointer-events: auto;
   touch-action: none;
   cursor: pointer;
 }
 .roam-action:active {
-  background: rgb(153 27 27 / 0.95);
-  transform: scale(0.94);
+  transform: translateY(2px) scale(0.97);
+  box-shadow: 0 2px 0 var(--gold-dark, #b7791f);
 }
 
 /* Dòng gợi ý trên máy tính. */
@@ -106,11 +108,11 @@
   margin: 0;
   padding: 4px 12px;
   max-width: calc(100% - 24px);
-  font-size: 0.72rem;
+  font-size: 12px;
   white-space: nowrap;
-  color: #fff;
-  background: rgb(0 0 0 / 0.45);
-  border-radius: 10px;
+  color: var(--paper, #fff8ec);
+  background: rgb(42 26 18 / 0.7);
+  border-radius: 999px;
   pointer-events: none;
 }
 

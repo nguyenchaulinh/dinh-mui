@@ -14,7 +14,7 @@ import type { RegionStyle } from './registry';
  */
 
 /** Các bộ cảnh đã có dữ liệu đi lại. Thêm set mới thì thêm cả case trong walkAreaFor. */
-export const ROAM_SETS: readonly string[] = ['san-nha'];
+export const ROAM_SETS: readonly string[] = ['san-nha', 'cuoi-nam'];
 
 /** Chiều cao người chơi (m), khớp Figure: đầu ở y ~1.42 + bán kính đầu. */
 const BODY_HEIGHT = 1.7;
@@ -159,6 +159,84 @@ function buildSanNha(style: RegionStyle): WalkArea {
   return { bounds, colliders, spawn: { x: 0, z: 3.75, rotY: Math.PI } };
 }
 
+// ---------- Văn phòng / lớp học cuối năm (chặng 1) ----------
+
+/**
+ * Mặt bằng phòng 12 x 10 m (x -6..6, z -5..5), dàn cảnh hở phía trước (z = +5) để camera sau lưng không bị tường che,
+ * cửa ra ở tường phải. NGUỒN DUY NHẤT cho cả hình dựng (sets.tsx: CuoiNam) lẫn vật cản bên dưới: sửa số ở đây thì
+ * hình và va chạm đổi cùng nhau. Hai biến thể (văn phòng / lớp học) dùng chung mặt bằng, chỉ khác trang trí.
+ */
+export const CUOI_NAM = {
+  /** Mặt trong của tường: sau (z), trái/phải (x). Tường dày 0.3, cao 3. */
+  wallBackZ: -4.95,
+  wallSideX: 5.95,
+  wallThick: 0.3,
+  wallHeight: 3,
+  /** Mép trước của sàn (dàn cảnh hở). */
+  frontZ: 4.7,
+  /** Khe cửa trên tường phải, theo z. */
+  door: { z0: 1.4, z1: 3.0 },
+  /** Mặt bàn 1.4 x 0.75; ghế đặt sau bàn 0.55 m (phía +z). Bàn 1-2 hàng sau, bàn 3-4 hàng trước; bàn 4 là bàn của bạn. */
+  desk: { w: 1.4, d: 0.75, chairBack: 0.55 },
+  desks: [
+    { x: -3.6, z: -2.6 },
+    { x: -2.2, z: -2.6 },
+    { x: -3.6, z: 0.2 },
+    { x: -2.2, z: 0.2 },
+  ],
+  /** Bàn sếp / bàn giáo viên 1.8 x 0.8, ghế phía sau (gần tường). */
+  bossDesk: { x: 2.6, z: -3.2, w: 1.8, d: 0.8 },
+  /** Quầy pha cà phê / bàn liên hoan sát tường phải. */
+  counter: { x: 5.3, z: -2.2, w: 0.9, d: 2.0 },
+  /** Móc treo áo cạnh cửa. */
+  coatRack: { x: 5.3, z: 0.4, r: 0.3 },
+  /** Chậu quất góc sau trái, chậu đào/mai góc trước trái. */
+  plants: [
+    { x: -5.3, z: -4.3, r: 0.5 },
+    { x: -5.3, z: 4.1, r: 0.45 },
+  ],
+} as const;
+
+function buildCuoiNam(): WalkArea {
+  const L = CUOI_NAM;
+  const half = L.wallThick / 2;
+  const sideHalfLen = (L.frontZ - L.wallBackZ) / 2 + half;
+  const deskBox = (id: string, x0: number, x1: number, z: number): Collider => {
+    // Gộp bàn liền nhau + ghế phía sau: z từ mép trước mặt bàn tới lưng ghế.
+    const zMin = z - L.desk.d / 2;
+    const zMax = z + L.desk.chairBack + 0.25;
+    return box(id, (x0 + x1) / 2, (zMin + zMax) / 2, (x1 - x0) / 2, (zMax - zMin) / 2, false);
+  };
+  const row = (i: number, j: number) => {
+    const a = L.desks[i]!;
+    const b = L.desks[j]!;
+    return deskBox(`ban-${i + 1}-${j + 1}`, Math.min(a.x, b.x) - L.desk.w / 2, Math.max(a.x, b.x) + L.desk.w / 2, a.z);
+  };
+  const b = L.bossDesk;
+  // Bàn sếp: mặt bàn + ghế phía sau (về phía tường), tổng sâu ~1.3 m.
+  const bossZMin = b.z - b.d / 2 - 0.55;
+  const bossZMax = b.z + b.d / 2;
+  const rightLowLen = L.door.z0 - (L.wallBackZ - L.wallThick);
+  const rightHighLen = L.frontZ + L.wallThick - L.door.z1;
+  const colliders: Collider[] = [
+    box('tuong-sau', 0, L.wallBackZ - half, L.wallSideX + L.wallThick, half, true),
+    box('tuong-trai', -L.wallSideX - half, (L.wallBackZ + L.frontZ) / 2, half, sideHalfLen, true),
+    box('tuong-phai-1', L.wallSideX + half, L.door.z0 - rightLowLen / 2, half, rightLowLen / 2, true),
+    box('tuong-phai-2', L.wallSideX + half, L.door.z1 + rightHighLen / 2, half, rightHighLen / 2, true),
+    row(0, 1),
+    row(2, 3),
+    box('ban-sep', b.x, (bossZMin + bossZMax) / 2, b.w / 2, (bossZMax - bossZMin) / 2, false),
+    box('quay', L.counter.x, L.counter.z, L.counter.w / 2, L.counter.d / 2, false),
+    circle('moc-ao', L.coatRack.x, L.coatRack.z, L.coatRack.r, false),
+    ...L.plants.map((p, i) => circle(`chau-${i + 1}`, p.x, p.z, p.r, false)),
+  ];
+  const bounds: Bounds = { minX: -L.wallSideX, maxX: L.wallSideX, minZ: L.wallBackZ, maxZ: L.frontZ };
+  // Đứng giữa lối đi phía trước, quay mặt vào phòng (rotY = PI nhìn về -z).
+  return { bounds, colliders, spawn: { x: 0.6, z: 3.6, rotY: Math.PI } };
+}
+
+let cuoiNamCache: WalkArea | undefined;
+
 const cache: Record<RegionStyle, WalkArea | undefined> = { bac: undefined, trung: undefined, nam: undefined };
 
 /**
@@ -172,6 +250,9 @@ export function walkAreaFor(setId: string, style: RegionStyle): WalkArea | null 
       const key: RegionStyle = style === 'trung' || style === 'nam' ? style : 'bac';
       return (cache[key] ??= buildSanNha(key));
     }
+    case 'cuoi-nam':
+      // Trong nhà: không đổi theo miền.
+      return (cuoiNamCache ??= buildCuoiNam());
     default:
       return null;
   }

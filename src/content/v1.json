@@ -26,7 +26,8 @@
     }
   ],
   "stages": [
-    { "id": "buoc-vao-nha", "title": "Bước vào nhà", "intro": "Chưa kịp đặt balo xuống thì câu hỏi đầu tiên đã bay tới.", "mapId": "san-nha" }
+    { "id": "cuoi-nam", "title": "Cuối năm ở phố", "intro": "Chiều cuối năm ở thành phố. Săn vé, thu dọn đồ, chào mọi người rồi lên đường về quê.", "mapId": "cuoi-nam" },
+    { "id": "buoc-vao-nha", "title": "Bước vào nhà", "intro": "Sau một chuyến xe dài, bạn về tới cổng nhà. Chưa kịp đặt balo xuống thì câu hỏi đầu tiên đã bay tới.", "mapId": "san-nha" }
   ],
   "characters": [
     { "id": "be-de", "name": "Bé Dê", "role": "Dẫn chuyện", "enabled": true,
@@ -55,7 +56,91 @@
       "parody": true, "fallbackId": "chu-tu",
       "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#7c3aed", "accessory": "spoon" } },
     { "id": "chu-tu", "name": "Chú Tư", "role": "Chuyên mục: Review mâm cỗ (bản trung tính)", "enabled": true,
-      "look": { "kind": "human", "skin": "#e0b088", "hair": "#3b2a20", "hairStyle": "short", "outfit": "#1d4ed8", "accessory": "spoon" } }
+      "look": { "kind": "human", "skin": "#e0b088", "hair": "#3b2a20", "hairStyle": "short", "outfit": "#1d4ed8", "accessory": "spoon" } },
+    {
+      "id": "tu",
+      "name": "Tú",
+      "role": "Đồng nghiệp / bạn cùng lớp",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#f2c9a0",
+        "hair": "#3b2a20",
+        "hairStyle": "short",
+        "outfit": "#ea580c",
+        "accessory": "cup"
+      }
+    },
+    {
+      "id": "sep",
+      "name": "Sếp",
+      "role": "Chuyên mục: Thưởng Tết",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#e8b98f",
+        "hair": "#1f1410",
+        "hairStyle": "short",
+        "outfit": "#1e3a8a",
+        "accessory": "glasses"
+      }
+    },
+    {
+      "id": "thu",
+      "name": "Chị Thu",
+      "role": "Kế toán",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#f2c9a0",
+        "hair": "#2b1d15",
+        "hairStyle": "long",
+        "outfit": "#0d9488",
+        "accessory": "phone"
+      }
+    },
+    {
+      "id": "co-chu-nhiem",
+      "name": "Cô Lan",
+      "role": "Cô chủ nhiệm",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#f2c9a0",
+        "hair": "#2b1d15",
+        "hairStyle": "bun",
+        "outfit": "#7c3aed",
+        "accessory": "glasses"
+      }
+    },
+    {
+      "id": "lop-truong",
+      "name": "Khoa",
+      "role": "Lớp trưởng · Chuyên mục: Thu quỹ",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#e0b088",
+        "hair": "#1f1410",
+        "hairStyle": "short",
+        "outfit": "#0284c7",
+        "accessory": "headphones"
+      }
+    },
+    {
+      "id": "me",
+      "name": "Mẹ",
+      "role": "Mẹ ở quê",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#e0b088",
+        "hair": "#2b1d15",
+        "hairStyle": "bun",
+        "outfit": "#be123c",
+        "accessory": "phone"
+      }
+    }
   ],
   "scenes": [
     {
@@ -129,7 +214,7 @@
     },
     {
       "id": "bvn-3", "characterId": "ba-tam",
-      "line": "Cả nhà ơi, cháu về rồi nè! Bà gửi lên nhóm chat gia đình liền nha.",
+      "line": "Cả nhà ơi, {ten} về rồi nè! Bà gửi lên nhóm chat gia đình liền nha.",
       "choices": [
         { "id": "a", "style": "kheo", "text": "Tạo dáng, vẫy tay chào cả nhóm.", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Đẹp! 47 người thả tim rồi nè." },
@@ -204,9 +289,388 @@
         { "id": "c", "style": "lay", "text": "Dì giới thiệu giỏi vậy sao dì không mở công ty mai mối?", "effects": { "harmony": 3, "stamina": -3 },
           "reply": "Mở rồi, bà Sáu là khách hàng đầu tiên đó con." }
       ]
+    },
+    {
+      "id": "tu-ve",
+      "characterId": "tu",
+      "line": "Mua vé Tết chưa? Năm nay nghe nói vé cháy sớm lắm.",
+      "lineByRegion": {
+        "da-nang": "Mua vé Tết chưa? Năm ni nghe nói vé cháy sớm lắm.",
+        "sai-gon": "Mua vé Tết chưa? Năm nay nghe nói vé cháy sớm lắm đó."
+      },
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Để tối nay săn, săn được thì rủ cậu về chung.",
+          "effects": {  "harmony": 3, "stamina": -3 },
+          "reply": "Nhớ đó nghe, đừng có bỏ tui."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Chưa, nhìn giá vé mà muốn ở lại luôn.",
+          "effects": {  "stamina": 3 },
+          "reply": "Ở lại thì Tết ai nấu cơm cho mà ăn?"
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Tui đi bộ về, vừa tiết kiệm vừa giảm cân.",
+          "effects": {  "stamina": 4, "harmony": -2 },
+          "reply": "Đi tới nơi là qua Rằm luôn đó."
+        }
+      ]
+    },
+    {
+      "id": "sep-thuong",
+      "characterId": "sep",
+      "personas": ["moi-di-lam", "doc-than-27"],
+      "line": "Năm nay em thấy công ty thế nào? Thưởng Tết vừa lòng chưa?",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ năm nay em học được nhiều, năm sau em cố hơn nữa ạ.",
+          "effects": {  "harmony": 5, "stamina": -8 },
+          "reply": "Tốt, năm sau giao thêm việc."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Dạ thưởng hơi mỏng so với công sức ạ.",
+          "effects": {  "harmony": -5, "stamina": 5, "wallet": 5 },
+          "reply": "Sếp ghi gì đó vào điện thoại. Đầu năm được xét lại."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Dạ thưởng nhiêu em cũng mang về khoe mẹ hết ạ.",
+          "effects": {  "harmony": 3, "stamina": 3, "wallet": -5 },
+          "reply": "Khoe thì khoe, đừng khoe con số."
+        }
+      ]
+    },
+    {
+      "id": "thu-li-xi",
+      "characterId": "thu",
+      "personas": ["moi-di-lam", "doc-than-27"],
+      "line": "Nhóm chat đang bàn lì xì con sếp bao nhiêu kìa. Năm ngoái chị bỏ năm trăm đó.",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Em theo mức chung của nhóm.",
+          "effects": {  "wallet": -10, "harmony": 5 },
+          "reply": "Ừ, theo nhóm cho đỡ bị so."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Em bỏ mức vừa túi mình thôi chị.",
+          "effects": {  "wallet": -5, "harmony": -2 },
+          "reply": "Cũng được, lì xì là cái tâm."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Em gửi sticker \"đang suy nghĩ\" rồi im lặng.",
+          "effects": {  "stamina": 5, "harmony": -3 },
+          "reply": "Chị thấy rồi nha, đừng có im."
+        }
+      ]
+    },
+    {
+      "id": "co-ra-truong",
+      "characterId": "co-chu-nhiem",
+      "personas": ["sinh-vien"],
+      "line": "Năm cuối rồi, ra trường em định làm gì?",
+      "lines": [{ "characterId": "be-de", "text": "Câu này về quê sẽ còn được hỏi thêm khoảng... ba mươi lần nữa." }],
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ em đang thực tập, có kế hoạch rồi ạ.",
+          "effects": {  "harmony": 5, "stamina": -8 },
+          "reply": "Tốt, nhớ cập nhật cho cô nhé."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Dạ em chưa biết, em hơi lo ạ.",
+          "effects": {  "stamina": 5 },
+          "reply": "Lo là bình thường. Chưa biết thì đi hỏi."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Dạ ra trường em đi tìm việc ạ.",
+          "effects": {  "stamina": 3, "harmony": -2 },
+          "reply": "Câu trả lời không sai, nhưng cũng không giúp gì."
+        }
+      ]
+    },
+    {
+      "id": "lt-gop-tien",
+      "characterId": "lop-truong",
+      "personas": ["sinh-vien"],
+      "line": "Mỗi đứa góp năm chục mua cá chép với mâm cúng ông Táo nhé.",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Góp đủ, chiều đi mua cùng luôn.",
+          "effects": {  "wallet": -5, "harmony": 5, "stamina": -3 },
+          "reply": "Đúng là bạn tốt!"
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Góp tiền nhưng xin không đi mua, mình phải dọn đồ.",
+          "effects": {  "wallet": -5, "stamina": 5 },
+          "reply": "Ok, đưa tiền là đủ rồi."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Tao góp tinh thần.",
+          "effects": {  "harmony": -5, "stamina": 3 },
+          "reply": "Tinh thần không mua được cá chép đâu nha."
+        }
+      ]
+    },
+    {
+      "id": "sep-nho-viec",
+      "characterId": "sep",
+      "personas": ["moi-di-lam", "doc-than-27"],
+      "line": "Em ơi, làm nốt cái slide tổng kết nhé, mai sếp tổng xem.",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ em làm luôn ạ.",
+          "effects": {  "harmony": 3, "stamina": -8 },
+          "reply": "Tốt! Xong gửi anh trước chín giờ tối."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Dạ em xin mai làm, nay em phải về sớm săn vé.",
+          "effects": {  "harmony": -3, "stamina": 2 },
+          "reply": "Ừ... thôi được, mai nhớ đó."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Slide Tết thì em chèn hình hoa đào là xong ạ.",
+          "effects": {  "harmony": 2, "stamina": -3 },
+          "reply": "Chèn thêm câu đối nữa cho đủ bộ."
+        }
+      ]
+    },
+    {
+      "id": "lt-nho-viec",
+      "characterId": "lop-truong",
+      "personas": ["sinh-vien"],
+      "line": "Ê, góp tiền liên hoan chưa? Còn mỗi mày thôi đó!",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Đây, góp luôn cho xong.",
+          "effects": {  "wallet": -5, "harmony": 3 },
+          "reply": "Chuẩn! Ghi tên rồi nha."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Cuối tháng nha, giờ tao hết tiền thật.",
+          "effects": {  "harmony": -3, "stamina": 2 },
+          "reply": "Ghi nợ, ăn Tết xong đòi."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Mày nhìn mặt tao xem có giống người có tiền không?",
+          "effects": {  "harmony": -2, "stamina": 2 },
+          "reply": "Giống người nợ tiền thì có."
+        }
+      ]
+    },
+    {
+      "id": "san-ve",
+      "characterId": "be-de",
+      "ui": "feed",
+      "line": "Lướt feed tìm vé Tết. Bài nào cũng hứa còn vé. Chọn một chỗ để mua:",
+      "choices": [
+        {
+          "id": "a",
+          "style": "that-tha",
+          "text": "Mở bán vé Tết qua tổng đài và website. Giá niêm yết, có hoá đơn.",
+          "effects": {  "wallet": -10 },
+          "reply": "Đặt được vé! Email xác nhận đã về hộp thư.",
+          "author": "Nhà xe Đinh Mùi Express (trang chính thức)",
+          "setFlags": ["co-ve", "san-ve-xong"]
+        },
+        {
+          "id": "b",
+          "style": "lay",
+          "text": "Còn vé Tết giá rẻ! Cọc 50% vào tài khoản cá nhân để giữ chỗ.",
+          "effects": {  "wallet": -20, "stamina": -10 },
+          "reply": "Chuyển cọc xong thì trang chặn bạn. Mất tiền, không có vé.",
+          "author": "VÉ TẾT GIÁ SỐC",
+          "setFlags": ["ve-lua", "san-ve-xong"],
+          "tipId": "T01"
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Pass lại vé rẻ hơn 20%, inbox nhanh kẻo hết.",
+          "effects": {  "wallet": -15, "stamina": -5 },
+          "reply": "Người bán gửi ảnh một tấm vé đã... dùng rồi. Rồi biến mất.",
+          "author": "Hội pass đồ ngày Tết",
+          "setFlags": ["ve-lua", "san-ve-xong"],
+          "tipId": "T01"
+        },
+        {
+          "id": "d",
+          "style": "lay",
+          "text": "Suất nội bộ nhà xe, vé giờ chót, chỉ còn 2 vé.",
+          "effects": {  "wallet": -15, "stamina": -5 },
+          "reply": "\"Nội bộ\" tới mức không ai biết nó ở đâu.",
+          "author": "Kênh vé nội bộ",
+          "setFlags": ["ve-lua", "san-ve-xong"],
+          "tipId": "T02"
+        },
+        {
+          "id": "e",
+          "style": "phan-don",
+          "text": "Còn 3 vé cuối nha cả nhà, chốt đơn đi!",
+          "effects": {  "wallet": -20, "stamina": -5 },
+          "reply": "Chốt đơn xong, livestream tắt. Chị cũng tắt máy luôn.",
+          "author": "Chị Chốt Đơn (livestream)",
+          "setFlags": ["ve-lua", "san-ve-xong"],
+          "tipId": "T02"
+        },
+        {
+          "id": "f",
+          "style": "kheo",
+          "text": "Thôi, để mai săn tiếp.",
+          "effects": {  "stamina": -3 },
+          "reply": "Mai vé còn đắt hơn. Nhưng thôi, tính sau.",
+          "author": "{ten}",
+          "setFlags": ["chua-ve", "san-ve-xong"]
+        }
+      ]
+    },
+    {
+      "id": "cach-ve",
+      "characterId": "be-de",
+      "line": "Giờ về quê bằng gì đây?",
+      "lines": [{ "text": "Vé không có, tiền cọc cũng không. Thôi, tới bến rồi tính.", "if": { "flags": ["ve-lua"] } }],
+      "choices": [
+        {
+          "id": "a",
+          "style": "that-tha",
+          "text": "Xe khách giường nằm, vé đặt rồi.",
+          "effects": { },
+          "reply": "Chuẩn bị gối cổ và tinh thần nghe người bên cạnh ngáy.",
+          "setFlags": ["xe-khach", "da-chon-cach-ve"],
+          "if": {  "flags": ["co-ve"] }
+        },
+        {
+          "id": "b",
+          "style": "lay",
+          "text": "Tự chạy xe máy về, đỡ tiền vé.",
+          "effects": {  "wallet": 5, "stamina": -5 },
+          "reply": "Nhớ dừng nghỉ giữa đường. Đi xe máy đường dài rất mệt.",
+          "setFlags": ["xe-may", "da-chon-cach-ve"]
+        },
+        {
+          "id": "c",
+          "style": "kheo",
+          "text": "Ra bến rồi tính.",
+          "effects": {  "stamina": -3 },
+          "reply": "Bến xe ngày 28 Tết. Chúc may mắn.",
+          "setFlags": ["ra-ben-tinh", "da-chon-cach-ve"]
+        }
+      ]
+    },
+    {
+      "id": "me-goi",
+      "characterId": "me",
+      "line": "Bao giờ con về? Mẹ ngâm gạo, mua lá rồi đó.",
+      "lines": [{ "characterId": "be-de", "text": "Mẹ cầm máy gần quá, chỉ thấy nửa khuôn mặt." }],
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ 28 con về, mẹ đừng làm nhiều quá.",
+          "effects": {  "harmony": 5 },
+          "reply": "Ừ, mẹ làm ít thôi. Có... ba chục cái bánh.",
+          "setFlags": ["nghe-me"]
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Dạ con còn đang tính, vé khó quá mẹ.",
+          "effects": {  "harmony": -3, "stamina": 3 },
+          "reply": "Khó thì cũng phải về, nghe chưa.",
+          "setFlags": ["nghe-me"]
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Mẹ nghiêng máy lên chút, con chỉ thấy cái cằm.",
+          "effects": {  "harmony": 3, "wallet": -2 },
+          "reply": "Thấy cằm là được rồi.",
+          "setFlags": ["nghe-me"]
+        },
+        {
+          "id": "d",
+          "style": "phan-don",
+          "text": "Năm nay con ở lại làm thêm, mẹ ạ.",
+          "effects": {  "harmony": -10 },
+          "reply": "... Mẹ im lặng một lúc lâu.",
+          "setFlags": ["nghe-me", "muon-o-lai"]
+        }
+      ]
+    },
+    {
+      "id": "chac-chua",
+      "characterId": "be-de",
+      "line": "Chắc chưa? Ở lại thì Tết này ăn mì gói một mình đó.",
+      "choices": [
+        {
+          "id": "a",
+          "style": "phan-don",
+          "text": "Chắc. Năm nay con ở lại.",
+          "effects": { },
+          "reply": "Bé Dê gật đầu. Tối giao thừa, bạn gọi video về nhà.",
+          "setFlags": ["tet-xa-nha"],
+          "end": true
+        },
+        {
+          "id": "b",
+          "style": "kheo",
+          "text": "Thôi... con về. Con gọi lại cho mẹ.",
+          "effects": {  "harmony": 8, "stamina": -3 },
+          "reply": "Mẹ cười. Bé Dê cũng thở phào."
+        }
+      ]
     }
   ],
   "tips": [
+    {
+      "id": "T01",
+      "text": "Vé tàu, xe Tết giá rẻ rao trên mạng kèm yêu cầu đặt cọc là chiêu lừa đã được công an cảnh báo. Mua qua kênh chính thức.",
+      "source": "Báo Văn hóa (baovanhoa.vn)"
+    },
+    {
+      "id": "T02",
+      "text": "\"Vé giờ chót\", \"vé hủy\", \"suất nội bộ\" là các chiêu lừa vé quen thuộc.",
+      "source": "VnEconomy (vneconomy.vn)"
+    },
     { "id": "T03",
       "text": "Trả lời nhẹ nhàng rồi chuyển sang kế hoạch, hoặc hỏi thăm lại, là cách nhiều bạn trẻ dùng để né câu hỏi riêng tư mà không mất lòng.",
       "source": "Tổng hợp từ VnExpress, Vietcetera" },
@@ -215,6 +679,12 @@
       "source": "Nghị định 168/2024/NĐ-CP" }
   ],
   "endings": [
+    {
+      "id": "E4",
+      "title": "Tết xa nhà",
+      "description": "Giao thừa, bạn gọi video về nhà. Mẹ vẫn cầm máy sai góc, nhưng cả nhà đều cười.",
+      "flags": ["tet-xa-nha"]
+    },
     { "id": "E1", "title": "Bị cả họ unfollow", "description": "Nhóm chat gia đình vẫn còn bạn, chỉ là không ai thả tim nữa.",
       "when": { "harmony": { "max": 15 } } },
     { "id": "E2", "title": "Ngủ gục trước giao thừa", "description": "Bạn thức dậy thì đã mùng 2. Không ai trách, chỉ có ảnh bạn ngủ trong nhóm chat.",
@@ -222,14 +692,201 @@
     { "id": "E3", "title": "Cháy ví giữa đường", "description": "Bé Dê cho bạn mượn tiền vé. Lãi suất: một nụ cười.",
       "when": { "wallet": { "max": 0 } } },
     { "id": "E8", "title": "Chiến thần né câu hỏi", "description": "Không câu nào chạm được bạn.",
-      "flags": ["dodged:5"] },
+      "flags": ["dodged:8"] },
     { "id": "E6", "title": "Ví rỗng tim đầy", "description": "Ví mỏng nhưng cả nhà ôm bạn thật chặt.",
-      "when": { "wallet": { "max": 20 }, "harmony": { "min": 60 } } },
+      "when": { "wallet": { "max": 15 }, "harmony": { "min": 65 } } },
     { "id": "E7", "title": "Cháu ngoan quốc dân", "description": "Cả họ khen, riêng bạn thì cần ngủ ba ngày.",
       "when": { "harmony": { "min": 70 } } },
     { "id": "E9", "title": "Về quê sống sót", "description": "Không hoàn hảo, nhưng bạn đã về. Dù sao vẫn phải về nhà." }
   ],
   "maps": [
+    {
+      "id": "cuoi-nam",
+      "setId": "cuoi-nam",
+      "playerId": "ban",
+      "goalQuestId": "len-duong",
+      "variantByPersona": {  "sinh-vien": "lop-hoc", "moi-di-lam": "van-phong", "doc-than-27": "van-phong" },
+      "npcs": [
+        {
+          "characterId": "tu",
+          "spot": "tu",
+          "behavior": "stand",
+          "aware": 4,
+          "prompt": "Nói chuyện",
+          "action": {  "kind": "talk", "sceneIds": ["tu-ve"], "after": "Về quê nhớ mang đặc sản lên nha!" }
+        },
+        {
+          "characterId": "sep",
+          "personas": ["moi-di-lam", "doc-than-27"],
+          "spot": "sep",
+          "behavior": "wander",
+          "speed": 1.0,
+          "leash": 2.0,
+          "prompt": "Chúc Tết",
+          "action": {  "kind": "talk", "sceneIds": ["sep-thuong"], "after": "Về quê vui vẻ, ra Tết làm tiếp nhé!" },
+          "shoots": {
+            "everySec": 4,
+            "range": 8,
+            "minRange": 2.5,
+            "speed": 2.8,
+            "questions": ["Em ơi, xem giúp anh file này!", "Họp năm phút thôi nhé!", "Làm nốt cái báo cáo nha!"],
+            "hitSceneIds": ["sep-nho-viec"]
+          }
+        },
+        {
+          "characterId": "thu",
+          "personas": ["moi-di-lam", "doc-than-27"],
+          "spot": "thu",
+          "behavior": "stand",
+          "aware": 4,
+          "prompt": "Nói chuyện",
+          "action": {  "kind": "talk", "sceneIds": ["thu-li-xi"], "after": "Tết vui nha em!" }
+        },
+        {
+          "characterId": "co-chu-nhiem",
+          "personas": ["sinh-vien"],
+          "spot": "co",
+          "behavior": "stand",
+          "aware": 4,
+          "prompt": "Chào cô",
+          "action": {  "kind": "talk", "sceneIds": ["co-ra-truong"], "after": "Về quê ăn Tết vui nhé em." }
+        },
+        {
+          "characterId": "lop-truong",
+          "personas": ["sinh-vien"],
+          "spot": "lop-truong",
+          "behavior": "wander",
+          "speed": 1.1,
+          "leash": 2.0,
+          "prompt": "Nói chuyện",
+          "action": {  "kind": "talk", "sceneIds": ["lt-gop-tien"], "after": "Ra Tết nhớ quay lại đóng quỹ nha!" },
+          "shoots": {
+            "everySec": 4,
+            "range": 8,
+            "minRange": 2.5,
+            "speed": 2.8,
+            "questions": ["Góp tiền liên hoan chưa?", "Nộp quỹ lớp đi!", "Còn thiếu mỗi mày đó!"],
+            "hitSceneIds": ["lt-nho-viec"]
+          }
+        }
+      ],
+      "objects": [
+        {
+          "id": "may-tinh",
+          "label": "Máy tính",
+          "spot": "ban-minh",
+          "prompt": "Săn vé",
+          "model": "laptop",
+          "action": {  "kind": "talk", "sceneIds": ["san-ve"] }
+        },
+        {
+          "id": "sac",
+          "label": "Sạc điện thoại",
+          "spot": "do-sac",
+          "prompt": "Nhặt",
+          "model": "charger",
+          "action": {  "kind": "pickup", "line": "Đã cho sạc điện thoại vào balo. Thiếu nó thì chuyến xe về quê dài gấp đôi." }
+        },
+        {
+          "id": "qua",
+          "label": "Hộp bánh biếu mẹ",
+          "spot": "do-qua",
+          "prompt": "Nhặt",
+          "model": "gift",
+          "action": {  "kind": "pickup", "line": "Hộp bánh để biếu mẹ. Cầm nhẹ tay kẻo móp." }
+        },
+        {
+          "id": "ao",
+          "label": "Áo ấm",
+          "spot": "do-ao",
+          "prompt": "Lấy",
+          "model": "coat",
+          "action": {  "kind": "pickup", "line": "Áo ấm cho mấy ngày ở quê. Ở phố không cần, về quê mới thấy cần." }
+        },
+        {
+          "id": "cua",
+          "label": "Cửa ra",
+          "spot": "cua",
+          "prompt": "Lên đường",
+          "model": "door",
+          "requires": {  "flags": ["quest:san-ve", "quest:thu-don", "nghe-me"] },
+          "lockedLine": "Chưa về được: cần săn vé, thu dọn đủ đồ và nghe máy mẹ đã.",
+          "action": {  "kind": "exit", "line": "Tắt đèn, khoá cửa. Lên đường về quê thôi!" }
+        }
+      ],
+      "events": [
+        {  "id": "cach-ve", "when": { "flags": ["san-ve-xong"] }, "sceneIds": ["cach-ve"] },
+        {  "id": "me-goi", "kind": "call", "when": { "flags": ["da-chon-cach-ve"] }, "sceneIds": ["me-goi"] },
+        {  "id": "chac-chua", "when": { "flags": ["muon-o-lai"] }, "sceneIds": ["chac-chua"] }
+      ],
+      "quests": [
+        {
+          "id": "san-ve",
+          "title": "Săn vé về quê",
+          "objectives": [{ "id": "o", "text": "Dùng máy tính săn vé", "done": { "flags": ["used:cuoi-nam:may-tinh"] } }]
+        },
+        {
+          "id": "thu-don",
+          "title": "Thu dọn đồ",
+          "objectives": [
+            {  "id": "sac", "text": "Sạc điện thoại", "done": { "flags": ["picked:cuoi-nam:sac"] } },
+            {  "id": "qua", "text": "Hộp bánh biếu mẹ", "done": { "flags": ["picked:cuoi-nam:qua"] } },
+            {  "id": "ao", "text": "Áo ấm", "done": { "flags": ["picked:cuoi-nam:ao"] } }
+          ],
+          "reward": {  "stamina": 5 },
+          "rewardLine": "Balo đã đầy."
+        },
+        {
+          "id": "chao-moi-nguoi",
+          "title": "Chào mọi người trước Tết",
+          "objectives": [
+            {  "id": "tu", "text": "Nói chuyện với Tú", "done": { "flags": ["talked:cuoi-nam:tu"] } },
+            {
+              "id": "sep",
+              "text": "Chúc Tết Sếp",
+              "done": {  "flags": ["talked:cuoi-nam:sep"] },
+              "personas": ["moi-di-lam", "doc-than-27"]
+            },
+            {
+              "id": "thu",
+              "text": "Nói chuyện với chị Thu",
+              "done": {  "flags": ["talked:cuoi-nam:thu"] },
+              "personas": ["moi-di-lam", "doc-than-27"]
+            },
+            {
+              "id": "co",
+              "text": "Chào cô chủ nhiệm",
+              "done": {  "flags": ["talked:cuoi-nam:co-chu-nhiem"] },
+              "personas": ["sinh-vien"]
+            },
+            {
+              "id": "lt",
+              "text": "Nói chuyện với lớp trưởng",
+              "done": {  "flags": ["talked:cuoi-nam:lop-truong"] },
+              "personas": ["sinh-vien"]
+            }
+          ],
+          "reward": {  "harmony": 6 },
+          "rewardLine": "Ai cũng chúc bạn về quê vui vẻ."
+        },
+        {
+          "id": "ne-viec",
+          "title": "Né việc phút chót",
+          "objectives": [{ "id": "o", "text": "Né 3 lần", "done": { "flags": ["dodged:cuoi-nam:3"] } }],
+          "reward": {  "stamina": 5 },
+          "rewardLine": "Không ai giao thêm việc được cho bạn."
+        },
+        {
+          "id": "len-duong",
+          "title": "Lên đường về quê",
+          "objectives": [
+            {  "id": "ve", "text": "Săn vé xong", "done": { "flags": ["quest:san-ve"] } },
+            {  "id": "do", "text": "Thu dọn đủ đồ", "done": { "flags": ["quest:thu-don"] } },
+            {  "id": "cua", "text": "Ra cửa", "done": { "flags": ["used:cuoi-nam:cua"] } }
+          ]
+        }
+      ]
+    },
     {
       "id": "san-nha", "setId": "san-nha", "playerId": "ban", "goalQuestId": "qua-san-nha",
       "npcs": [
@@ -262,18 +919,18 @@
       "quests": [
         { "id": "chao-ho-hang", "title": "Chào hỏi họ hàng",
           "objectives": [
-            { "id": "co-hai", "text": "Nói chuyện với Cô Hai", "done": { "flags": ["talked:co-hai"] } },
-            { "id": "bac-ca", "text": "Nói chuyện với Bác Cả", "done": { "flags": ["talked:bac-ca"] } },
-            { "id": "ba-tam", "text": "Chào Bà Tám", "done": { "flags": ["talked:ba-tam"] } }
+            { "id": "co-hai", "text": "Nói chuyện với Cô Hai", "done": { "flags": ["talked:san-nha:co-hai"] } },
+            { "id": "bac-ca", "text": "Nói chuyện với Bác Cả", "done": { "flags": ["talked:san-nha:bac-ca"] } },
+            { "id": "ba-tam", "text": "Chào Bà Tám", "done": { "flags": ["talked:san-nha:ba-tam"] } }
           ],
           "reward": { "harmony": 8 }, "rewardLine": "Cả nhà khen bạn biết điều." },
         { "id": "ne-cau-hoi", "title": "Né câu hỏi của Dì Út",
-          "objectives": [ { "id": "ne-3", "text": "Né được 3 câu hỏi", "done": { "flags": ["dodged:3"] } } ],
+          "objectives": [ { "id": "ne-3", "text": "Né được 3 câu hỏi", "done": { "flags": ["dodged:san-nha:3"] } } ],
           "reward": { "stamina": 10 }, "rewardLine": "Bạn né câu hỏi như một chiến thần." },
         { "id": "ban-cua-lu-nho", "title": "Làm bạn với lũ nhỏ",
           "objectives": [
-            { "id": "vang", "text": "Vuốt ve chó Vàng", "done": { "flags": ["petted:vang"] } },
-            { "id": "bin", "text": "Nói chuyện với bé Bin", "done": { "flags": ["talked:bin"] } }
+            { "id": "vang", "text": "Vuốt ve chó Vàng", "done": { "flags": ["petted:san-nha:vang"] } },
+            { "id": "bin", "text": "Nói chuyện với bé Bin", "done": { "flags": ["talked:san-nha:bin"] } }
           ],
           "reward": { "harmony": 4 }, "rewardLine": "Lũ nhỏ coi bạn là đồng bọn." },
         { "id": "qua-san-nha", "title": "Qua ải sân nhà",

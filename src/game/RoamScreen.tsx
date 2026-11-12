@@ -2,32 +2,41 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 import { DEBUG } from '../debug';
 import { applyEffects, choose, getView, pickScene, resolveCharacter } from '../engine/engine';
 import {
-  DODGE_MILESTONES,
-  HIT_FLAG,
   completeQuests,
-  dodgedFlag,
+  dodgeFlags,
+  dueEvent,
+  eventFlag,
+  forPersona,
+  hitFlag,
   mapGoalReached,
+  objectDoneFlag,
+  objectUnlocked,
   objectiveDone,
+  objectivesFor,
   pettedFlag,
   questFlag,
   questProgress,
   talkedFlag,
   withFlag,
+  withFlags,
 } from '../engine/quests';
-import { STAT_KEYS, STAT_MAX, type Content, type GameState, type MapNpc, type Stage } from '../engine/types';
-import { STAT_LABEL } from '../labels';
+import type { Content, GameState, MapNpc, MapObject, Stage } from '../engine/types';
 import { SETS, styleOfRegion } from '../scene3d/registry';
 import { walkAreaFor } from '../scene3d/walk';
+import { PauseIcon, StatBars } from '../ui/ui';
 import { InputController } from './input';
 import { RoamControls } from './RoamControls';
 import { buildNpcParams, getRoamMap } from './roamDemo';
-import type { RoamNpc } from './RoamView';
+import type { RoamNpc, RoamObject } from './RoamView';
 import { TalkPanel, type Talk } from './TalkPanel';
 
 const RoamView = lazy(() => import('./RoamView'));
 
 /** Chờ (ms) sau khi xong nhiệm vụ đích / hết chỉ số để người chơi kịp đọc thông báo trước khi chuyển màn. */
 const FINISH_DELAY_MS = 1800;
+
+const OBJ = 'obj:';
+const EV = 'ev:';
 
 interface Toast {
   id: number;
@@ -38,25 +47,25 @@ interface Toast {
 }
 
 /**
- * Một chặng của game: người chơi đi lại trong bản đồ 3D, nói chuyện, né câu hỏi, làm nhiệm vụ.
- * Chặng xong khi nhiệm vụ đích của bản đồ hoàn thành hoặc một chỉ số về 0; lúc đó gọi `onFinish` với state cuối.
+ * Một chặng: người chơi đi lại trong bản đồ 3D, nói chuyện, dùng/nhặt đồ, né câu hỏi, gặp sự kiện, làm nhiệm vụ.
+ * Chặng xong khi nhiệm vụ đích hoàn thành hoặc game kết thúc (một chỉ số về 0, hoặc lựa chọn kết thúc ngay);
+ * lúc đó gọi `onFinish` với state cuối. `active = false` (đang có thẻ nổi của App) thì cảnh đứng yên làm nền.
  */
 export function RoamScreen({
   content,
   stage,
   initialGame,
-  skipIntro = false,
+  active,
   onFinish,
-  onExit,
+  onPause,
 }: Readonly<{
   content: Content;
   stage: Stage;
-  /** State lúc vào chặng (chỉ số, cờ mang từ chặng trước sang). */
+  /** State lúc vào chặng (chỉ số, cờ mang từ chặng trước sang). Chỉ đọc lúc gắn, trừ tên người chơi. */
   initialGame: GameState;
-  /** Bỏ thẻ chặng ở đầu (chỉ để nhảy thẳng vào bản đồ khi dev/đo hiệu năng). */
-  skipIntro?: boolean;
+  active: boolean;
   onFinish: (game: GameState) => void;
-  onExit: () => void;
+  onPause: () => void;
 }>) {
   const { personaId, regionId } = initialGame;
   const map = useMemo(() => getRoamMap(content, stage.mapId), [content, stage.mapId]);
@@ -65,7 +74,6 @@ export function RoamScreen({
   /** Chỉ số, cờ, thẻ mẹo, lịch sử của lượt chơi. `gameRef` là bản đồng bộ: mọi cập nhật qua `commit`. */
   const [game, setGameState] = useState<GameState>(initialGame);
   const gameRef = useRef(game);
-  const [introOpen, setIntroOpen] = useState(!skipIntro);
   const [nearby, setNearby] = useState<string | null>(null);
   const [talk, setTalkState] = useState<Talk | null>(null);
   const [questsOpen, setQuestsOpen] = useState(false);
@@ -102,6 +110,12 @@ export function RoamScreen({
     setGameState(next);
   }, []);
 
+  // Tên người chơi có thể được nhập sau khi cảnh đã dựng làm nền (thẻ mở đầu).
+  useEffect(() => {
+    const name = initialGame.playerName;
+    commit((g) => (g.playerName === name ? g : { ...g, playerName: name }));
+  }, [initialGame.playerName, commit]);
+
   const setTalk = useCallback((t: Talk | null) => {
     talkRef.current = t;
     setTalkState(t);
@@ -109,21 +123,26 @@ export function RoamScreen({
 
   const pushToast = useCallback((text: string, tone: Toast['tone'] = 'info', ms = 2400, group?: string) => {
     const id = ++toastId.current;
-    setToasts((cur) => [...cur.filter((x) => group === undefined || x.group !== group).slice(-3), { id, text, tone, group }]);
+    setToasts((cur) => [...cur.filter((x) => group === undefined || x.group !== group).slice(-2), { id, text, tone, group }]);
     timers.current.push(
       window.setTimeout(() => setToasts((cur) => cur.filter((x) => x.id !== id)), ms),
     );
   }, []);
 
-  const specOf = useCallback((key: string): MapNpc | undefined => map?.npcs.find((n) => n.characterId === key), [map]);
+  /** NPC và đồ vật có mặt với vai của người chơi. */
+  const myNpcs = useMemo(() => (map ? map.npcs.filter((n) => forPersona(n, personaId)) : []), [map, personaId]);
+  const myObjects = useMemo(() => (map ? (map.objects ?? []).filter((o) => forPersona(o, personaId)) : []), [map, personaId]);
+  const specOf = useCallback((key: string): MapNpc | undefined => myNpcs.find((n) => n.characterId === key), [myNpcs]);
+  const objOf = useCallback((key: string): MapObject | undefined => myObjects.find((o) => OBJ + o.id === key), [myObjects]);
 
   const area = useMemo(() => (map ? walkAreaFor(map.setId, styleOfRegion(regionId)) : null), [map, regionId]);
   const player = useMemo(() => (map ? resolveCharacter(content, map.playerId) : null), [content, map]);
   const region = content.regions.find((r) => r.id === regionId);
+  const persona = content.personas.find((p) => p.id === personaId);
   const npcs = useMemo<RoamNpc[]>(
     () =>
       map
-        ? map.npcs.flatMap((spec): RoamNpc[] => {
+        ? myNpcs.flatMap((spec): RoamNpc[] => {
             const spot = SETS[map.setId]?.spots[spec.spot];
             if (!spot) return [];
             return [
@@ -142,7 +161,29 @@ export function RoamScreen({
             ];
           })
         : [],
-    [content, map, personaId],
+    [content, map, myNpcs, personaId],
+  );
+  const objects = useMemo<RoamObject[]>(
+    () =>
+      map
+        ? myObjects.flatMap((o): RoamObject[] => {
+            const spot = SETS[map.setId]?.spots[o.spot];
+            if (!spot) return [];
+            const done = game.flags.includes(objectDoneFlag(map.id, o));
+            return [
+              {
+                key: OBJ + o.id,
+                x: spot.pos[0],
+                z: spot.pos[2],
+                model: o.model,
+                available: !done,
+                taken: done && o.action.kind === 'pickup',
+                locked: !objectUnlocked(o, game),
+              },
+            ];
+          })
+        : [],
+    [map, myObjects, game],
   );
 
   // Ghi nhận nhiệm vụ vừa hoàn thành (thưởng chỉ số, cờ quest:...), mỗi nhiệm vụ báo một lần.
@@ -155,11 +196,11 @@ export function RoamScreen({
     for (const q of r.completed) {
       if (announcedRef.current.includes(q.id)) continue;
       announcedRef.current.push(q.id);
-      pushToast(`Hoàn thành: ${q.title}${q.rewardLine ? ` · ${q.rewardLine}` : ''}`, 'good', 4200);
+      pushToast(`Xong: ${q.title}${q.rewardLine ? ` · ${q.rewardLine}` : ''}`, 'good', 4200);
     }
   }, [game, map, commit, pushToast]);
 
-  // Chặng xong: nhiệm vụ đích hoàn thành, hoặc một chỉ số về 0 (engine đã đặt `endingId`).
+  // Chặng xong: nhiệm vụ đích hoàn thành, hoặc game đã kết thúc (engine đặt `endingId`).
   // Chờ hội thoại đang mở đóng lại, rồi một nhịp ngắn để đọc thông báo, mới chuyển màn.
   const ended = game.endingId !== null || (map !== null && mapGoalReached(map, game));
   useEffect(() => {
@@ -172,7 +213,37 @@ export function RoamScreen({
     return () => window.clearTimeout(t);
   }, [ended, talk, onFinish]);
 
-  /** Đánh dấu đã tương tác xong với NPC (không lặp hội thoại) và bật cờ tương ứng cho nhiệm vụ. */
+  /** Mở hội thoại chọn câu đáp từ danh sách scene (scene đầu tiên hợp vai/vùng/cờ); false nếu không có gì để nói. */
+  const openChoose = useCallback(
+    (key: string, sceneIds: readonly string[], hit: boolean): boolean => {
+      const g = gameRef.current;
+      const scene = pickScene(content, g, sceneIds);
+      if (!scene) return false;
+      const view = getView(content, g, scene.id);
+      // Mọi lựa chọn bị ẩn thì không mở khung không có nút nào (kẹt).
+      if (view.choices.length === 0) return false;
+      setTalk({ kind: 'choose', key, sceneId: scene.id, view, hit });
+      return true;
+    },
+    [content, setTalk],
+  );
+
+  // Sự kiện: tự bật khi đủ điều kiện, lúc không có hội thoại nào đang mở. Đọc từ ref nên chạy lại cũng không bật hai lần.
+  useEffect(() => {
+    if (!map || !active || talk !== null || ended) return;
+    const ev = dueEvent(map, gameRef.current);
+    if (!ev) return;
+    commit((g) => withFlag(g, eventFlag(map.id, ev.id)));
+    const scene = pickScene(content, gameRef.current, ev.sceneIds);
+    if (!scene) return;
+    if (ev.kind === 'call') {
+      setTalk({ kind: 'call', key: EV + ev.id, caller: resolveCharacter(content, scene.characterId), sceneIds: ev.sceneIds });
+    } else {
+      openChoose(EV + ev.id, ev.sceneIds, false);
+    }
+  }, [map, active, talk, ended, game, content, commit, setTalk, openChoose]);
+
+  /** Đánh dấu đã tương tác xong (không lặp hội thoại) và bật cờ tương ứng cho nhiệm vụ. */
   const markDone = useCallback(
     (key: string, flag: string) => {
       if (doneRef.current.includes(key)) return;
@@ -182,25 +253,38 @@ export function RoamScreen({
     [commit],
   );
 
-  /** Mở hội thoại chọn câu đáp từ danh sách scene (scene đầu tiên hợp vai/vùng); null nếu không có gì để nói. */
-  const openChoose = useCallback(
-    (key: string, sceneIds: readonly string[], hit: boolean): boolean => {
+  const onObject = useCallback(
+    (key: string) => {
+      const o = objOf(key);
+      if (!o || !map || doneRef.current.includes(key)) return;
       const g = gameRef.current;
-      const scene = pickScene(content, g, sceneIds);
-      if (!scene) return false;
-      const view = getView(content, g, scene.id);
-      // Mọi lựa chọn bị ẩn thì nói câu chào lại thay vì mở khung không có nút nào (kẹt).
-      if (view.choices.length === 0) return false;
-      setTalk({ kind: 'choose', key, sceneId: scene.id, view, hit });
-      return true;
+      if (!objectUnlocked(o, g)) {
+        setTalk({ kind: 'line', key, speaker: null, title: o.label, text: o.lockedLine ?? 'Chưa dùng được.' });
+        return;
+      }
+      const a = o.action;
+      if (a.kind === 'pickup') {
+        markDone(key, objectDoneFlag(map.id, o));
+        if (a.effects) commit((s) => ({ ...s, stats: applyEffects(s.stats, a.effects ?? {}) }));
+        pushToast(`Đã lấy: ${o.label}. ${a.line}`, 'good', 3600, 'pickup');
+        return;
+      }
+      if (a.kind === 'exit') {
+        markDone(key, objectDoneFlag(map.id, o));
+        pushToast(a.line, 'good', 3000);
+        return;
+      }
+      openChoose(key, a.sceneIds, false);
     },
-    [content, setTalk],
+    [objOf, map, setTalk, markDone, commit, pushToast, openChoose],
   );
 
   const onInteract = useCallback(
     (key: string) => {
+      if (talkRef.current !== null || gameRef.current.endingId !== null || !map) return;
+      if (key.startsWith(OBJ)) return onObject(key);
       const spec = specOf(key);
-      if (!spec || talkRef.current !== null || gameRef.current.endingId !== null) return; // đã có hội thoại đang mở / game đã xong
+      if (!spec) return;
       const speaker = resolveCharacter(content, key);
       const sayAfter = () => setTalk({ kind: 'line', key, speaker, text: spec.action.after });
 
@@ -208,28 +292,50 @@ export function RoamScreen({
 
       if (spec.action.kind === 'pet') {
         const { effects, line } = spec.action;
-        markDone(key, pettedFlag(key));
+        markDone(key, pettedFlag(map.id, key));
         commit((g) => ({ ...g, stats: applyEffects(g.stats, effects) }));
         return setTalk({ kind: 'line', key, speaker, text: line });
       }
       if (!openChoose(key, spec.action.sceneIds, false)) sayAfter();
     },
-    [content, specOf, setTalk, markDone, commit, openChoose],
+    [content, map, specOf, onObject, setTalk, markDone, commit, openChoose],
   );
 
   const onChoose = useCallback(
     (choiceId: string) => {
       const t = talkRef.current;
-      if (t?.kind !== 'choose' || gameRef.current.endingId !== null) return;
-      // Áp lên state MỚI NHẤT: không xoá cờ hit:1, dodged:n, thưởng nhiệm vụ... cập nhật sau lúc mở hội thoại.
+      if (t?.kind !== 'choose' || gameRef.current.endingId !== null || !map) return;
+      // Áp lên state MỚI NHẤT: không xoá cờ hit:, dodged:, thưởng nhiệm vụ... cập nhật sau lúc mở hội thoại.
       const r = choose(content, gameRef.current, t.sceneId, choiceId);
       commit(() => r.state);
-      // Bị bong bóng trúng thì không tính là "đã nói chuyện xong" (vẫn có thể chủ động lại nói chuyện).
-      if (!t.hit) markDone(t.key, talkedFlag(t.key));
-      setTalk({ kind: 'reply', key: t.key, speaker: t.view.speaker, reply: r.reply, tip: r.tip });
+      if (t.key.startsWith(OBJ)) {
+        const o = objOf(t.key);
+        if (o) markDone(t.key, objectDoneFlag(map.id, o));
+      } else if (!t.key.startsWith(EV) && !t.hit) {
+        // Bị bong bóng trúng thì không tính là "đã nói chuyện xong" (vẫn có thể chủ động lại nói chuyện).
+        markDone(t.key, talkedFlag(map.id, t.key));
+      }
+      const picked = t.view.choices.find((c) => c.id === choiceId);
+      const feed = t.view.scene.ui === 'feed';
+      setTalk({
+        kind: 'reply',
+        key: t.key,
+        speaker: t.view.speaker,
+        said: feed ? (picked?.author ?? '') : (picked?.text ?? ''),
+        reply: r.reply,
+        tip: r.tip,
+        feed,
+      });
     },
-    [content, commit, markDone, setTalk],
+    [content, map, commit, objOf, markDone, setTalk],
   );
+
+  const onAnswer = useCallback(() => {
+    const t = talkRef.current;
+    if (t?.kind !== 'call') return;
+    setTalk(null);
+    openChoose(t.key, t.sceneIds, false);
+  }, [setTalk, openChoose]);
 
   // ---- bong bóng câu hỏi ----
   const onShoot = useCallback(
@@ -240,41 +346,48 @@ export function RoamScreen({
   );
 
   const onDodge = useCallback(() => {
+    if (!map) return;
     dodgedRef.current += 1;
-    const n = dodgedRef.current;
-    pushToast(`Né được! (${n})`, 'good', 1200, 'dodge');
-    if (DODGE_MILESTONES.includes(n)) commit((g) => withFlag(g, dodgedFlag(n)));
-  }, [pushToast, commit]);
+    const inMap = dodgedRef.current;
+    pushToast(`Né được! (${inMap})`, 'good', 1200, 'dodge');
+    commit((g) => withFlags({ ...g, dodges: g.dodges + 1 }, dodgeFlags(map.id, inMap, g.dodges + 1)));
+  }, [map, pushToast, commit]);
 
   const onHit = useCallback(
     (key: string) => {
-      if (talkRef.current !== null || gameRef.current.endingId !== null) return;
+      if (talkRef.current !== null || gameRef.current.endingId !== null || !map) return;
       const spec = specOf(key);
       if (!spec?.shoots) return;
-      commit((g) => withFlag(g, HIT_FLAG));
-      pushToast('Trúng câu hỏi rồi!', 'bad', 1500);
+      commit((g) => withFlag(g, hitFlag(map.id)));
+      pushToast('Trúng rồi!', 'bad', 1500);
       if (!openChoose(key, spec.shoots.hitSceneIds, true)) {
         setTalk({ kind: 'line', key, speaker: resolveCharacter(content, key), text: spec.action.after });
       }
     },
-    [content, specOf, commit, pushToast, openChoose, setTalk],
+    [content, map, specOf, commit, pushToast, openChoose, setTalk],
   );
 
-  const spec = nearby && !talk ? specOf(nearby) : undefined;
+  // Nút tương tác: NPC hoặc đồ vật đang trong tầm.
+  const nearNpc = nearby && !talk ? specOf(nearby) : undefined;
+  const nearObj = nearby && !talk ? objOf(nearby) : undefined;
+  const prompt = nearNpc
+    ? `${nearNpc.prompt} · ${resolveCharacter(content, nearNpc.characterId).name}`
+    : nearObj
+      ? `${nearObj.prompt} · ${nearObj.label}`
+      : null;
 
   if (!map || !player) {
     return (
       <div className="game">
         <div className="loading">Không tìm thấy bản đồ "{stage.mapId}".</div>
-        <button className="rs-exit rs-solo-exit" onClick={onExit}>
-          ← Thoát
-        </button>
       </div>
     );
   }
 
   const progress = map.quests.map((q) => ({ q, ...questProgress(q, game), recorded: game.flags.includes(questFlag(q.id)) }));
   const doneCount = progress.filter((p) => p.recorded).length;
+  const paused = !active || talk !== null || ended;
+  const showHud = active;
 
   return (
     <div className="game">
@@ -284,11 +397,13 @@ export function RoamScreen({
             <RoamView
               setId={map.setId}
               regionId={regionId}
+              variant={map.variantByPersona?.[personaId]}
+              objects={objects}
               playerLook={player.look}
               npcs={npcs}
               area={area}
               controller={controller}
-              paused={talk !== null || introOpen || ended}
+              paused={paused}
               talkingKey={talk?.key ?? null}
               onNearby={setNearby}
               onInteract={onInteract}
@@ -304,84 +419,76 @@ export function RoamScreen({
         {DEBUG && fps !== null && <div className="fps">{fps} FPS</div>}
       </div>
 
-      <div className="rs-top">
-        <button className="rs-exit" onClick={onExit}>
-          ← Thoát
-        </button>
-        <span className="rs-title">
-          {stage.title} · {region?.city ?? ''}
-        </span>
-      </div>
-      <ul className="hud hud-low" aria-label="Chỉ số">
-        {STAT_KEYS.map((k) => (
-          <li key={k}>
-            <span>{STAT_LABEL[k]}</span>
-            <meter min={0} max={STAT_MAX} low={25} high={70} optimum={100} value={game.stats[k]} />
-          </li>
-        ))}
-      </ul>
+      {showHud && (
+        <>
+          {!talk && <RoamControls controller={controller} />}
 
-      <button className="rs-quest-chip" aria-expanded={questsOpen} onClick={() => setQuestsOpen((o) => !o)}>
-        Nhiệm vụ {doneCount}/{map.quests.length}
-      </button>
-      {questsOpen && (
-        <section className="rs-quests" aria-label="Nhiệm vụ">
-          {progress.map(({ q, done, total, recorded }) => (
-            <div key={q.id} className={recorded ? 'rs-quest rs-quest-done' : 'rs-quest'}>
-              <strong>
-                {recorded ? '✓ ' : ''}
-                {q.title}
-                {!recorded && (
-                  <small>
-                    {' '}
-                    ({done}/{total})
-                  </small>
-                )}
-              </strong>
-              {!recorded && (
-                <ul>
-                  {q.objectives.map((o) => (
-                    <li key={o.id} className={objectiveDone(o, game) ? 'rs-obj-done' : ''}>
-                      {o.text}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
-        </section>
-      )}
+          <div className="hud">
+            <p className="hud-who">
+              <strong>{game.playerName || 'Bạn'}</strong>
+              <span>
+                {persona?.name} · {region?.city}
+              </span>
+            </p>
+            <StatBars stats={game.stats} compact />
+          </div>
 
-      <RoamControls controller={controller} />
-
-      <div className={talk || introOpen ? 'rs-toasts rs-toasts-high' : 'rs-toasts'} aria-live="polite">
-        {toasts.map((t) => (
-          <p key={t.id} className={`rs-toast rs-toast-${t.tone}`}>
-            {t.text}
-          </p>
-        ))}
-      </div>
-
-      {spec && (
-        <button className="rs-prompt" onClick={() => controller.pressInteract()}>
-          <kbd>E</kbd> {spec.prompt} {resolveCharacter(content, spec.characterId).name}
-        </button>
-      )}
-
-      {introOpen && (
-        <section className="panel">
-          <div className="stage-card">
-            <small>Chặng {content.stages.indexOf(stage) + 1}</small>
-            <h2>{stage.title}</h2>
-            <p>{stage.intro}</p>
-            <button className="choice start" onClick={() => setIntroOpen(false)}>
-              Vào cảnh
+          <div className="top-actions">
+            <button className="pill-btn" aria-expanded={questsOpen} onClick={() => setQuestsOpen((o) => !o)}>
+              Nhiệm vụ {doneCount}/{map.quests.length}
+            </button>
+            <button className="icon-btn" aria-label="Tạm dừng" onClick={onPause}>
+              <PauseIcon />
             </button>
           </div>
-        </section>
-      )}
 
-      {talk && <TalkPanel talk={talk} onChoose={onChoose} onClose={() => setTalk(null)} />}
+          {questsOpen && (
+            <section className="quest-panel" aria-label="Nhiệm vụ">
+              {progress.map(({ q, done, total, recorded }) => (
+                <div key={q.id} className={recorded ? 'quest quest-done' : 'quest'}>
+                  <p className="quest-title">
+                    <span>{q.id === map.goalQuestId ? `★ ${q.title}` : q.title}</span>
+                    <small>{recorded ? 'xong' : `${done}/${total}`}</small>
+                  </p>
+                  {!recorded && (
+                    <ul>
+                      {objectivesFor(q, game).map((o) => (
+                        <li key={o.id} className={objectiveDone(o, game) ? 'obj-done' : ''}>
+                          {o.text}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </section>
+          )}
+
+          <div className="toasts" aria-live="polite">
+            {toasts.map((t) => (
+              <p key={t.id} className={`toast toast-${t.tone}`}>
+                {t.text}
+              </p>
+            ))}
+          </div>
+
+          {prompt && (
+            <button className="prompt" onClick={() => controller.pressInteract()}>
+              <kbd>E</kbd> {prompt}
+            </button>
+          )}
+
+          {talk && (
+            <TalkPanel
+              talk={talk}
+              playerName={game.playerName}
+              onChoose={onChoose}
+              onClose={() => setTalk(null)}
+              onAnswer={onAnswer}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 }

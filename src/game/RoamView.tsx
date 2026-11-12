@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CanvasTexture, SRGBColorSpace, type Group, type PerspectiveCamera, type Sprite } from 'three';
 import { DEBUG, publish } from '../debug';
-import type { Look } from '../engine/types';
+import type { Look, ObjectModel } from '../engine/types';
 import { Figure } from '../scene3d/Figure';
 import { FpsProbe } from '../scene3d/FpsProbe';
 import { SETS } from '../scene3d/registry';
@@ -17,7 +17,7 @@ import {
   type BubbleState,
   type ShooterRuntime,
 } from './bubbles';
-import { findInteractable } from './interact';
+import { findInteractable, type Target } from './interact';
 import type { InputController } from './input';
 import { DEFAULT_MOVE, PLAYER_RADIUS, stepMover } from './movement';
 import { DEFAULT_NPC, createNpcState, stepNpc, type NpcParams, type NpcState } from './npc';
@@ -26,9 +26,30 @@ import type { CameraPose, Collider, FollowCam, MoveInput, MoverState, Vec2, Walk
 
 export type { RoamNpc } from './roamWorld';
 
+/** Đồ vật trong cảnh: vị trí (đã tra từ spot), hình dựng, và trạng thái hiển thị. */
+export interface RoamObject {
+  /** Khoá tương tác, dạng `obj:<id>`. */
+  key: string;
+  x: number;
+  z: number;
+  model?: ObjectModel;
+  /** Còn tương tác được (chưa nhặt/chưa dùng): hiện dấu vàng và nằm trong danh sách mục tiêu. */
+  available: boolean;
+  /** Đã nhặt: ẩn hình dựng. */
+  taken: boolean;
+  /** Chưa đủ điều kiện dùng (cửa chưa mở): dấu màu xám. */
+  locked: boolean;
+}
+
+/** Tầm với đồ vật (m): đồ nằm trên bàn/quầy nên cho với xa hơn NPC một chút. */
+const OBJECT_REACH = 1.7;
+
 export interface RoamViewProps {
   setId: string;
   regionId: string;
+  /** Biến thể trang trí của bộ cảnh (ví dụ văn phòng / lớp học). */
+  variant?: string;
+  objects?: RoamObject[];
   playerLook?: Look;
   npcs: RoamNpc[];
   area: WalkArea;
@@ -337,6 +358,94 @@ function BubbleLayer({
   );
 }
 
+/** Độ cao đặt hình dựng của đồ vật (mặt bàn, mặt quầy, móc áo). */
+const MODEL_Y: Record<ObjectModel, number> = { laptop: 0.77, charger: 0.77, gift: 0.92, coat: 1.15, door: 0 };
+
+function ObjectModelMesh({ model }: Readonly<{ model: ObjectModel }>) {
+  switch (model) {
+    case 'laptop':
+      return (
+        <group>
+          <mesh position={[0, 0.012, 0]}>
+            <boxGeometry args={[0.36, 0.024, 0.25]} />
+            <meshStandardMaterial color="#9ca3af" />
+          </mesh>
+          <mesh position={[0, 0.13, -0.12]} rotation={[-0.25, 0, 0]}>
+            <boxGeometry args={[0.36, 0.24, 0.015]} />
+            <meshStandardMaterial color="#1f2937" />
+          </mesh>
+          <mesh position={[0, 0.13, -0.11]} rotation={[-0.25, 0, 0]}>
+            <planeGeometry args={[0.32, 0.2]} />
+            <meshStandardMaterial color="#93c5fd" emissive="#93c5fd" emissiveIntensity={0.6} />
+          </mesh>
+        </group>
+      );
+    case 'charger':
+      return (
+        <mesh position={[0, 0.03, 0]}>
+          <boxGeometry args={[0.1, 0.06, 0.14]} />
+          <meshStandardMaterial color="#f8fafc" />
+        </mesh>
+      );
+    case 'gift':
+      return (
+        <group>
+          <mesh position={[0, 0.11, 0]}>
+            <boxGeometry args={[0.3, 0.22, 0.3]} />
+            <meshStandardMaterial color="#c0262d" />
+          </mesh>
+          <mesh position={[0, 0.11, 0]}>
+            <boxGeometry args={[0.31, 0.23, 0.06]} />
+            <meshStandardMaterial color="#f5b82e" />
+          </mesh>
+        </group>
+      );
+    case 'coat':
+      return (
+        <mesh position={[0.12, -0.25, 0]}>
+          <boxGeometry args={[0.16, 0.6, 0.42]} />
+          <meshStandardMaterial color="#7c2d12" />
+        </mesh>
+      );
+    default:
+      return null;
+  }
+}
+
+/** Đồ vật: hình dựng (nếu chưa nhặt) và dấu tương tác xoay phía trên (vàng: dùng được, xám: chưa mở). */
+function ObjectView({ obj }: Readonly<{ obj: RoamObject }>) {
+  const marker = useRef<Group>(null);
+  const y = obj.model ? MODEL_Y[obj.model] : 0;
+  useFrame((state) => {
+    const m = marker.current;
+    if (!m) return;
+    const t = state.clock.elapsedTime;
+    m.rotation.y = t * 1.6;
+    m.position.y = y + 0.55 + Math.sin(t * 2.4) * 0.06;
+  });
+  return (
+    <group position={[obj.x, 0, obj.z]}>
+      {obj.model && !obj.taken && (
+        <group position={[0, y, 0]}>
+          <ObjectModelMesh model={obj.model} />
+        </group>
+      )}
+      {obj.available && (
+        <group ref={marker} position={[0, y + 0.55, 0]}>
+          <mesh>
+            <octahedronGeometry args={[0.12, 0]} />
+            <meshStandardMaterial
+              color={obj.locked ? '#9ca3af' : '#f5b82e'}
+              emissive={obj.locked ? '#4b5563' : '#f5b82e'}
+              emissiveIntensity={0.6}
+            />
+          </mesh>
+        </group>
+      )}
+    </group>
+  );
+}
+
 /** Một NPC: chạy hành vi (đứng, lang thang, đuổi theo), cập nhật vị trí và vòng va chạm. */
 /** Giữ hoạt ảnh "đang đi" thêm chừng này giây sau lần nhích cuối: NPC đuổi theo dừng/đi liên tục nên không để chớp. */
 const MOVING_HOLD = 0.3;
@@ -406,6 +515,8 @@ function NpcView({
 export default function RoamView({
   setId,
   regionId,
+  variant,
+  objects = [],
   playerLook,
   npcs,
   area,
@@ -429,6 +540,14 @@ export default function RoamView({
   // Dựng NPC lúc chạy: vị trí, vòng va chạm (cố định cho người ngồi/đứng, đổi tại chỗ cho người đi lại),
   // và danh sách vật cản riêng của từng NPC đi lại.
   const { world, runtimes, playerColliders } = useMemo(() => buildRoamWorld(npcs, def, area), [npcs, def, area]);
+  // Mục tiêu tương tác = NPC (vị trí đổi tại chỗ mỗi khung) + đồ vật còn dùng được (đứng yên).
+  const npcTargets = useMemo<Target[]>(() => runtimes.map((r) => r.target), [runtimes]);
+  useEffect(() => {
+    world.targets = [
+      ...npcTargets,
+      ...objects.filter((o) => o.available).map((o) => ({ key: o.key, x: o.x, z: o.z, reach: OBJECT_REACH })),
+    ];
+  }, [world, npcTargets, objects]);
 
   // Đồng bộ trạng thái từ React xuống vòng lặp khung hình (đọc trong useFrame, không gây render lại).
   useEffect(() => {
@@ -452,7 +571,11 @@ export default function RoamView({
       <hemisphereLight args={['#ffffff', '#8d6e63', env.ambient]} />
       <directionalLight position={[6, 10, 5]} intensity={env.sun} color={env.sunColor} />
 
-      <SetView setId={setId} regionId={regionId} />
+      <SetView setId={setId} regionId={regionId} variant={variant} />
+
+      {objects.map((o) => (
+        <ObjectView key={o.key} obj={o} />
+      ))}
 
       {runtimes.map((rt, i) => (
         <NpcView key={rt.npc.key} rt={rt} world={world} index={i} talking={talkingKey === rt.npc.key} />

@@ -22,16 +22,18 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
   render(): ReactNode {
     if (!this.state.failed) return this.props.children;
     return (
-      <main className="setup" role="alert">
-        <h1>Ôi, game bị vấp</h1>
-        <p>Có lỗi khi chạy game. Bạn thử tải lại trang nhé.</p>
-        <p>
-          <small>Nếu vẫn lỗi, có thể máy hoặc trình duyệt chưa hỗ trợ đồ họa 3D (WebGL). Thử trình duyệt khác hoặc cập nhật trình duyệt.</small>
-        </p>
-        <button className="choice start" onClick={() => window.location.reload()}>
-          Tải lại trang
-        </button>
-      </main>
+      <div className="scrim scrim-solid">
+        <div className="modal" role="alertdialog" aria-label="Lỗi">
+          <h1 className="title">Ôi, game bị vấp</h1>
+          <p className="lead">Có lỗi khi chạy game. Bạn thử tải lại trang nhé.</p>
+          <p className="help">
+            Nếu vẫn lỗi, có thể máy hoặc trình duyệt chưa hỗ trợ đồ họa 3D (WebGL). Thử trình duyệt khác hoặc cập nhật trình duyệt.
+          </p>
+          <button className="btn btn-block" onClick={() => window.location.reload()}>
+            Tải lại trang
+          </button>
+        </div>
+      </div>
     );
   }
 }

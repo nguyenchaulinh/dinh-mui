@@ -4,6 +4,8 @@ import { resolve, sep } from 'node:path';
 
 /** Các kịch bản đo: mỗi kịch bản là một bản đồ đi lại (`?roam=<bản đồ>`), `roam: true` để mô phỏng người chơi. */
 export const SCENARIOS = [
+  { name: 'roam-van-phong', query: 'roam=cuoi-nam&persona=moi-di-lam&region=ha-noi', roam: true },
+  { name: 'roam-lop-hoc', query: 'roam=cuoi-nam&persona=sinh-vien&region=sai-gon', roam: true },
   { name: 'roam-san-bac', query: 'roam=san-nha&region=ha-noi', roam: true },
   { name: 'roam-san-nam', query: 'roam=san-nha&region=sai-gon', roam: true },
 ];

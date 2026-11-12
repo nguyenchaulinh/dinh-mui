@@ -19,11 +19,35 @@ const DEFAULT_START = 50;
 
 /** Phần state dùng để quyết định scene/lựa chọn/thoại nào hiện. */
 type Ctx = Pick<GameState, 'personaId' | 'regionId' | 'flags' | 'history'>;
+/** Như Ctx, thêm tên người chơi để chèn vào thoại. */
+type ViewCtx = Ctx & Pick<GameState, 'playerName'>;
+
+/** Độ dài tối đa của tên người chơi (ký tự). */
+export const NAME_MAX = 16;
+/** Chữ cái (mọi ngôn ngữ, kể cả tiếng Việt có dấu), dấu kết hợp, chữ số, khoảng trắng và - ' . */
+const NAME_OK = /^[\p{L}\p{M}\p{N} '.-]+$/u;
+
+/**
+ * Chuẩn hoá tên người chơi nhập tay: chuẩn Unicode NFC, gộp khoảng trắng, cắt hai đầu.
+ * Trả null nếu rỗng, dài quá `NAME_MAX` ký tự, hoặc có ký tự ngoài danh sách cho phép.
+ */
+export function normalizeName(raw: string): string | null {
+  const s = raw.normalize('NFC').replace(/\s+/g, ' ').trim();
+  if (s.length === 0 || [...s].length > NAME_MAX || !NAME_OK.test(s)) return null;
+  return s;
+}
+
+/** Thay `{ten}` bằng tên người chơi (chưa có tên thì dùng "bạn"). */
+export function fillName(text: string, playerName: string): string {
+  return text.includes('{ten}') ? text.replaceAll('{ten}', playerName || 'bạn') : text;
+}
 
 export interface ChoiceView {
   id: string;
   style: Choice['style'];
   text: string;
+  /** Tên trang/người đăng (scene feed). */
+  author?: string;
 }
 
 export interface LineView {
@@ -84,28 +108,29 @@ function hash(s: string): number {
 }
 
 /**
- * Chọn một vùng trong các vùng người chơi đã tích: chọn một thì lấy luôn, chọn nhiều thì lấy theo `seed`
- * (cùng seed + cùng khoá thì cùng kết quả). Không dùng cho bảo mật.
+ * Chọn một phần tử theo `seed` (cùng seed + cùng khoá thì cùng kết quả; khoá khác nhau cho kết quả độc lập).
+ * Dùng để bốc ngẫu nhiên vai và thành phố của lượt chơi. Không dùng cho bảo mật.
  */
-export function pickRegion(regionIds: readonly string[], seed: number, key = ''): string {
-  const r = regionIds[hash(`${seed}:${key}`) % Math.max(1, regionIds.length)];
-  if (!r) throw new Error('Chưa chọn vùng');
+export function pickBySeed(ids: readonly string[], seed: number, key = ''): string {
+  const r = ids[hash(`${seed}:${key}`) % Math.max(1, ids.length)];
+  if (!r) throw new Error('Danh sách rỗng');
   return r;
 }
 
 const pick = (base: string, byRegion: ByRegion | undefined, regionId: string): string => byRegion?.[regionId] ?? base;
 
-export function createGame(c: Content, personaId: string, regionId: string): GameState {
+export function createGame(c: Content, personaId: string, regionId: string, playerName = ''): GameState {
   const persona = c.personas.find((p) => p.id === personaId);
   if (!persona) throw new Error(`Persona không tồn tại: ${personaId}`);
   if (!c.regions.some((r) => r.id === regionId)) throw new Error(`Vùng không tồn tại: ${regionId}`);
+  if (playerName !== '' && normalizeName(playerName) !== playerName) throw new Error('Tên người chơi không hợp lệ');
 
   const stats: Stats = { harmony: DEFAULT_START, stamina: DEFAULT_START, wallet: DEFAULT_START };
   for (const k of STAT_KEYS) {
     const v = persona.startStats?.[k];
     if (v !== undefined) stats[k] = clamp(v);
   }
-  return { personaId, regionId, stats, flags: [], tipsSeen: [], history: [], endingId: null };
+  return { personaId, regionId, playerName, stats, flags: [], tipsSeen: [], history: [], dodges: 0, endingId: null };
 }
 
 /** Áp kill-switch: nhân vật bị tắt thì trả về bản thay thế trung tính. */
@@ -132,23 +157,28 @@ export function pickScene(c: Content, state: Ctx, ids: readonly string[]): Scene
 }
 
 /** Cảnh hội thoại đã lọc điều kiện và đổi giọng theo vùng. Ném lỗi nếu scene không tồn tại. */
-export function getView(c: Content, state: Ctx, sceneId: string): SceneView {
+export function getView(c: Content, state: ViewCtx, sceneId: string): SceneView {
   const scene = c.scenes.find((s) => s.id === sceneId);
   if (!scene) throw new Error(`Scene không tồn tại: ${sceneId}`);
   const regionId = state.regionId;
   return {
     scene,
     speaker: resolveCharacter(c, scene.characterId),
-    line: pick(scene.line, scene.lineByRegion, regionId),
+    line: fillName(pick(scene.line, scene.lineByRegion, regionId), state.playerName),
     lines: (scene.lines ?? [])
       .filter((l) => matches(l.if, state))
       .map((l) => ({
         character: resolveCharacter(c, l.characterId ?? scene.characterId),
-        text: pick(l.text, l.byRegion, regionId),
+        text: fillName(pick(l.text, l.byRegion, regionId), state.playerName),
       })),
     choices: scene.choices
       .filter((ch) => matches(ch.if, state))
-      .map((ch) => ({ id: ch.id, style: ch.style, text: pick(ch.text, ch.textByRegion, regionId) })),
+      .map((ch) => ({
+        id: ch.id,
+        style: ch.style,
+        text: fillName(pick(ch.text, ch.textByRegion, regionId), state.playerName),
+        author: ch.author === undefined ? undefined : fillName(ch.author, state.playerName),
+      })),
   };
 }
 
@@ -162,7 +192,7 @@ export function pickEnding(c: Content, stats: Stats, flags: readonly string[] = 
     });
     if (flagsOk && statsOk) return e;
   }
-  const last = c.endings[c.endings.length - 1];
+  const last = c.endings.at(-1);
   if (!last) throw new Error('Nội dung không có kết thúc nào');
   return last;
 }
@@ -212,7 +242,7 @@ export function choose(c: Content, state: GameState, sceneId: string, choiceId: 
 
   return {
     state: choice.end || isDepleted(stats) ? finishGame(c, next) : next,
-    reply: pick(choice.reply, choice.replyByRegion, state.regionId),
+    reply: fillName(pick(choice.reply, choice.replyByRegion, state.regionId), state.playerName),
     tip,
   };
 }

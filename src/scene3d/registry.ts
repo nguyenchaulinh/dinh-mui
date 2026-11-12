@@ -52,6 +52,23 @@ export const SETS: Record<string, SetDef> = {
       'den-do': { pos: [3.2, 0, 1.0], rotY: -Math.PI / 2 },
     },
   },
+  'cuoi-nam': {
+    id: 'cuoi-nam',
+    label: 'Văn phòng / lớp học ngày cuối năm',
+    spots: {
+      tu: { pos: [4.1, 0, -1.6], rotY: -Math.PI / 2 },
+      sep: { pos: [0.8, 0, -1.4], rotY: 0 },
+      thu: { pos: [-4.9, 0, 1.5], rotY: Math.PI / 2 },
+      co: { pos: [2.6, 0, -2.2], rotY: 0 },
+      'lop-truong': { pos: [-1.0, 0, 2.4], rotY: Math.PI },
+      // Đồ vật (khớp CUOI_NAM trong walk.ts): máy tính trên bàn 4, sạc trên bàn 1, hộp bánh trên quầy, áo ở móc, cửa.
+      'ban-minh': { pos: [-2.2, 0, 0.15] },
+      'do-sac': { pos: [-3.6, 0, -2.55] },
+      'do-qua': { pos: [5.3, 0, -2.6] },
+      'do-ao': { pos: [5.3, 0, 0.4] },
+      cua: { pos: [5.75, 0, 2.2] },
+    },
+  },
   'san-nha': {
     id: 'san-nha',
     label: 'Sân nhà ở quê',
