@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { AnimationMixer, LoopOnce, LoopRepeat, Quaternion, Vector3, type AnimationAction, type Bone, type Material, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Look } from '../engine/types';
-import { BIND_HEIGHT, BONES, HIP_ABOVE_SEAT, POM_BONES, POM_FUR, SIT_POSE, clipFor, heightFor, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
+import { BIND_HEIGHT, BONES, HIP_ABOVE_SEAT, POM_BONES, POM_FUR, SIT_POSE, clipFor, heightFor, sanitizeName, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
 
 const HEX = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 /** Không dùng Draco/Meshopt: file không nén theo kiểu đó, và tránh tự tải bộ giải mã từ CDN ngoài. */
@@ -119,21 +119,25 @@ export function RiggedFigure({
     // 3. Chỉnh dáng Pomeranian (scale đặt lên xương, hoạt ảnh không ghi đè).
     if (model === 'cho-pom') {
       root.traverse((o) => {
-        const s = POM_BONES[o.name];
+        const s = POM_BONES[sanitizeName(o.name)];
         if (s !== undefined && (o as { isBone?: boolean }).isBone) o.scale.setScalar(s);
       });
     }
     // 4. Xương dùng cho tư thế (người).
     const byName = new Map<string, Bone>();
     root.traverse((o) => {
-      if ((o as Bone).isBone) byName.set(o.name, o as Bone);
+      if ((o as Bone).isBone) byName.set(sanitizeName(o.name), o as Bone);
     });
+    const find = (n: string) => byName.get(sanitizeName(n));
     const bones = {
-      hips: byName.get(BONES.hips),
-      thighs: BONES.thighs.map((n) => byName.get(n)).filter((b): b is Bone => b !== undefined),
-      shins: BONES.shins.map((n) => byName.get(n)).filter((b): b is Bone => b !== undefined),
-      head: byName.get(BONES.head),
+      hips: find(BONES.hips),
+      thighs: BONES.thighs.map(find).filter((b): b is Bone => b !== undefined),
+      shins: BONES.shins.map(find).filter((b): b is Bone => b !== undefined),
+      head: find(BONES.head),
     };
+    if (kind === 'human' && (bones.thighs.length !== 2 || bones.shins.length !== 2 || !bones.hips)) {
+      console.warn(`Model ${model}: không tìm thấy đủ xương chân/hông, tư thế ngồi sẽ không có tác dụng.`);
+    }
     // 5. Chuẩn hoá chiều cao theo chiều cao tư thế gốc đã biết (KHÔNG đo bằng Box3: xem BIND_HEIGHT).
     return { root, bones, scale: heightFor(kind, look.build) / BIND_HEIGHT[model] };
   }, [gltf.scene, model, kind, look]);

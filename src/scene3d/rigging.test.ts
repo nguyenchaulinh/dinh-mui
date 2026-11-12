@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../content';
 import credits from '../../public/models/CREDITS.md?raw';
-import { BIND_HEIGHT, CHARACTER_MODELS, SIT_POSE, rotateX, bindHeightFromGltf, clipFor, heightFor, isCharacterModel, modelUrl, partOf, roleOf } from './rigging';
+import { BIND_HEIGHT, BONES, CHARACTER_MODELS, POM_BONES, SIT_POSE, rotateX, sanitizeName, bindHeightFromGltf, clipFor, heightFor, isCharacterModel, modelUrl, partOf, roleOf } from './rigging';
 
 /** Nội dung thô của các file GLB (đọc qua Vite, không cần API của node). */
 const FILES = import.meta.glob('../../public/models/*.glb', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
@@ -100,5 +100,15 @@ describe('luật đổi màu, chiều cao, hoạt ảnh', () => {
     // Cẳng chân: sau khi đùi gập, cẳng chân cũng đang chĩa ra trước; gập tiếp thì thõng xuống.
     const shin = rotateX(rotateX([0, -1, 0], SIT_POSE.thigh), SIT_POSE.shin);
     expect(shin[1]).toBeCloseTo(-1, 9);
+  });
+
+  it('tên xương so theo cách three.js chuẩn hoá (bỏ dấu chấm): mọi model người đủ xương cho tư thế ngồi', () => {
+    expect(sanitizeName('UpperLeg.L')).toBe('UpperLegL');
+    expect(sanitizeName('Armature|Root [1]: a/b')).toBe('Armature|Root_1_ab');
+    for (const m of CHARACTER_MODELS) {
+      const names = new Set(((glbJson(fileOf(m)!).nodes ?? []) as { name?: string }[]).map((n) => sanitizeName(n.name ?? '')));
+      const need = m.startsWith('cho-') ? Object.keys(POM_BONES) : [BONES.hips, BONES.head, ...BONES.thighs, ...BONES.shins];
+      for (const b of need) expect(names.has(sanitizeName(b)), `${m}: ${b}`).toBe(true);
+    }
   });
 });

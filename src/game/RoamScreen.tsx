@@ -185,20 +185,24 @@ export function RoamScreen({
             const spot = SETS[map.setId]?.spots[o.spot];
             if (!spot) return [];
             const done = game.flags.includes(objectDoneFlag(map.id, o));
+            // Đang dùng (đang nói chuyện / ngồi / với tay vào nó): ẩn dấu vàng, nó không còn là "việc để bấm".
+            const key = OBJ + o.id;
+            // (Không ẩn lúc với tay: nhân vật còn cần tra vị trí món đồ để quay mặt về.)
+            const inUse = talk?.key === key || (action?.kind === 'sit' && action.key === key);
             return [
               {
                 key: OBJ + o.id,
                 x: spot.pos[0],
                 z: spot.pos[2],
                 model: o.model,
-                available: !done,
+                available: !done && !inUse,
                 taken: done && o.action.kind === 'pickup',
                 locked: !objectUnlocked(o, game),
               },
             ];
           })
         : [],
-    [map, myObjects, game],
+    [map, myObjects, game, talk, action],
   );
 
   // Ghi nhận nhiệm vụ vừa hoàn thành (thưởng chỉ số, cờ quest:...), mỗi nhiệm vụ báo một lần.
@@ -344,6 +348,7 @@ export function RoamScreen({
             seatY: 0.48,
             look: { x: here.pos[0], z: here.pos[2] },
             standUp: false,
+            key,
           }),
           { seated: () => void openChoose(key, a.sceneIds, false) },
         );
