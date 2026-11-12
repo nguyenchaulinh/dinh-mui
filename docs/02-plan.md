@@ -9,6 +9,10 @@
 | [03-cameo.md](03-cameo.md) | Tham khảo hồ sơ nhân vật nhại |
 | [04-script.md](04-script.md) | Kịch bản full hành trình (bản nháp 1) |
 | [05-gameplay.md](05-gameplay.md) | **Lối chơi điều khiển nhân vật góc nhìn thứ ba**, lộ trình làm lần lượt |
+| [06-bao-cao-tong-quan.md](06-bao-cao-tong-quan.md) | Báo cáo tổng quan (viết trước khi gỡ luồng hộp thoại, một số mục lỗi thời) |
+| [07-thiet-ke-ui-ux.md](07-thiet-ke-ui-ux.md) | Hệ thống giao diện "Đêm Tết" |
+| [08-thiet-ke-choi-truoc-que.md](08-thiet-ke-choi-truoc-que.md) | Lối chơi các chặng trước khi về quê |
+| [09-ke-hoach-tiep-theo.md](09-ke-hoach-tiep-theo.md) | **Kế hoạch các giai đoạn tiếp theo (mới nhất)** |
 
 **Đã đổi hướng (12/11):** game là **3D 100%**: người chơi điều khiển nhân vật góc nhìn thứ ba và tương tác với nhân vật trong cảnh. **Luồng "xem cảnh + hộp thoại" ban đầu đã bị gỡ khỏi code** (xem [06-bao-cao-tong-quan.md](06-bao-cao-tong-quan.md)). Mỗi chặng là một bản đồ đi lại; engine hội thoại giữ lại làm lớp hội thoại khi nói chuyện với NPC. Lộ trình và lựa chọn lịch ra mắt ở [05-gameplay.md](05-gameplay.md); mục 5 (lịch) bên dưới chờ bạn chọn phương án.
 
@@ -165,10 +169,11 @@ Phần này không phải thủ tục pháp lý mà là những việc rẻ, gi�
 | Hạng mục | Trạng thái |
 |---|---|
 | Research, plan, cameo | ✅ |
-| Khung project + schema + engine + chọn vùng (321 test, CI chạy test/typecheck/build) | ✅ 12/11 |
+| Khung project + schema + engine + chọn vùng (347 test, CI chạy test/typecheck/build) | ✅ 12/11 |
 | Kịch bản full hành trình, bản nháp 1 ([04-script.md](04-script.md)) | ✅ 12/11, đã duyệt |
 | Mở rộng engine (cờ, điều kiện, biến thể vùng, bản đồ, NPC, nhiệm vụ; cắt cảnh và chỉ đạo cảnh 3D đã gỡ khi chuyển 3D 100%) | ✅ 12/11 |
-| Dựng 3D: phố Tết, sân nhà, nhà trên + mâm cỗ (3 miền), 13 nhân vật. **Chơi được: chặng 5 (sân nhà, đi lại, nói chuyện, né câu hỏi, nhiệm vụ, kết thúc)**. Nội dung hội thoại chặng 3, 4, 6 đã gỡ khỏi runtime (chưa có bản đồ), còn trong lịch sử git (commit `442c7d9`) và 04-script | ✅ 12/11 (chặng 5) |
+| Dựng 3D: phố Tết, sân nhà, nhà trên + mâm cỗ (3 miền), 13 nhân vật. **Chơi được: chặng 1 (văn phòng / lớp học: săn vé, nhặt đồ, cuộc gọi của mẹ, cửa ra) và chặng 5 (sân nhà: đi lại, nói chuyện, bấm NÉ đúng lúc, nhiệm vụ, kết thúc)**. Nội dung hội thoại chặng 3, 4, 6 đã gỡ khỏi runtime (chưa có bản đồ), còn trong lịch sử git (commit `442c7d9`) và 04-script | ✅ 12/11 (chặng 1, 5) |
+| Nhân vật model có xương CC0 (Quaternius), hoạt cảnh ngồi / với tay, bong bóng thoại hai phía, chỉ số có mức, chó Vàng Pomeranian trắng | ✅ 12/11, chờ bạn xem lại bằng mắt |
 | **Đo FPS trên điện thoại của bạn** (điểm quyết định 3D hay 2.5D) | ⏳ chờ bạn |
-| Cảnh ở phố còn lại (văn phòng/KTX, tiệc tất niên, bến xe, xe khách, quốc lộ, trạm dừng) | ⏳ 18–24/11 |
-| v1 ra mắt | 🎯 khoảng 15/12 |
+| Cảnh còn lại (ra bến, đường về, mâm cơm, giao thừa...) và âm thanh | ⏳ xem [09-ke-hoach-tiep-theo.md](09-ke-hoach-tiep-theo.md) |
+| v1 ra mắt | 🎯 khoảng 15/12 theo plan gốc; lịch thực tế cần chọn ở [05-gameplay.md](05-gameplay.md) mục 5 |
