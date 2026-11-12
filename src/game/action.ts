@@ -11,7 +11,16 @@ import type { Vec2 } from './types';
  */
 
 export type PlayerAction =
-  | { id: number; kind: 'sit'; seat: { x: number; z: number; rotY: number }; seatY: number; look: Vec2; standUp: boolean }
+  | {
+      id: number;
+      kind: 'sit';
+      seat: { x: number; z: number; rotY: number };
+      seatY: number;
+      look: Vec2;
+      standUp: boolean;
+      /** Khoá đồ vật đang dùng (ẩn dấu vàng của nó trong lúc ngồi). */
+      key?: string;
+    }
   | { id: number; kind: 'reach'; key: string }
   | { id: number; kind: 'leave'; to: Vec2 };
 

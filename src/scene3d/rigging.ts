@@ -176,7 +176,16 @@ export const POM_FUR = { main: '#e08a2e', light: '#f7e3c4' };
  */
 export const SIT_POSE = { thigh: -Math.PI / 2, shin: Math.PI / 2 } as const;
 export const HIP_ABOVE_SEAT = 0.1;
-/** Xương dùng cho tư thế (tên trong bộ xương Quaternius). */
+/**
+ * Tên node sau khi trình nạp glTF của three.js chuẩn hoá (PropertyBinding.sanitizeNodeName): khoảng trắng thành `_`,
+ * bỏ `[ ] . : /`. Vì vậy xương "UpperLeg.L" trong file có tên "UpperLegL" lúc chạy: phải so theo tên đã chuẩn hoá,
+ * nếu không sẽ không tìm thấy xương nào và tư thế ngồi lặng lẽ không có tác dụng.
+ */
+export function sanitizeName(name: string): string {
+  return name.replace(/\s/g, '_').replace(/[[\].:/]/g, '');
+}
+
+/** Xương dùng cho tư thế (tên trong file của bộ xương Quaternius; so khớp qua `sanitizeName`). */
 export const BONES = {
   hips: 'Hips',
   thighs: ['UpperLeg.L', 'UpperLeg.R'],
