@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "description": "Đinh Mùi - Tết Mệt Phết: game web về quê ăn Tết",
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

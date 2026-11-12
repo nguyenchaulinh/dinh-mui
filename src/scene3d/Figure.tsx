@@ -1,7 +1,9 @@
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef, type RefObject } from 'react';
+import { Suspense, useMemo, useRef, type RefObject } from 'react';
 import type { Group, Mesh } from 'three';
-import type { Actor, Look } from '../engine/types';
+import type { Look } from '../engine/types';
+import { RiggedFigure, type PoseState } from './Rigged';
+import { isCharacterModel } from './rigging';
 
 /**
  * Nhân vật low-poly kiểu đồ chơi, dựng từ `Look`. Đầu to, thân nhỏ (chibi).
@@ -13,7 +15,8 @@ const HEX = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 const color = (v: string | undefined, fallback: string): string => (v && HEX.test(v) ? v : fallback);
 const INK = '#1f1410';
 
-export type Anim = NonNullable<Actor['anim']>;
+/** Bộ chuyển động có sẵn của nhân vật. */
+export type Anim = 'idle' | 'talk' | 'wave' | 'dance' | 'sit' | 'walk' | 'run' | 'cry' | 'reach' | 'type';
 
 interface FigureProps {
   look?: Look;
@@ -23,6 +26,8 @@ interface FigureProps {
   speaking?: boolean;
   /** Lệch pha động tác để cả đám không nhún đồng loạt. */
   phase?: number;
+  /** Tư thế điều khiển mỗi khung (ngồi, gật đầu) cho model có xương. */
+  pose?: { current: PoseState };
 }
 
 function Mat({ c }: Readonly<{ c: string }>) {
@@ -429,7 +434,24 @@ function Dog({ look, anim, speaking, phase = 0 }: Readonly<FigureProps>) {
   );
 }
 
+/**
+ * Nhân vật: có `look.model` thì dùng model có xương (Rigged.tsx), trong lúc tải hiện tạm bản dựng bằng code;
+ * không có (Bé Dê) thì dựng bằng code.
+ */
 export function Figure(props: Readonly<FigureProps>) {
+  const model = props.look?.model;
+  if (props.look && isCharacterModel(model)) {
+    return (
+      <Suspense fallback={<CodeFigure {...props} />}>
+        <RiggedFigure model={model} look={props.look} anim={props.anim} phase={props.phase} pose={props.pose} />
+      </Suspense>
+    );
+  }
+  return <CodeFigure {...props} />;
+}
+
+/** Nhân vật low-poly dựng bằng code (Bé Dê, và hình tạm khi model có xương đang tải). */
+function CodeFigure(props: Readonly<FigureProps>) {
   const kind = props.look?.kind ?? 'human';
   const scale = useMemo(() => {
     if (kind !== 'human') return 1;

@@ -17,7 +17,7 @@ export type ByRegion = Partial<Record<string, string>>;
 /**
  * Điều kiện hiển thị. Mọi trường có mặt đều phải thỏa (AND).
  * - flags: phải có đủ các cờ; notFlags: không được có cờ nào.
- * - personas / regions: khớp ít nhất một.
+ * - personas / regions: khớp ít nhất một (regions so với vùng của lượt chơi).
  * - history: phải từng chọn đủ các lựa chọn dạng "sceneId/choiceId".
  */
 export interface Condition {
@@ -66,6 +66,13 @@ export interface Look {
   /** Tầm vóc: trẻ con thấp hơn, người già hơi khom. */
   build?: 'kid' | 'adult' | 'elder';
   accessory?: Accessory;
+  /**
+   * Model có xương trong public/models (xem src/scene3d/rigging.ts, CHARACTER_MODELS). Có thì dùng model đó và đổi màu
+   * áo (`outfit`), quần (`pants`), tóc (`hair`), da (`skin`; với chó là lông); không có thì dựng bằng code (Bé Dê).
+   */
+  model?: string;
+  /** Màu quần (model có xương). */
+  pants?: string;
 }
 
 export interface Character {
@@ -84,7 +91,10 @@ export interface Character {
 export interface Choice {
   id: string;
   style: Style;
+  /** Câu người chơi nói (hoặc nội dung bài đăng khi scene là feed). Có thể chứa `{ten}`. */
   text: string;
+  /** Chỉ dùng khi scene là feed: tên trang/người đăng bài. */
+  author?: string;
   textByRegion?: ByRegion;
   effects: Effects;
   /** Phản ứng sau khi chọn. */
@@ -92,8 +102,6 @@ export interface Choice {
   replyByRegion?: ByRegion;
   /** Thẻ "mẹo thật" hiện sau lựa chọn này. */
   tipId?: string;
-  /** Ghi đè scene kế tiếp; mặc định theo `Scene.next`. */
-  next?: string | null;
   /** Cờ bật lên khi chọn (dùng để rẽ nhánh về sau). */
   setFlags?: string[];
   /** Kết thúc game ngay sau lựa chọn này. */
@@ -111,53 +119,36 @@ export interface Line {
   if?: Condition;
 }
 
-/** Diễn viên trong cảnh 3D: đứng ở vị trí `spot` của set, làm động tác `anim`. */
-export interface Actor {
-  characterId: string;
-  spot: string;
-  anim?: 'idle' | 'talk' | 'wave' | 'dance' | 'sit' | 'walk' | 'cry';
-}
-
-/** Chỉ đạo cảnh 3D, khai báo trong dữ liệu để khỏi viết code riêng cho từng đoạn. */
-export interface Stage3D {
-  /** Id bộ cảnh (xem `src/scene3d/registry.ts`). */
-  set: string;
-  /** Góc máy dựng sẵn của set; thiếu thì camera tự hướng vào người nói. */
-  camera?: string;
-  actors?: Actor[];
-}
-
+/**
+ * Một cuộc hội thoại có lựa chọn. Không đứng một mình: scene chỉ chơi được khi một NPC trong bản đồ
+ * (`MapNpc.action.sceneIds` hoặc `ambush.hitSceneIds`) gọi tới nó; validate bắt scene mồ côi.
+ */
 export interface Scene {
   id: string;
-  stageId: string;
-  /** 'dialog' (mặc định): có lựa chọn. 'cutscene': chỉ có thoại + nút Tiếp. */
-  kind?: 'dialog' | 'cutscene';
-  /** Cách trình bày lựa chọn: hội thoại thường, feed điện thoại, chia lì xì. */
-  ui?: 'dialog' | 'feed' | 'lixi';
   characterId: string;
   line: string;
   lineByRegion?: ByRegion;
-  /** Thoại cắt cảnh (sau `line`), lọc theo điều kiện. */
+  /** Thoại phụ hiện kèm `line` (ví dụ Bé Dê chen vào), lọc theo điều kiện. */
   lines?: Line[];
   choices: Choice[];
-  /** null/undefined = hết chặng, sang chặng kế. */
-  next?: string | null;
   /** Nếu có, chỉ hiện với các persona này. */
   personas?: string[];
   /** Nếu có, chỉ hiện khi người chơi chọn ít nhất một vùng trong danh sách. */
   regions?: string[];
   /** Điều kiện bổ sung (cờ, lịch sử...). */
   if?: Condition;
-  stage3d?: Stage3D;
-  /** Chỉ mở bằng cách nói chuyện với NPC trong chế độ đi lại; không nằm trên luồng chính (bỏ qua khi kiểm tra "tới được"). */
-  roamOnly?: boolean;
+  /** Cách trình bày: hội thoại (mặc định) hoặc feed điện thoại (lựa chọn là các bài đăng). */
+  ui?: 'dialog' | 'feed';
 }
 
+/** Một chặng của hành trình = một bản đồ đi lại được. Thứ tự chặng = thứ tự mảng `Content.stages`. */
 export interface Stage {
   id: string;
   title: string;
+  /** Câu mở đầu hiện trên thẻ chặng trước khi vào bản đồ. */
   intro: string;
-  firstSceneId: string;
+  /** Bản đồ đi lại của chặng này (`Content.maps`). */
+  mapId: string;
 }
 
 export interface Tip {
@@ -189,20 +180,25 @@ export type NpcAction =
   /** Vuốt ve / tặng quà: một câu và hiệu ứng chỉ số, chỉ có tác dụng một lần; sau đó `after`. */
   | { kind: 'pet'; line: string; effects: Effects; after: string };
 
-/** NPC "bắn" bong bóng câu hỏi về phía người chơi: né được thì thoát, trúng thì bị kéo vào hội thoại. */
-export interface Shooter {
-  /** Chu kỳ bắn (giây). */
+/**
+ * NPC thỉnh thoảng lao tới hỏi: báo trước `warnSec` giây (vòng thời gian thu nhỏ), người chơi bấm NÉ khi còn
+ * <= `windowSec` giây thì né được; bấm sớm hoặc không bấm thì bị kéo vào hội thoại (`hitSceneIds`).
+ */
+export interface Ambush {
+  /** Chu kỳ trung bình giữa hai lần hỏi (giây). */
   everySec: number;
-  /** Chỉ bắn khi người chơi cách trong khoảng này (m); gần hơn `minRange` thì không bắn. */
+  /** Chỉ hỏi khi người chơi cách trong [minRange, range] (m). */
   range: number;
   minRange: number;
-  /** Tốc độ bong bóng (m/s). */
-  speed: number;
-  /** Câu hỏi ngắn hiện thành dòng chữ khi bắn (chọn ngẫu nhiên). Dùng khi vai của người chơi không có danh sách riêng. */
+  /** Thời gian báo trước (giây), mặc định 1.6. */
+  warnSec?: number;
+  /** Khung bấm NÉ cuối lượt báo trước (giây), mặc định 0.5. */
+  windowSec?: number;
+  /** Câu hỏi hiện lúc báo trước (chọn ngẫu nhiên). Dùng khi vai của người chơi không có danh sách riêng. */
   questions: string[];
-  /** Câu hỏi theo vai (khoá = id persona) để bong bóng khớp với cảnh hội thoại khi bị trúng. */
+  /** Câu hỏi theo vai (khoá = id persona) để khớp với cảnh hội thoại khi bị bắt. */
   questionsByPersona?: Record<string, string[]>;
-  /** Scene hội thoại khi bị trúng (scene đầu tiên hợp persona/vùng). */
+  /** Scene hội thoại khi bị bắt (scene đầu tiên hợp persona/vùng). */
   hitSceneIds: string[];
 }
 
@@ -211,6 +207,8 @@ export type NpcBehavior = 'stand' | 'wander' | 'approach';
 export interface MapNpc {
   /** Id nhân vật trong `characters` (cũng là khoá của NPC trên bản đồ). */
   characterId: string;
+  /** Nếu có, NPC chỉ xuất hiện với các vai này (văn phòng có Sếp, lớp học có Cô). */
+  personas?: string[];
   /** Vị trí xuất phát = tên spot trong registry của set. */
   spot: string;
   behavior: NpcBehavior;
@@ -223,7 +221,7 @@ export interface MapNpc {
   /** Chữ trên nút tương tác, ví dụ "Nói chuyện". */
   prompt: string;
   action: NpcAction;
-  shoots?: Shooter;
+  ambush?: Ambush;
 }
 
 /** Một mục tiêu của nhiệm vụ; hoàn thành khi điều kiện `done` thoả (thường theo cờ tự sinh `talked:<npc>`...). */
@@ -231,6 +229,8 @@ export interface Objective {
   id: string;
   text: string;
   done: Condition;
+  /** Nếu có, mục tiêu chỉ tính với các vai này (vai khác không thấy và không cần làm). */
+  personas?: string[];
 }
 
 export interface Quest {
@@ -243,6 +243,51 @@ export interface Quest {
   rewardLine?: string;
 }
 
+/** Hình dựng sẵn của đồ vật (xem RoamView); thiếu thì chỉ có dấu tương tác. */
+export type ObjectModel = 'laptop' | 'charger' | 'gift' | 'coat' | 'door';
+
+export type ObjectAction =
+  /** Dùng: mở scene hội thoại đầu tiên hợp vai/vùng (ví dụ feed săn vé). Bật cờ `used:<bản đồ>:<đồ>`. */
+  | { kind: 'talk'; sceneIds: string[] }
+  /** Nhặt: đồ biến mất, hiện `line`, áp hiệu ứng (nếu có). Bật cờ `picked:<bản đồ>:<đồ>`. */
+  | { kind: 'pickup'; line: string; effects?: Effects }
+  /** Ra cửa: xong thì bật cờ `used:<bản đồ>:<đồ>` (thường là mục tiêu của nhiệm vụ đích). */
+  | { kind: 'exit'; line: string };
+
+/** Đồ vật tương tác được trong bản đồ: máy tính, đồ để nhặt, cửa ra. */
+export interface MapObject {
+  id: string;
+  /** Tên hiện trên nút tương tác, ví dụ "Máy tính". */
+  label: string;
+  /** Vị trí = tên spot trong registry của set. */
+  spot: string;
+  /** Chữ trên nút tương tác, ví dụ "Săn vé". */
+  prompt: string;
+  model?: ObjectModel;
+  /** Nếu có, đồ chỉ có với các vai này. */
+  personas?: string[];
+  /**
+   * Spot cho hoạt cảnh: với đồ `talk` là ghế để NGỒI xuống trước khi dùng (máy tính); với `exit` là điểm ngoài cửa
+   * nhân vật đi tới. Không có thì: nhặt đồ = với tay, dùng đồ = mở ngay.
+   */
+  seat?: string;
+  /** Điều kiện để dùng được; chưa đủ thì hiện `lockedLine`. */
+  requires?: Condition;
+  lockedLine?: string;
+  action: ObjectAction;
+}
+
+/**
+ * Sự kiện tự bật một lần khi điều kiện `when` thoả (và không có hội thoại đang mở): mở scene đầu tiên hợp vai/vùng.
+ * `call` hiện thẻ cuộc gọi đến trước khi vào hội thoại. Khi bật, cờ `event:<bản đồ>:<id>` được đặt.
+ */
+export interface MapEvent {
+  id: string;
+  when: Condition;
+  sceneIds: string[];
+  kind?: 'popup' | 'call';
+}
+
 /** Bản đồ chế độ đi lại: bộ cảnh 3D, người chơi, NPC và nhiệm vụ. */
 export interface RoamMap {
   id: string;
@@ -251,38 +296,45 @@ export interface RoamMap {
   /** Nhân vật của người chơi. */
   playerId: string;
   npcs: MapNpc[];
+  objects?: MapObject[];
+  events?: MapEvent[];
+  /** Biến thể trang trí của bộ cảnh theo vai (cùng mặt bằng), ví dụ văn phòng / lớp học. */
+  variantByPersona?: Record<string, string>;
   quests: Quest[];
+  /** Nhiệm vụ cuối của bản đồ: hoàn thành thì chặng này xong (chặng cuối thì game kết thúc). */
+  goalQuestId: string;
 }
 
 export interface Content {
   version: number;
   regions: Region[];
   personas: Persona[];
-  /** Thứ tự chặng = thứ tự mảng. */
+  /** Thứ tự chặng = thứ tự mảng; mỗi chặng trỏ tới một bản đồ. */
   stages: Stage[];
   characters: Character[];
   scenes: Scene[];
   tips: Tip[];
   /** Duyệt từ trên xuống, cái đầu tiên khớp thắng. Cái cuối phải là mặc định. */
   endings: Ending[];
-  /** Bản đồ chế độ đi lại (không bắt buộc: dữ liệu cũ không có). */
-  maps?: RoamMap[];
+  maps: RoamMap[];
 }
 
 export type Stats = Record<StatKey, number>;
 
 export interface GameState {
   personaId: string;
-  /** Các vùng đã chọn (1 hoặc nhiều; chọn nhiều thì mỗi scene lấy một vùng theo `seed`). */
-  regionIds: string[];
-  /** Hạt giống chọn biến thể vùng khi chọn nhiều vùng (không dùng cho bảo mật). */
-  seed: number;
-  sceneId: string | null;
+  /** Tên người chơi tự nhập (đã chuẩn hoá); rỗng khi chưa nhập. Chèn vào thoại qua `{ten}`. */
+  playerName: string;
+  /** Vùng (thành phố) của lượt chơi này: quyết định giọng thoại và phong cách cảnh. */
+  regionId: string;
   stats: Stats;
   flags: string[];
   /** Id các thẻ mẹo đã mở, theo thứ tự. */
   tipsSeen: string[];
   /** Các lựa chọn đã chọn, dạng "sceneId/choiceId", theo thứ tự. */
   history: string[];
+  /** Tổng số câu hỏi/việc đã né được trong cả hành trình. */
+  dodges: number;
+  /** Có giá trị khi game đã kết thúc. */
   endingId: string | null;
 }

@@ -2,14 +2,10 @@
 // kịch bản đo, chống path traversal cho server tĩnh. Không đụng mạng/tiến trình khi import.
 import { resolve, sep } from 'node:path';
 
-/** Các kịch bản đo. `roam: true` là chế độ đi lại (có thể chưa tồn tại trong bản build). */
+/** Các kịch bản đo: mỗi kịch bản là một bản đồ đi lại (`?roam=<bản đồ>`), `roam: true` để mô phỏng người chơi. */
 export const SCENARIOS = [
-  { name: 'pho-ha-noi', query: 'scene=rb-1&region=ha-noi' },
-  { name: 'pho-sai-gon', query: 'scene=rb-1&region=sai-gon' },
-  { name: 'san-dai-ha-noi', query: 'scene=bvn-1-dl&persona=moi-di-lam&region=ha-noi' },
-  { name: 'san-nam', query: 'scene=bvn-1-dl&persona=moi-di-lam&region=sai-gon' },
-  { name: 'mam-bac', query: 'scene=mc-intro&region=ha-noi' },
-  { name: 'mam-combo-nam', query: 'scene=mc-4&region=sai-gon' },
+  { name: 'roam-van-phong', query: 'roam=cuoi-nam&persona=moi-di-lam&region=ha-noi', roam: true },
+  { name: 'roam-lop-hoc', query: 'roam=cuoi-nam&persona=sinh-vien&region=sai-gon', roam: true },
   { name: 'roam-san-bac', query: 'roam=san-nha&region=ha-noi', roam: true },
   { name: 'roam-san-nam', query: 'roam=san-nha&region=sai-gon', roam: true },
 ];

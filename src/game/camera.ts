@@ -123,24 +123,26 @@ export function smoothPose(
   };
 }
 
-/** Chiều cao mắt camera khi hội thoại (m). */
-const TALK_CAM_Y = 1.45;
-/** Tâm hai nhân vật (m): khoảng giữa thân. Dùng để căn khung. */
-const TALK_SUBJECT_Y = 0.8;
-/** Khung thoại che nửa dưới màn hình: đẩy hai nhân vật lên nửa trên một góc chừng này (rad, ~10°). */
-const TALK_LIFT_ANGLE = 0.17;
+/** Chiều cao mắt camera khi hội thoại (m): ngang tầm mắt người lớn, hơi cao hơn để thấy bong bóng trên đầu. */
+export const TALK_CAM_Y = 1.6;
+/**
+ * Khung dọc cần thấy khi hội thoại (m): từ chân (0) tới đỉnh bong bóng thoại trên đầu (~2.5).
+ * Vùng màn hình còn nhìn thấy (NDC dọc, -1 = đáy, 1 = đỉnh): dock lựa chọn che ~30% dưới nên từ -0.4 tới 0.92.
+ */
+export const TALK_FRAME = { bottom: 0, top: 2.5 } as const;
+export const TALK_SCREEN = { bottom: -0.4, top: 0.92 } as const;
 
 /**
- * Khoảng lùi tối thiểu/tối đa của camera hội thoại (m). Tối thiểu 4.6 m vì cả người (cao ~1.8 m) phải lọt vào phần
- * màn hình không bị khung thoại che (~55% chiều cao): với góc nhìn dọc 50° thì cần lùi gần 4.5 m, gần hơn là cắt mất đầu.
+ * Khoảng lùi tối thiểu/tối đa của camera hội thoại (m). Tối thiểu 4.6 m để đoạn chân → đỉnh bong bóng (2.5 m) lọt vào
+ * phần màn hình không bị dock che (~70% chiều cao) với góc nhìn dọc 50°.
  */
 const TALK_MIN_DIST = 4.6;
 const TALK_MAX_DIST = 8;
 
 /**
  * Camera hội thoại: đứng ở một bên (phía còn chỗ trống hơn) vuông góc đường nối hai người, nhìn vào điểm giữa,
- * lùi đủ xa để cả hai lọt vào chiều ngang màn hình (điện thoại dọc hẹp nên phải lùi nhiều), và đẩy khung lên nửa trên
- * vì khung thoại che nửa dưới. `clip` như ở computeCameraPose: tránh camera chui vào tường.
+ * lùi đủ xa để cả hai lọt vào chiều ngang màn hình (điện thoại dọc hẹp nên phải lùi nhiều), và căn khung dọc để
+ * từ chân tới đỉnh bong bóng thoại nằm trong phần màn hình không bị dock lựa chọn che. `clip` như ở computeCameraPose: tránh camera chui vào tường.
  * `aspect` = rộng/cao của màn hình, `vfov` = góc nhìn dọc (rad). Đầu vào hỏng thì dùng giá trị an toàn, không NaN.
  */
 export function computeTalkPose(
@@ -187,8 +189,12 @@ export function computeTalkPose(
   const room = Math.max(a, b);
   const dist = Math.min(want, Math.max(1.8, room - CLIP_MARGIN));
 
-  // Chọn điểm ngắm thấp hơn thân người để hai người nằm ở nửa trên khung hình.
-  const ty = TALK_CAM_Y + dist * Math.tan(Math.atan((TALK_SUBJECT_Y - TALK_CAM_Y) / dist) - TALK_LIFT_ANGLE);
+  // Đặt điểm giữa khung dọc (chân → đỉnh bong bóng) vào giữa vùng màn hình còn nhìn thấy (trên dock):
+  // góc tới điểm đó trừ đi độ lệch của tâm vùng nhìn thấy so với tâm màn hình.
+  const subjectY = (TALK_FRAME.bottom + TALK_FRAME.top) / 2;
+  const bandCenter = (TALK_SCREEN.bottom + TALK_SCREEN.top) / 2;
+  const pitch = Math.atan((subjectY - TALK_CAM_Y) / dist) - Math.atan(bandCenter * Math.tan(vf / 2));
+  const ty = TALK_CAM_Y + dist * Math.tan(pitch);
 
   return {
     pos: [mid.x + sign * sx * dist, TALK_CAM_Y, mid.z + sign * sz * dist],

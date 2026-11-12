@@ -22,7 +22,7 @@ function npcsFor(): RoamNpc[] {
     spot: spec.spot,
     params: buildNpcParams(spec, set.spots[spec.spot]?.seated === true),
     reach: spec.reach,
-    shoots: spec.shoots,
+    ambush: spec.ambush,
   }));
 }
 

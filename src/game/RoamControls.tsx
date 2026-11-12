@@ -46,7 +46,17 @@ const blockMenu = (e: { preventDefault: () => void }): void => e.preventDefault(
  * Xếp lớp: `.roam-root` có z-index 0 và nằm trong luồng DOM, nên phải đặt SAU canvas và
  * TRƯỚC `.hud` (z-index mặc định) để ở trên cảnh 3D, dưới khung chỉ số.
  */
-export function RoamControls({ controller }: Readonly<{ controller: InputController }>): JSX.Element | null {
+export function RoamControls({
+  controller,
+  actionLabel = 'Tương tác',
+  actionHot = false,
+}: Readonly<{
+  controller: InputController;
+  /** Nhãn của nút hành động theo ngữ cảnh (ví dụ "Nói chuyện", "Nhặt"). */
+  actionLabel?: string;
+  /** Có thứ để tương tác ngay lúc này: nút sáng lên. */
+  actionHot?: boolean;
+}>): JSX.Element | null {
   const [showTouch, setShowTouch] = useState(() => detectTouch(controller));
   const knobRef = useRef<HTMLDivElement>(null);
   /** Thao tác joystick đang theo dõi: tâm (cx, cy) và bán kính hoạt động r, tính một lần lúc chạm. */
@@ -199,15 +209,16 @@ export function RoamControls({ controller }: Readonly<{ controller: InputControl
             type="button"
             className="roam-action"
             data-testid="roam-action"
-            aria-label="Tương tác"
+            data-hot={actionHot}
+            aria-label={actionLabel}
             onPointerDown={onActionDown}
             onContextMenu={blockMenu}
           >
-            Tương tác
+            {actionLabel}
           </button>
         </>
       ) : (
-        <p className="roam-hint">WASD hoặc phím mũi tên đi · Shift chạy · kéo chuột xoay · E tương tác</p>
+        <p className="roam-hint">WASD đi · Shift chạy · kéo chuột xoay · E tương tác</p>
       )}
     </div>
   );

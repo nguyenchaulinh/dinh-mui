@@ -10,7 +10,7 @@
 | [04-script.md](04-script.md) | Kịch bản full hành trình (bản nháp 1) |
 | [05-gameplay.md](05-gameplay.md) | **Lối chơi điều khiển nhân vật góc nhìn thứ ba**, lộ trình làm lần lượt |
 
-**Đang đổi hướng (12/11, tối):** chuyển từ "xem cảnh + đối đáp" sang **điều khiển nhân vật góc nhìn thứ ba** và tương tác với nhân vật trong game. Lộ trình và lựa chọn lịch ra mắt ở [05-gameplay.md](05-gameplay.md); mục 5 (lịch) bên dưới sẽ cập nhật sau khi bạn chọn phương án.
+**Đã đổi hướng (12/11):** game là **3D 100%**: người chơi điều khiển nhân vật góc nhìn thứ ba và tương tác với nhân vật trong cảnh. **Luồng "xem cảnh + hộp thoại" ban đầu đã bị gỡ khỏi code** (xem [06-bao-cao-tong-quan.md](06-bao-cao-tong-quan.md)). Mỗi chặng là một bản đồ đi lại; engine hội thoại giữ lại làm lớp hội thoại khi nói chuyện với NPC. Lộ trình và lựa chọn lịch ra mắt ở [05-gameplay.md](05-gameplay.md); mục 5 (lịch) bên dưới chờ bạn chọn phương án.
 
 **Thay đổi so với v0.3 (12/11):**
 - **Chuyển sang 3D:** mỗi chặng là một cảnh 3D low-poly, camera dẫn theo kịch bản (Three.js qua React Three Fiber). Không làm thế giới mở, không nhiều người chơi.
@@ -100,7 +100,7 @@ Phần này không phải thủ tục pháp lý mà là những việc rẻ, gi�
 ## 4. Kỹ thuật (tối giản)
 
 - **v1: web tĩnh 100%.** Vite + React + TypeScript; content trong file JSON (kịch bản, nhân vật, thẻ mẹo). Host miễn phí trên một dịch vụ static hosting có CDN. Không backend.
-- **3D:** Three.js qua React Three Fiber + drei. Mỗi chặng là một cảnh low-poly, camera dẫn; chỉ đạo cảnh (camera, animation) khai báo trong JSON. Engine hội thoại hiện có giữ nguyên làm lõi.
+- **3D:** Three.js qua React Three Fiber + drei. Mỗi chặng là một bản đồ low-poly đi lại được (bản đồ, NPC, nhiệm vụ khai báo trong JSON); engine hội thoại hiện có giữ làm lớp hội thoại khi nói chuyện với NPC.
 - **Thẻ share:** Canvas tạo ảnh PNG, kèm nút lưu hoặc share (Web Share API trên điện thoại).
 - **Art 3D:** Claude dựng đồ đặc trưng Việt bằng code (xe máy chở đào/mai, xe khách, mâm cỗ, bàn thờ, gánh xôi...). Nhà phố, xe chung, người có xương + animation lấy từ kho CC0 (Kenney, Quaternius; kiểm tra license từng pack). Nhân vật nhại nhận diện qua trang phục và đạo cụ. Không dùng AI tạo hình từ ảnh người thật.
 - **Hiệu năng:** mục tiêu tải ban đầu dưới 5MB; nén model (meshoptimizer/Draco), tải cảnh khi cần, hạ độ phân giải trên máy yếu. Đo trên điện thoại thật từ bản thử đầu tiên.
@@ -154,7 +154,7 @@ Phần này không phải thủ tục pháp lý mà là những việc rẻ, gi�
 1. ~~**Vùng miền** cho v1~~ **Đã chốt 12/11:** người chơi chọn 1 trong 3 hoặc cả 3. Đại diện **Hà Nội (Bắc), Đà Nẵng (Trung), Sài Gòn (Nam)**; từ các thành phố lớn này đổ về các tỉnh quê ăn Tết. Engine đã hỗ trợ (`regions`).
 2. ~~**Bạn tự code hay muốn mình dựng khung project luôn?**~~ **Đã chốt:** Claude dựng khung, làm cùng nhau.
 3. ~~**Style art**~~ **Đã chốt 12/11:** 3D low-poly, camera dẫn, Claude dựng (xem mục 4). Bản avatar SVG 2D trước đó đã bỏ hướng.
-4. **Đang chờ:** duyệt kịch bản [04-script.md](04-script.md).
+4. ~~**Duyệt kịch bản** [04-script.md](04-script.md)~~ **Đã duyệt 12/11.** Số hiệu ứng trong script là bản nháp, nguồn thật là `src/content/v1.json`.
 
 **Hệ quả của việc chọn cả 3 vùng:** nội dung nhân 3. Kịch bản dùng chung một bộ cảnh và lời thoại, chỉ đổi đạo cụ, hoa, món ăn và giọng theo thành phố (04-script mục 1).
 
@@ -165,10 +165,10 @@ Phần này không phải thủ tục pháp lý mà là những việc rẻ, gi�
 | Hạng mục | Trạng thái |
 |---|---|
 | Research, plan, cameo | ✅ |
-| Khung project + schema + engine + chọn vùng (19 test) | ✅ 12/11 |
+| Khung project + schema + engine + chọn vùng (321 test, CI chạy test/typecheck/build) | ✅ 12/11 |
 | Kịch bản full hành trình, bản nháp 1 ([04-script.md](04-script.md)) | ✅ 12/11, đã duyệt |
-| Mở rộng engine (cờ, điều kiện, biến thể vùng, cắt cảnh, chỉ đạo cảnh 3D) | ✅ 12/11 |
-| Bản thử 3D: phố Tết, đến làng, sân nhà, mâm cơm (3 miền); 13 nhân vật; nội dung chặng 3, 4 (đến làng), 5, 6 | ✅ 12/11 |
+| Mở rộng engine (cờ, điều kiện, biến thể vùng, bản đồ, NPC, nhiệm vụ; cắt cảnh và chỉ đạo cảnh 3D đã gỡ khi chuyển 3D 100%) | ✅ 12/11 |
+| Dựng 3D: phố Tết, sân nhà, nhà trên + mâm cỗ (3 miền), 13 nhân vật. **Chơi được: chặng 5 (sân nhà, đi lại, nói chuyện, né câu hỏi, nhiệm vụ, kết thúc)**. Nội dung hội thoại chặng 3, 4, 6 đã gỡ khỏi runtime (chưa có bản đồ), còn trong lịch sử git (commit `442c7d9`) và 04-script | ✅ 12/11 (chặng 5) |
 | **Đo FPS trên điện thoại của bạn** (điểm quyết định 3D hay 2.5D) | ⏳ chờ bạn |
 | Cảnh ở phố còn lại (văn phòng/KTX, tiệc tất niên, bến xe, xe khách, quốc lộ, trạm dừng) | ⏳ 18–24/11 |
 | v1 ra mắt | 🎯 khoảng 15/12 |
