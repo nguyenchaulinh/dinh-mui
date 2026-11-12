@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_CAM, applyLook, computeCameraPose, computeTalkPose, smoothPose, yawBehind } from './camera';
+import { DEFAULT_CAM, TALK_CAM_Y, TALK_FRAME, TALK_SCREEN, applyLook, computeCameraPose, computeTalkPose, smoothPose, yawBehind } from './camera';
 import { wrapAngle } from './movement';
 import type { CameraPose, FollowCam, Vec2 } from './types';
 
@@ -291,7 +291,7 @@ describe('computeTalkPose', () => {
     const landscape = computeTalkPose(player, npc, 1.8, 0.87, none);
     expect(horiz(portrait)).toBeGreaterThan(horiz(landscape));
     expect(horiz(portrait)).toBeLessThanOrEqual(8 + 1e-9);
-    // Màn hình rộng: vẫn phải lùi đủ xa để cả người lọt vào phần không bị khung thoại che.
+    // Màn hình rộng: vẫn phải lùi đủ xa để từ chân tới bong bóng lọt vào phần không bị dock che.
     expect(horiz(landscape)).toBeGreaterThanOrEqual(4.6 - 1e-9);
   });
 
@@ -307,10 +307,39 @@ describe('computeTalkPose', () => {
     expect(horiz(tight)).toBeCloseTo(1.8, 6);
   });
 
-  it('hai người ở nửa trên khung hình: điểm ngắm thấp hơn thân người', () => {
-    const p = computeTalkPose({ x: 0, z: 0 }, { x: 1.3, z: 0 }, 0.48, 0.87, none);
-    expect(p.lookAt[1]).toBeLessThan(0.8);
-    expect(p.pos[1]).toBeCloseTo(1.45, 9);
+  it('chân và đỉnh bong bóng thoại của cả hai người đều lọt vào phần màn hình không bị dock che', () => {
+    /** Toạ độ dọc trên màn hình (NDC) của một điểm thế giới, camera phối cảnh góc dọc `vf`. */
+    const ndcY = (pose: CameraPose, pt: [number, number, number], vf: number): number => {
+      const f = [pose.lookAt[0] - pose.pos[0], pose.lookAt[1] - pose.pos[1], pose.lookAt[2] - pose.pos[2]];
+      const fl = Math.hypot(f[0]!, f[1]!, f[2]!);
+      const fw = f.map((v) => v / fl);
+      // phải = f × (0,1,0); trên = phải × f
+      const r = [-fw[2]!, 0, fw[0]!];
+      const rl = Math.hypot(r[0]!, r[2]!);
+      const rn = r.map((v) => v / rl);
+      const up = [rn[1]! * fw[2]! - rn[2]! * fw[1]!, rn[2]! * fw[0]! - rn[0]! * fw[2]!, rn[0]! * fw[1]! - rn[1]! * fw[0]!];
+      const d = [pt[0] - pose.pos[0], pt[1] - pose.pos[1], pt[2] - pose.pos[2]];
+      const z = d[0]! * fw[0]! + d[1]! * fw[1]! + d[2]! * fw[2]!;
+      const y = d[0]! * up[0]! + d[1]! * up[1]! + d[2]! * up[2]!;
+      return y / z / Math.tan(vf / 2);
+    };
+    for (const [aspect, sep] of [
+      [0.48, 1.3],
+      [0.56, 2],
+      [1.0, 1.3],
+      [1.8, 2.5],
+    ] as const) {
+      const player = { x: 0, z: 0 };
+      const npc = { x: sep, z: 0 };
+      const p = computeTalkPose(player, npc, aspect, 0.87, none);
+      for (const who of [player, npc]) {
+        const feet = ndcY(p, [who.x, TALK_FRAME.bottom, who.z], 0.87);
+        const top = ndcY(p, [who.x, TALK_FRAME.top, who.z], 0.87);
+        expect(feet, `chân, aspect ${aspect}`).toBeGreaterThanOrEqual(TALK_SCREEN.bottom - 0.02);
+        expect(top, `đỉnh bong bóng, aspect ${aspect}`).toBeLessThanOrEqual(TALK_SCREEN.top + 0.02);
+      }
+    }
+    expect(computeTalkPose({ x: 0, z: 0 }, { x: 1.3, z: 0 }, 0.48, 0.87, none).pos[1]).toBeCloseTo(TALK_CAM_Y, 9);
   });
 
   it('hai người xa nhau tới mức không thể lùi đủ xa (màn dọc hẹp) thì dựng khung người chơi, không đẩy cả hai ra ngoài', () => {
