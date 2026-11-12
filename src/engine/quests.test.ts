@@ -4,7 +4,12 @@ import { SETS } from '../scene3d/registry';
 import { createGame } from './engine';
 import {
   DODGE_MILESTONES,
-  HIT_FLAG,
+  dodgeFlags,
+  dueEvent,
+  objectUnlocked,
+  objectivesFor,
+  withFlags,
+  hitFlag,
   completeQuests,
   mapAutoFlags,
   objectiveDone,
@@ -17,8 +22,10 @@ import type { Content, GameState, Quest, RoamMap } from './types';
 import { validateContent } from './validate';
 
 const clone = (): Content => structuredClone(v1) as unknown as Content;
+const c0 = clone();
 const base = (): GameState => createGame(clone(), 'moi-di-lam', 'ha-noi');
-const mapOf = (c: Content): RoamMap => c.maps[0]!;
+/** Sân nhà: bản đồ có đủ NPC đứng, ngồi, đuổi theo và bắn câu hỏi. */
+const mapOf = (c: Content): RoamMap => c.maps.find((m) => m.id === 'san-nha')!;
 
 const quest = (over: Partial<Quest> = {}): Quest => ({
   id: 'q',
@@ -118,10 +125,10 @@ describe('bản đồ san-nha trong nội dung', () => {
 
   it('cờ tự sinh gồm talked/petted/dodged/hit/quest', () => {
     const flags = mapAutoFlags(map);
-    expect(flags).toContain('talked:co-hai');
-    expect(flags).toContain('petted:vang');
-    for (const n of DODGE_MILESTONES) expect(flags).toContain(`dodged:${n}`);
-    expect(flags).toContain(HIT_FLAG);
+    expect(flags).toContain('talked:san-nha:co-hai');
+    expect(flags).toContain('petted:san-nha:vang');
+    for (const n of DODGE_MILESTONES) expect(flags).toContain(`dodged:san-nha:${n}`);
+    expect(flags).toContain(hitFlag('san-nha'));
     for (const q of map.quests) expect(flags).toContain(questFlag(q.id));
   });
 
@@ -134,9 +141,11 @@ describe('bản đồ san-nha trong nội dung', () => {
 
   it('nhiệm vụ "dodged:3" cần né đủ 3 câu, không phải 1', () => {
     const ne = map.quests.find((q) => q.id === 'ne-cau-hoi')!;
-    const s = withFlag(base(), 'dodged:1');
+    const s = withFlag(base(), 'dodged:san-nha:1');
     expect(questProgress(ne, s).complete).toBe(false);
-    expect(questProgress(ne, withFlag(s, 'dodged:3')).complete).toBe(true);
+    expect(questProgress(ne, withFlag(s, 'dodged:san-nha:3')).complete).toBe(true);
+    // Né 3 câu ở bản đồ KHÁC không tính cho sân nhà.
+    expect(questProgress(ne, withFlag(base(), 'dodged:cuoi-nam:3')).complete).toBe(false);
   });
 });
 
@@ -249,7 +258,7 @@ describe('validate dữ liệu bản đồ', () => {
 
   it('bắt nhiệm vụ không hoàn thành được: điều kiện rỗng, giới hạn persona, cờ ngoài bản đồ, vòng phụ thuộc', () => {
     expect(errs((c) => (mapOf(c).quests[0]!.objectives[0]!.done = {})).some((m) => m.includes('điều kiện done rỗng'))).toBe(true);
-    expect(errs((c) => (mapOf(c).quests[0]!.objectives[0]!.done = { flags: ['talked:co-hai'], personas: ['sinh-vien'] })).some((m) => m.includes('giới hạn persona'))).toBe(true);
+    expect(errs((c) => (mapOf(c).quests[0]!.objectives[0]!.done = { flags: ['talked:san-nha:co-hai'], personas: ['sinh-vien'] })).some((m) => m.includes('giới hạn persona'))).toBe(true);
     // Cờ do một lựa chọn hội thoại bật (có thật) nhưng không phải cờ tự sinh của bản đồ: mục tiêu không dựa vào nó được
     expect(errs((c) => {
       c.scenes[0]!.choices[0]!.setFlags = ['co-tu-hoi-thoai'];
@@ -277,13 +286,13 @@ describe('validate dữ liệu bản đồ', () => {
     const c = clone();
     const e = validateContent(c, { sets: SETS, roamSets: ['set-khac'] });
     expect(e.some((m) => m.includes('chưa có vùng đi lại'))).toBe(true);
-    expect(validateContent(c, { sets: SETS, roamSets: ['san-nha'] })).toEqual([]);
+    expect(validateContent(c, { sets: SETS, roamSets: ['san-nha', 'cuoi-nam'] })).toEqual([]);
   });
 
   it('bắt chặng trỏ bản đồ không tồn tại, bản đồ không chặng nào dùng, hai chặng dùng chung bản đồ', () => {
     expect(errs((c) => (c.stages[0]!.mapId = 'ban-do-la')).some((m) => m.includes('mapId ban-do-la'))).toBe(true);
     expect(errs((c) => c.maps.push({ ...mapOf(c), id: 'ban-do-thua' })).some((m) => m.includes('ban-do-thua: không chặng nào'))).toBe(true);
-    expect(errs((c) => c.stages.push({ ...c.stages[0]!, id: 'chang-trung' })).some((m) => m.includes('trùng id: san-nha'))).toBe(true);
+    expect(errs((c) => c.stages.push({ ...c.stages[0]!, id: 'chang-trung' })).some((m) => m.includes(`trùng id: ${c0.stages[0]!.mapId}`))).toBe(true);
   });
 
   it('bắt nhiệm vụ đích không tồn tại', () => {
@@ -293,5 +302,65 @@ describe('validate dữ liệu bản đồ', () => {
   it('bắt scene mồ côi: không NPC nào gọi tới', () => {
     const e = errs((c) => c.scenes.push({ ...c.scenes[0]!, id: 'scene-mo-coi' }));
     expect(e.some((m) => m.includes('scene-mo-coi') && m.includes('mồ côi'))).toBe(true);
+  });
+});
+
+describe('đồ vật, sự kiện, mục tiêu theo vai, né cộng dồn (bản đồ cuoi-nam)', () => {
+  const c = clone();
+  const map = c.maps.find((m) => m.id === 'cuoi-nam')!;
+  const sv = (): GameState => createGame(c, 'sinh-vien', 'ha-noi');
+  const dl = (): GameState => createGame(c, 'moi-di-lam', 'ha-noi');
+
+  it('mục tiêu theo vai: sinh viên chào Cô và Lớp trưởng, người đi làm chào Sếp và chị Thu', () => {
+    const chao = map.quests.find((q) => q.id === 'chao-moi-nguoi')!;
+    expect(objectivesFor(chao, sv()).map((o) => o.id)).toEqual(['tu', 'co', 'lt']);
+    expect(objectivesFor(chao, dl()).map((o) => o.id)).toEqual(['tu', 'sep', 'thu']);
+    const s = withFlags(sv(), ['talked:cuoi-nam:tu', 'talked:cuoi-nam:co-chu-nhiem', 'talked:cuoi-nam:lop-truong']);
+    expect(questProgress(chao, s).complete).toBe(true);
+    expect(questProgress(chao, { ...s, personaId: 'moi-di-lam' }).complete).toBe(false);
+  });
+
+  it('cửa ra chỉ mở khi đã săn vé, thu dọn đồ và nghe máy mẹ', () => {
+    const cua = map.objects!.find((o) => o.id === 'cua')!;
+    expect(objectUnlocked(cua, dl())).toBe(false);
+    expect(objectUnlocked(cua, withFlags(dl(), ['quest:san-ve', 'quest:thu-don']))).toBe(false);
+    expect(objectUnlocked(cua, withFlags(dl(), ['quest:san-ve', 'quest:thu-don', 'nghe-me']))).toBe(true);
+  });
+
+  it('sự kiện bật theo thứ tự, mỗi sự kiện một lần', () => {
+    expect(dueEvent(map, dl())).toBeNull();
+    let s = withFlag(dl(), 'san-ve-xong');
+    expect(dueEvent(map, s)?.id).toBe('cach-ve');
+    s = withFlags(s, ['event:cuoi-nam:cach-ve', 'da-chon-cach-ve']);
+    expect(dueEvent(map, s)?.id).toBe('me-goi');
+    expect(dueEvent(map, s)?.kind).toBe('call');
+    s = withFlag(s, 'event:cuoi-nam:me-goi');
+    expect(dueEvent(map, s)).toBeNull();
+  });
+
+  it('cờ né: mốc của bản đồ theo số né trong bản đồ, mốc tổng theo cả hành trình', () => {
+    expect(dodgeFlags('cuoi-nam', 1, 1)).toEqual(['dodged:cuoi-nam:1']);
+    expect(dodgeFlags('cuoi-nam', 3, 3)).toEqual(['dodged:cuoi-nam:3', 'dodged:3']);
+    expect(dodgeFlags('san-nha', 3, 8)).toEqual(['dodged:san-nha:3', 'dodged:8']);
+    expect(dodgeFlags('san-nha', 2, 6)).toEqual([]);
+  });
+
+  it('validate bắt đồ vật/sự kiện hỏng', () => {
+    const errsOf = (mutate: (m: RoamMap) => void) => {
+      const cc = clone();
+      mutate(cc.maps.find((m) => m.id === 'cuoi-nam')!);
+      return validateContent(cc, { sets: SETS });
+    };
+    expect(errsOf((m) => (m.objects![0]!.spot = 'xa-lac')).some((e) => e.includes('vị trí xa-lac'))).toBe(true);
+    expect(errsOf((m) => (m.objects![4]!.lockedLine = '')).some((e) => e.includes('lockedLine'))).toBe(true);
+    expect(errsOf((m) => (m.events![0]!.when = {})).some((e) => e.includes('when rỗng'))).toBe(true);
+    expect(errsOf((m) => (m.events![0]!.sceneIds = ['khong-co'])).some((e) => e.includes('scene khong-co'))).toBe(true);
+    expect(errsOf((m) => (m.npcs[1]!.personas = ['vai-la'])).some((e) => e.includes('persona vai-la'))).toBe(true);
+    // Mục tiêu "chào Sếp" mà không giới hạn vai: sinh viên không bao giờ gặp Sếp.
+    expect(
+      errsOf((m) => delete m.quests.find((q) => q.id === 'chao-moi-nguoi')!.objectives[1]!.personas).some((e) =>
+        e.includes('không bao giờ bật với vai sinh-vien'),
+      ),
+    ).toBe(true);
   });
 });

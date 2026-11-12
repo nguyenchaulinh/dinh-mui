@@ -8,7 +8,7 @@ import {
   getEnding,
   getView,
   pickEnding,
-  pickRegion,
+  pickBySeed,
   pickScene,
   resolveCharacter,
 } from './engine';
@@ -100,7 +100,7 @@ function mini(): Content {
           { characterId: 'y', spot: 'b', behavior: 'stand', prompt: 'Nói', action: { kind: 'talk', sceneIds: ['b-p', 'b-sg', 'b-flag'], after: 'ok' } },
           { characterId: 'nhai', spot: 'c', behavior: 'stand', prompt: 'Nói', action: { kind: 'talk', sceneIds: ['b-nhai'], after: 'ok' } },
         ],
-        quests: [{ id: 'goal', title: 'Đích', objectives: [{ id: 'o', text: 'x', done: { flags: ['talked:x'] } }] }],
+        quests: [{ id: 'goal', title: 'Đích', objectives: [{ id: 'o', text: 'x', done: { flags: ['talked:m:x'] } }] }],
       },
     ],
   };
@@ -191,13 +191,13 @@ describe('createGame', () => {
   });
 });
 
-describe('pickRegion', () => {
+describe('pickBySeed', () => {
   it('chọn một vùng thì lấy luôn; chọn nhiều thì ổn định theo seed và phủ hết các vùng', () => {
-    expect(pickRegion(['hn'], 1)).toBe('hn');
-    expect(pickRegion(['hn', 'sg'], 42, 'k')).toBe(pickRegion(['hn', 'sg'], 42, 'k'));
-    const seen = new Set(Array.from({ length: 40 }, (_, i) => pickRegion(['hn', 'sg'], i, 'k')));
+    expect(pickBySeed(['hn'], 1)).toBe('hn');
+    expect(pickBySeed(['hn', 'sg'], 42, 'k')).toBe(pickBySeed(['hn', 'sg'], 42, 'k'));
+    const seen = new Set(Array.from({ length: 40 }, (_, i) => pickBySeed(['hn', 'sg'], i, 'k')));
     expect(seen).toEqual(new Set(['hn', 'sg']));
-    expect(() => pickRegion([], 1)).toThrow();
+    expect(() => pickBySeed([], 1)).toThrow();
   });
 });
 
@@ -330,5 +330,47 @@ describe('kill-switch nhân vật', () => {
     const v = getView(c, createGame(c, 'p', 'hn'), 'b-nhai');
     expect(v.speaker.id).toBe('x');
     expect(v.scene.characterId).toBe('nhai');
+  });
+});
+
+describe('tên người chơi', () => {
+  it('chuẩn hoá: gộp khoảng trắng, nhận chữ tiếng Việt; từ chối rỗng, quá dài, ký tự lạ', async () => {
+    const { normalizeName, NAME_MAX } = await import('./engine');
+    expect(normalizeName('  Nguyễn   Thảo ')).toBe('Nguyễn Thảo');
+    expect(normalizeName("O'Neil-Trần Jr.")).toBe("O'Neil-Trần Jr.");
+    expect(normalizeName('An 2k7')).toBe('An 2k7');
+    expect(normalizeName('   ')).toBeNull();
+    expect(normalizeName('a'.repeat(NAME_MAX + 1))).toBeNull();
+    expect(normalizeName('ừ'.repeat(NAME_MAX))).toBe('ừ'.repeat(NAME_MAX));
+    for (const bad of ['<b>Hi</b>', 'a&b', 'tên\u0000', 'x{ten}', 'emoji 🎉']) expect(normalizeName(bad), bad).toBeNull();
+  });
+
+  it('createGame chỉ nhận tên đã chuẩn hoá (hoặc rỗng)', () => {
+    const c = mini();
+    expect(createGame(c, 'p', 'hn', 'Lan').playerName).toBe('Lan');
+    expect(createGame(c, 'p', 'hn').playerName).toBe('');
+    expect(() => createGame(c, 'p', 'hn', '  Lan ')).toThrow();
+    expect(() => createGame(c, 'p', 'hn', '<script>')).toThrow();
+  });
+
+  it('chèn {ten} vào thoại, lựa chọn, phản ứng và tên người đăng; chưa có tên thì dùng "bạn"', () => {
+    const c = mini();
+    c.scenes[0]!.line = 'Chào {ten}!';
+    c.scenes[0]!.choices[0]!.text = '{ten} xin phép ạ';
+    c.scenes[0]!.choices[0]!.reply = 'Ừ {ten}';
+    c.scenes[0]!.choices[0]!.author = 'Trang của {ten}';
+    const named = createGame(c, 'p', 'hn', 'Lan');
+    const v = getView(c, named, 'a');
+    expect(v.line).toBe('Chào Lan!');
+    expect(v.choices[0]!.text).toBe('Lan xin phép ạ');
+    expect(v.choices[0]!.author).toBe('Trang của Lan');
+    expect(choose(c, named, 'a', 'flag').reply).toBe('Ừ Lan');
+    expect(getView(c, createGame(c, 'p', 'hn'), 'a').line).toBe('Chào bạn!');
+  });
+
+  it('validate bắt chỗ chèn gõ sai ({name} thay vì {ten})', () => {
+    const c = mini();
+    c.scenes[0]!.line = 'Chào {name}';
+    expect(validateContent(c).some((e) => e.includes('chỗ chèn lạ {name}'))).toBe(true);
   });
 });

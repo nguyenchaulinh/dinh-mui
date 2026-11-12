@@ -18,6 +18,7 @@ import {
   type Menu,
 } from './props';
 import { SETS, styleOfRegion } from './registry';
+import { CUOI_NAM } from './walk';
 
 /** Vùng → phong cách miền. Chưa biết vùng thì mặc định miền Bắc (logic dùng chung ở registry.ts). */
 export function styleOf(regionId: string): Menu {
@@ -37,6 +38,7 @@ export interface Env {
 
 export function envOf(setId: string, regionId: string): Env {
   const s = styleOf(regionId);
+  if (setId === 'cuoi-nam') return { sky: '#f2c4a0', fog: [20, 48], sun: 1.0, ambient: 0.95, sunColor: '#fff1dc' };
   if (setId === 'nha-tren') return { sky: '#3b1d12', fog: [12, 30], sun: 1.1, ambient: 0.75, sunColor: '#ffd8a8' };
   if (setId === 'san-nha') {
     // chập tối, ánh hoàng hôn
@@ -196,6 +198,136 @@ function SanNha({ regionId }: Readonly<{ regionId: string }>) {
   );
 }
 
+// ---------- Văn phòng / lớp học cuối năm ----------
+
+/** Biến thể trang trí của phòng: văn phòng (người đi làm) hoặc lớp học (sinh viên). Cùng mặt bằng CUOI_NAM. */
+export type RoomVariant = 'van-phong' | 'lop-hoc';
+
+const ROOM: Record<RoomVariant, { floor: string; wall: string; dado: string; desk: string; board: string; counter: string }> = {
+  'van-phong': { floor: '#bfb8ad', wall: '#f1ece4', dado: '#d6cfc4', desk: '#f4f1ec', board: '#f8fafc', counter: '#9ca3af' },
+  'lop-hoc': { floor: '#e2cfa8', wall: '#f6e7c1', dado: '#8fb996', desk: '#c08a52', board: '#1f4d3a', counter: '#d97706' },
+};
+
+function Box({ p, s, c, e }: Readonly<{ p: [number, number, number]; s: [number, number, number]; c: string; e?: number }>) {
+  return (
+    <mesh position={p}>
+      <boxGeometry args={s} />
+      <Mat c={c} e={e} />
+    </mesh>
+  );
+}
+
+/** Bàn + ghế phía sau (+z). Văn phòng: màn hình; lớp học: chồng sách. */
+function Desk({ x, z, v }: Readonly<{ x: number; z: number; v: RoomVariant }>) {
+  const { w, d, chairBack } = CUOI_NAM.desk;
+  const top = ROOM[v].desk;
+  return (
+    <group position={[x, 0, z]}>
+      <Box p={[0, 0.74, 0]} s={[w, 0.05, d]} c={top} />
+      {[-1, 1].map((sx) =>
+        [-1, 1].map((sz) => <Box key={`${sx}${sz}`} p={[sx * (w / 2 - 0.06), 0.36, sz * (d / 2 - 0.06)]} s={[0.05, 0.72, 0.05]} c="#6b7280" />),
+      )}
+      {v === 'van-phong' ? (
+        <>
+          <Box p={[0, 1.0, -d / 2 + 0.12]} s={[0.55, 0.34, 0.03]} c="#111827" />
+          <Box p={[0, 1.0, -d / 2 + 0.14]} s={[0.5, 0.29, 0.01]} c="#93c5fd" e={0.35} />
+        </>
+      ) : (
+        <>
+          <Box p={[-0.35, 0.8, -0.1]} s={[0.28, 0.08, 0.2]} c="#2563eb" />
+          <Box p={[-0.33, 0.87, -0.08]} s={[0.26, 0.06, 0.19]} c="#dc2626" />
+        </>
+      )}
+      {/* ghế */}
+      <group position={[0, 0, chairBack]}>
+        <Box p={[0, 0.45, 0]} s={[0.46, 0.06, 0.44]} c={v === 'van-phong' ? '#1f2937' : '#a16207'} />
+        <Box p={[0, 0.75, 0.2]} s={[0.46, 0.5, 0.05]} c={v === 'van-phong' ? '#1f2937' : '#a16207'} />
+        <Box p={[0, 0.22, 0]} s={[0.06, 0.44, 0.06]} c="#4b5563" />
+      </group>
+    </group>
+  );
+}
+
+function CuoiNam({ regionId, variant }: Readonly<{ regionId: string; variant: RoomVariant }>) {
+  const L = CUOI_NAM;
+  const room = ROOM[variant];
+  const s = styleOf(regionId);
+  const depth = L.frontZ - L.wallBackZ;
+  const midZ = (L.wallBackZ + L.frontZ) / 2;
+  const wallW = L.wallSideX * 2 + L.wallThick * 2;
+  const h = L.wallHeight;
+  const b = L.bossDesk;
+  const doorLow = L.door.z0 - (L.wallBackZ - L.wallThick);
+  const doorHigh = L.frontZ + L.wallThick - L.door.z1;
+  const doorX = L.wallSideX + L.wallThick / 2;
+  return (
+    <group>
+      <Ground c="#6b5b4f" />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, midZ]}>
+        <planeGeometry args={[L.wallSideX * 2, depth]} />
+        <Mat c={room.floor} />
+      </mesh>
+      {/* tường sau + chân tường */}
+      <Box p={[0, h / 2, L.wallBackZ - L.wallThick / 2]} s={[wallW, h, L.wallThick]} c={room.wall} />
+      <Box p={[0, 0.45, L.wallBackZ + 0.01]} s={[wallW - 0.6, 0.9, 0.02]} c={room.dado} />
+      {/* tường trái có cửa sổ nhìn ra phố */}
+      <Box p={[-L.wallSideX - L.wallThick / 2, h / 2, midZ]} s={[L.wallThick, h, depth + L.wallThick]} c={room.wall} />
+      {[-2.8, -0.4, 2.0].map((z) => (
+        <Box key={z} p={[-L.wallSideX + 0.01, 1.7, z]} s={[0.02, 1.0, 1.4]} c="#bfe3ff" e={0.5} />
+      ))}
+      {/* tường phải, chừa khe cửa */}
+      <Box p={[doorX, h / 2, L.door.z0 - doorLow / 2]} s={[L.wallThick, h, doorLow]} c={room.wall} />
+      <Box p={[doorX, h / 2, L.door.z1 + doorHigh / 2]} s={[L.wallThick, h, doorHigh]} c={room.wall} />
+      <Box p={[doorX, 2.35, (L.door.z0 + L.door.z1) / 2]} s={[L.wallThick, 1.3, L.door.z1 - L.door.z0]} c={room.wall} />
+      {/* khung cửa + biển "Lối ra" */}
+      {[L.door.z0, L.door.z1].map((z) => (
+        <Box key={z} p={[doorX - 0.16, 0.85, z]} s={[0.06, 1.7, 0.08]} c="#7c4a2a" />
+      ))}
+      <Box p={[doorX - 0.17, 1.95, (L.door.z0 + L.door.z1) / 2]} s={[0.04, 0.22, 0.7]} c="#16a34a" e={0.6} />
+      {/* bảng trắng / bảng đen và băng rôn Tết trên tường sau */}
+      <Box p={[-0.4, 1.55, L.wallBackZ + 0.03]} s={[2.6, 1.1, 0.04]} c={room.board} />
+      <Box p={[-0.4, 2.55, L.wallBackZ + 0.03]} s={[3.6, 0.36, 0.03]} c="#c0262d" />
+      <Box p={[-0.4, 2.55, L.wallBackZ + 0.05]} s={[3.3, 0.06, 0.01]} c="#f5b82e" e={0.3} />
+      {L.desks.map((d, i) => (
+        <Desk key={i} x={d.x} z={d.z} v={variant} />
+      ))}
+      {/* bàn sếp / bàn giáo viên */}
+      <group position={[b.x, 0, b.z]}>
+        <Box p={[0, 0.75, 0]} s={[b.w, 0.08, b.d]} c={variant === 'van-phong' ? '#7c4a2a' : '#a16207'} />
+        <Box p={[0, 0.37, 0.3]} s={[b.w - 0.1, 0.72, 0.06]} c={variant === 'van-phong' ? '#5b3720' : '#854d0e'} />
+        {variant === 'van-phong' ? (
+          <Box p={[0.3, 1.0, -0.15]} s={[0.6, 0.36, 0.03]} c="#111827" />
+        ) : (
+          <Box p={[-0.5, 0.88, 0]} s={[0.14, 0.18, 0.14]} c="#f472b6" />
+        )}
+        <Box p={[0, 0.5, -0.75]} s={[0.5, 1.0, 0.45]} c="#1f2937" />
+      </group>
+      {/* quầy pha cà phê / bàn liên hoan */}
+      <group position={[L.counter.x, 0, L.counter.z]}>
+        <Box p={[0, 0.45, 0]} s={[L.counter.w, 0.9, L.counter.d]} c={room.counter} />
+        {variant === 'van-phong' ? (
+          <>
+            <Box p={[0, 1.1, 0.6]} s={[0.35, 0.4, 0.3]} c="#374151" />
+            <Box p={[0, 1.15, -0.1]} s={[0.25, 0.5, 0.25]} c="#bae6fd" e={0.2} />
+          </>
+        ) : (
+          ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6'].map((c, i) => <Box key={c} p={[0, 1.03, -0.7 + i * 0.32]} s={[0.12, 0.26, 0.12]} c={c} />)
+        )}
+      </group>
+      {/* móc áo */}
+      <group position={[L.coatRack.x, 0, L.coatRack.z]}>
+        <Box p={[0, 0.85, 0]} s={[0.06, 1.7, 0.06]} c="#5b3720" />
+        <Box p={[0, 0.03, 0]} s={[0.5, 0.06, 0.5]} c="#5b3720" />
+      </group>
+      <BlossomTree kind="quat" position={[L.plants[0].x, 0, L.plants[0].z]} scale={1.1} />
+      <BlossomTree kind={BLOSSOM[s]} position={[L.plants[1].x, 0, L.plants[1].z]} scale={1.0} />
+      <Lantern position={[-2.5, 2.7, -1.2]} />
+      <Lantern position={[1.5, 2.7, -1.2]} />
+      <Lantern position={[1.5, 2.7, 2.0]} />
+    </group>
+  );
+}
+
 // ---------- Nhà trên: mâm cơm tất niên ----------
 
 function NhaTren({ regionId }: Readonly<{ regionId: string }>) {
@@ -253,8 +385,10 @@ function NhaTren({ regionId }: Readonly<{ regionId: string }>) {
   );
 }
 
-export function SetView({ setId, regionId }: Readonly<{ setId: string; regionId: string }>) {
+export function SetView({ setId, regionId, variant }: Readonly<{ setId: string; regionId: string; variant?: string }>) {
   switch (setId) {
+    case 'cuoi-nam':
+      return <CuoiNam regionId={regionId} variant={variant === 'lop-hoc' ? 'lop-hoc' : 'van-phong'} />;
     case 'pho-tet':
       return <PhoTet regionId={regionId} />;
     case 'san-nha':

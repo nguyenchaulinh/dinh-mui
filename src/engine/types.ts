@@ -84,7 +84,10 @@ export interface Character {
 export interface Choice {
   id: string;
   style: Style;
+  /** Câu người chơi nói (hoặc nội dung bài đăng khi scene là feed). Có thể chứa `{ten}`. */
   text: string;
+  /** Chỉ dùng khi scene là feed: tên trang/người đăng bài. */
+  author?: string;
   textByRegion?: ByRegion;
   effects: Effects;
   /** Phản ứng sau khi chọn. */
@@ -127,6 +130,8 @@ export interface Scene {
   regions?: string[];
   /** Điều kiện bổ sung (cờ, lịch sử...). */
   if?: Condition;
+  /** Cách trình bày: hội thoại (mặc định) hoặc feed điện thoại (lựa chọn là các bài đăng). */
+  ui?: 'dialog' | 'feed';
 }
 
 /** Một chặng của hành trình = một bản đồ đi lại được. Thứ tự chặng = thứ tự mảng `Content.stages`. */
@@ -190,6 +195,8 @@ export type NpcBehavior = 'stand' | 'wander' | 'approach';
 export interface MapNpc {
   /** Id nhân vật trong `characters` (cũng là khoá của NPC trên bản đồ). */
   characterId: string;
+  /** Nếu có, NPC chỉ xuất hiện với các vai này (văn phòng có Sếp, lớp học có Cô). */
+  personas?: string[];
   /** Vị trí xuất phát = tên spot trong registry của set. */
   spot: string;
   behavior: NpcBehavior;
@@ -210,6 +217,8 @@ export interface Objective {
   id: string;
   text: string;
   done: Condition;
+  /** Nếu có, mục tiêu chỉ tính với các vai này (vai khác không thấy và không cần làm). */
+  personas?: string[];
 }
 
 export interface Quest {
@@ -222,6 +231,46 @@ export interface Quest {
   rewardLine?: string;
 }
 
+/** Hình dựng sẵn của đồ vật (xem RoamView); thiếu thì chỉ có dấu tương tác. */
+export type ObjectModel = 'laptop' | 'charger' | 'gift' | 'coat' | 'door';
+
+export type ObjectAction =
+  /** Dùng: mở scene hội thoại đầu tiên hợp vai/vùng (ví dụ feed săn vé). Bật cờ `used:<bản đồ>:<đồ>`. */
+  | { kind: 'talk'; sceneIds: string[] }
+  /** Nhặt: đồ biến mất, hiện `line`, áp hiệu ứng (nếu có). Bật cờ `picked:<bản đồ>:<đồ>`. */
+  | { kind: 'pickup'; line: string; effects?: Effects }
+  /** Ra cửa: xong thì bật cờ `used:<bản đồ>:<đồ>` (thường là mục tiêu của nhiệm vụ đích). */
+  | { kind: 'exit'; line: string };
+
+/** Đồ vật tương tác được trong bản đồ: máy tính, đồ để nhặt, cửa ra. */
+export interface MapObject {
+  id: string;
+  /** Tên hiện trên nút tương tác, ví dụ "Máy tính". */
+  label: string;
+  /** Vị trí = tên spot trong registry của set. */
+  spot: string;
+  /** Chữ trên nút tương tác, ví dụ "Săn vé". */
+  prompt: string;
+  model?: ObjectModel;
+  /** Nếu có, đồ chỉ có với các vai này. */
+  personas?: string[];
+  /** Điều kiện để dùng được; chưa đủ thì hiện `lockedLine`. */
+  requires?: Condition;
+  lockedLine?: string;
+  action: ObjectAction;
+}
+
+/**
+ * Sự kiện tự bật một lần khi điều kiện `when` thoả (và không có hội thoại đang mở): mở scene đầu tiên hợp vai/vùng.
+ * `call` hiện thẻ cuộc gọi đến trước khi vào hội thoại. Khi bật, cờ `event:<bản đồ>:<id>` được đặt.
+ */
+export interface MapEvent {
+  id: string;
+  when: Condition;
+  sceneIds: string[];
+  kind?: 'popup' | 'call';
+}
+
 /** Bản đồ chế độ đi lại: bộ cảnh 3D, người chơi, NPC và nhiệm vụ. */
 export interface RoamMap {
   id: string;
@@ -230,6 +279,10 @@ export interface RoamMap {
   /** Nhân vật của người chơi. */
   playerId: string;
   npcs: MapNpc[];
+  objects?: MapObject[];
+  events?: MapEvent[];
+  /** Biến thể trang trí của bộ cảnh theo vai (cùng mặt bằng), ví dụ văn phòng / lớp học. */
+  variantByPersona?: Record<string, string>;
   quests: Quest[];
   /** Nhiệm vụ cuối của bản đồ: hoàn thành thì chặng này xong (chặng cuối thì game kết thúc). */
   goalQuestId: string;
@@ -253,6 +306,8 @@ export type Stats = Record<StatKey, number>;
 
 export interface GameState {
   personaId: string;
+  /** Tên người chơi tự nhập (đã chuẩn hoá); rỗng khi chưa nhập. Chèn vào thoại qua `{ten}`. */
+  playerName: string;
   /** Vùng (thành phố) của lượt chơi này: quyết định giọng thoại và phong cách cảnh. */
   regionId: string;
   stats: Stats;
@@ -261,6 +316,8 @@ export interface GameState {
   tipsSeen: string[];
   /** Các lựa chọn đã chọn, dạng "sceneId/choiceId", theo thứ tự. */
   history: string[];
+  /** Tổng số câu hỏi/việc đã né được trong cả hành trình. */
+  dodges: number;
   /** Có giá trị khi game đã kết thúc. */
   endingId: string | null;
 }
