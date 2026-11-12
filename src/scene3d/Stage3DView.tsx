@@ -6,6 +6,8 @@ import type { Look } from '../engine/types';
 import { Figure, type Anim } from './Figure';
 import { SETS, type CameraShot, type SetDef } from './registry';
 import { SetView, envOf } from './sets';
+import { FpsProbe } from './FpsProbe';
+import { publish } from '../debug';
 
 export interface StageActor {
   /** Khóa ổn định (id nhân vật gốc trong scene). */
@@ -79,21 +81,6 @@ function CameraRig({ shot, snapKey }: Readonly<{ shot: CameraShot; snapKey: stri
   return null;
 }
 
-function FpsMeter({ onFps }: Readonly<{ onFps: (fps: number) => void }>) {
-  const frames = useRef(0);
-  const since = useRef(performance.now());
-  useFrame(() => {
-    frames.current++;
-    const now = performance.now();
-    if (now - since.current >= 1000) {
-      onFps(Math.round((frames.current * 1000) / (now - since.current)));
-      frames.current = 0;
-      since.current = now;
-    }
-  });
-  return null;
-}
-
 /** Bóng giả dưới chân: rẻ hơn nhiều so với shadow map trên điện thoại. */
 function BlobShadow({ r = 0.35 }: Readonly<{ r?: number }>) {
   return (
@@ -112,6 +99,7 @@ export default function Stage3DView({ setId, regionId, camera, actors, onFps }: 
 
   // Đổi set thì reset độ phân giải về mức cao, để PerformanceMonitor đo lại.
   useEffect(() => setDpr(1.75), [setId]);
+  useEffect(() => publish({ mode: 'scene', setId, player: undefined }), [setId]);
 
   return (
     <Canvas
@@ -141,7 +129,7 @@ export default function Stage3DView({ setId, regionId, camera, actors, onFps }: 
         })}
 
       <CameraRig shot={shot} snapKey={setId} />
-      {onFps && <FpsMeter onFps={onFps} />}
+      <FpsProbe onFps={onFps} />
     </Canvas>
   );
 }
