@@ -1,0 +1,6 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "ignoreRegExpList": ["/[\p{L}]*[\u00C0-\u1EF9][\p{L}]*/gu"],
+  "ignorePaths": ["docs/**", "src/content/*.json", "src/engine/__fixtures__/*.json", "node_modules/**", "dist/**"]
+}
