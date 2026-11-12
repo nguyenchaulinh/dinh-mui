@@ -122,3 +122,68 @@ export function smoothPose(
     ],
   };
 }
+
+/** Chiều cao mắt camera khi hội thoại (m). */
+const TALK_CAM_Y = 1.45;
+/** Tâm hai nhân vật (m): khoảng giữa thân. Dùng để căn khung. */
+const TALK_SUBJECT_Y = 0.8;
+/** Khung thoại che nửa dưới màn hình: đẩy hai nhân vật lên nửa trên một góc chừng này (rad, ~10°). */
+const TALK_LIFT_ANGLE = 0.17;
+
+/**
+ * Khoảng lùi tối thiểu/tối đa của camera hội thoại (m). Tối thiểu 4.6 m vì cả người (cao ~1.8 m) phải lọt vào phần
+ * màn hình không bị khung thoại che (~55% chiều cao): với góc nhìn dọc 50° thì cần lùi gần 4.5 m, gần hơn là cắt mất đầu.
+ */
+const TALK_MIN_DIST = 4.6;
+const TALK_MAX_DIST = 8;
+
+/**
+ * Camera hội thoại: đứng ở một bên (phía còn chỗ trống hơn) vuông góc đường nối hai người, nhìn vào điểm giữa,
+ * lùi đủ xa để cả hai lọt vào chiều ngang màn hình (điện thoại dọc hẹp nên phải lùi nhiều), và đẩy khung lên nửa trên
+ * vì khung thoại che nửa dưới. `clip` như ở computeCameraPose: tránh camera chui vào tường.
+ * `aspect` = rộng/cao của màn hình, `vfov` = góc nhìn dọc (rad). Đầu vào hỏng thì dùng giá trị an toàn, không NaN.
+ */
+export function computeTalkPose(
+  player: Vec2,
+  npc: Vec2,
+  aspect: number,
+  vfov: number,
+  clip: (origin: Vec2, dir: Vec2, maxLen: number) => number,
+): CameraPose {
+  const px = Number.isFinite(player.x) ? player.x : 0;
+  const pz = Number.isFinite(player.z) ? player.z : 0;
+  const nx = Number.isFinite(npc.x) ? npc.x : px;
+  const nz = Number.isFinite(npc.z) ? npc.z : pz;
+  const mid: Vec2 = { x: (px + nx) / 2, z: (pz + nz) / 2 };
+
+  const dx = nx - px;
+  const dz = nz - pz;
+  const sep = Math.hypot(dx, dz);
+  // Hai người trùng nhau: lấy hướng +z làm đường nối.
+  const ux = sep > 1e-6 ? dx / sep : 0;
+  const uz = sep > 1e-6 ? dz / sep : 1;
+  const sx = -uz;
+  const sz = ux;
+
+  const ar = Number.isFinite(aspect) && aspect > 0 ? Math.max(0.3, aspect) : 1;
+  const vf = Number.isFinite(vfov) && vfov > 0.1 && vfov < 3 ? vfov : 0.87;
+  const hfov = 2 * Math.atan(Math.tan(vf / 2) * ar);
+  // Chiều ngang (màn hình dọc hẹp) cần lùi nhiều hơn chiều dọc; lấy cái lớn hơn, nhân 1.15 để chừa lề.
+  const want = Math.min(TALK_MAX_DIST, Math.max(TALK_MIN_DIST, (1.15 * (sep / 2 + 0.8)) / Math.tan(hfov / 2)));
+
+  // Infinity = không có vật cản (như computeCameraPose); NaN hoặc âm = đầu vào hỏng, coi là bị chặn sát.
+  const room1 = (v: number): number => (Number.isNaN(v) || v < 0 ? 0 : Math.min(v, want + CLIP_MARGIN));
+  const a = room1(clip(mid, { x: sx, z: sz }, want + CLIP_MARGIN));
+  const b = room1(clip(mid, { x: -sx, z: -sz }, want + CLIP_MARGIN));
+  const sign = a >= b ? 1 : -1;
+  const room = Math.max(a, b);
+  const dist = Math.min(want, Math.max(1.8, room - CLIP_MARGIN));
+
+  // Chọn điểm ngắm thấp hơn thân người để hai người nằm ở nửa trên khung hình.
+  const ty = TALK_CAM_Y + dist * Math.tan(Math.atan((TALK_SUBJECT_Y - TALK_CAM_Y) / dist) - TALK_LIFT_ANGLE);
+
+  return {
+    pos: [mid.x + sign * sx * dist, TALK_CAM_Y, mid.z + sign * sz * dist],
+    lookAt: [mid.x, ty, mid.z],
+  };
+}

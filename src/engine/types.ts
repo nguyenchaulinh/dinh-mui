@@ -149,6 +149,8 @@ export interface Scene {
   /** Điều kiện bổ sung (cờ, lịch sử...). */
   if?: Condition;
   stage3d?: Stage3D;
+  /** Chỉ mở bằng cách nói chuyện với NPC trong chế độ đi lại; không nằm trên luồng chính (bỏ qua khi kiểm tra "tới được"). */
+  roamOnly?: boolean;
 }
 
 export interface Stage {

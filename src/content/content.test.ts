@@ -53,7 +53,8 @@ describe('nội dung v1', () => {
         for (let pick = 0; pick < 4; pick++) for (const id of play(p.id, [r.id], pick).path) reached.add(id);
       }
     }
-    const unreached = c.scenes.map((s) => s.id).filter((id) => !reached.has(id));
+    // Scene roamOnly chỉ mở qua NPC trong chế độ đi lại, không nằm trên luồng chính.
+    const unreached = c.scenes.filter((s) => !s.roamOnly).map((s) => s.id).filter((id) => !reached.has(id));
     expect(unreached).toEqual([]);
   });
 

@@ -125,6 +125,12 @@ export interface DebugInfo {
   setId?: string;
   /** Chỉ có ở chế độ đi lại. */
   player?: { x: number; z: number; speed: number; insideCollider: boolean };
+  /** Chế độ đi lại: NPC đang trong tầm tương tác (key nhân vật) hoặc null. */
+  nearby?: string | null;
+  /** Đang nói chuyện với NPC nào (key) hoặc null. */
+  talking?: string | null;
+  /** Vị trí hiện tại của từng NPC (key -> x, z), để script đo kiểm tra NPC có đi lại. */
+  npcs?: Record<string, { x: number; z: number }>;
 }
 
 declare global {

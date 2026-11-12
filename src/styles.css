@@ -114,4 +114,41 @@ html:has(.game) { overflow: hidden; }
   border: 0; border-radius: 10px;
 }
 .rs-exit { pointer-events: auto; cursor: pointer; }
+
+/* Chỉ số ở màn đi lại: nằm dưới hàng nút Thoát. */
+.hud-low { top: calc(max(8px, env(safe-area-inset-top)) + 56px); z-index: 5; }
+
+/* Lời nhắc tương tác khi lại gần NPC; chạm được trên điện thoại. */
+.rs-prompt {
+  position: fixed;
+  /* Căn giữa mà vẫn co theo nội dung và không vượt bề ngang màn hình hẹp. */
+  left: 0; right: 0;
+  margin: 0 auto;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  /* Cao hơn vùng chạm joystick (đáy 20px, cao 120px, nới 20px) để chạm joystick không trúng chip. */
+  bottom: calc(max(20px, env(safe-area-inset-bottom)) + 170px);
+  z-index: 6;
+  min-height: 44px;
+  padding: 8px 18px;
+  font: inherit; font-weight: 700;
+  color: #fff;
+  background: var(--red);
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.35);
+  cursor: pointer;
+  animation: rs-pop 0.18s ease-out;
+}
+.rs-prompt kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  margin-right: 6px;
+  padding: 0 6px;
+  font: 700 0.85em ui-monospace, monospace;
+  color: var(--red);
+  background: #fff;
+  border-radius: 6px;
+}
+@keyframes rs-pop { from { opacity: 0; transform: translateY(6px); } }
 .stage-card h2, .ending h2 { margin: 4px 0; color: var(--red); }
