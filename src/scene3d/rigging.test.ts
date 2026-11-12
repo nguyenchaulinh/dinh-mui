@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../content';
 import credits from '../../public/models/CREDITS.md?raw';
-import { CHARACTER_MODELS, clipFor, heightFor, isCharacterModel, modelUrl, partOf, roleOf } from './rigging';
+import { BIND_HEIGHT, CHARACTER_MODELS, bindHeightFromGltf, clipFor, heightFor, isCharacterModel, modelUrl, partOf, roleOf } from './rigging';
 
 /** Nội dung thô của các file GLB (đọc qua Vite, không cần API của node). */
 const FILES = import.meta.glob('../../public/models/*.glb', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 const fileOf = (m: string) => FILES[`../../public/models/${m}.glb`];
 
 /** Lấy phần JSON ở đầu GLB: từ dấu `{` đầu tiên tới dấu `}` khớp (đếm ngoặc, bỏ qua chuỗi). */
-function glbJson(raw: string): { animations?: { name: string }[]; asset?: { copyright?: string } } {
+function glbJson(raw: string): any {
   const start = raw.indexOf('{');
   let depth = 0;
   let inStr = false;
@@ -35,9 +35,21 @@ describe('model nhân vật trong public/models', () => {
     }
   });
 
+  it('chiều cao tư thế gốc khớp file (để chuẩn hoá đúng; lần trước đo sai ~100 lần, nhân vật bé như một chấm)', () => {
+    for (const m of CHARACTER_MODELS) {
+      const h = bindHeightFromGltf(glbJson(fileOf(m)!));
+      expect(Math.abs(h - BIND_HEIGHT[m]) / BIND_HEIGHT[m], m).toBeLessThan(0.01);
+      // Sau chuẩn hoá: người lớn ~1.65 m, chó ~0.38 m (không bé như chấm, không to như nhà).
+      const kind = m.startsWith('cho-') ? 'dog' : 'human';
+      const scaled = (heightFor(kind) / BIND_HEIGHT[m]) * h;
+      expect(scaled, m).toBeGreaterThan(kind === 'dog' ? 0.3 : 1.5);
+      expect(scaled, m).toBeLessThan(kind === 'dog' ? 0.5 : 1.8);
+    }
+  });
+
   it('mọi clip mà game gọi tới đều có trong file', () => {
     for (const m of CHARACTER_MODELS) {
-      const names = new Set((glbJson(fileOf(m)!).animations ?? []).map((a) => a.name));
+      const names = new Set(((glbJson(fileOf(m)!).animations ?? []) as { name: string }[]).map((a) => a.name));
       const kind = m.startsWith('cho-') ? 'dog' : 'human';
       for (const anim of ['idle', 'walk', 'run', 'talk', 'wave', 'cry', 'dance']) {
         expect(names.has(clipFor(anim, kind)), `${m}: ${anim} -> ${clipFor(anim, kind)}`).toBe(true);

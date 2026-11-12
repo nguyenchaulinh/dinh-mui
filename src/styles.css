@@ -253,11 +253,11 @@ button, input { font: inherit; color: inherit; }
   animation: up var(--t);
 }
 .dock-slim { display: grid; gap: var(--s-2); }
-.dock-say { padding: 4px 6px 2px; }
-.dock-say p { margin: 4px 0 0; font-size: var(--fs-m); line-height: 1.4; }
+.dock-say { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0 0 var(--s-2); padding: 2px 4px; font-size: var(--fs-m); line-height: 1.4; }
+.dock-say .nameplate { display: inline-flex; }
 .dock-aside { margin: 0 0 6px; padding: 4px 8px; font-size: var(--fs-s); color: var(--cream-soft); border-left: 2px solid var(--gold); }
 .dock-actions { display: flex; justify-content: flex-end; }
-.nameplate { display: flex; align-items: center; gap: 6px; margin: 0; }
+.nameplate { display: flex; align-items: center; gap: 6px; margin: 0; flex: none; }
 .nameplate-name { padding: 1px 8px; font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; border-radius: var(--r-pill); }
 .nameplate-role { font-size: var(--fs-xs); color: var(--cream-soft); }
 

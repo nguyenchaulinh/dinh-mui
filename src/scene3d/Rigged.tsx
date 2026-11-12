@@ -1,10 +1,10 @@
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
-import { AnimationMixer, Box3, type AnimationAction, type Material, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
+import { AnimationMixer, type AnimationAction, type Material, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Look } from '../engine/types';
-import { POM_BONES, POM_FUR, clipFor, heightFor, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
+import { BIND_HEIGHT, POM_BONES, POM_FUR, clipFor, heightFor, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
 
 const HEX = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 /** Không dùng Draco/Meshopt: file không nén theo kiểu đó, và tránh tự tải bộ giải mã từ CDN ngoài. */
@@ -90,11 +90,8 @@ export function RiggedFigure({ model, look, anim, phase = 0 }: Readonly<{ model:
         if (s !== undefined && (o as { isBone?: boolean }).isBone) o.scale.setScalar(s);
       });
     }
-    // 4. Chuẩn hoá chiều cao theo khung bao tư thế gốc.
-    const box = new Box3().setFromObject(root);
-    const h = box.max.y - box.min.y;
-    const target = heightFor(kind, look.build);
-    return { root, scale: h > 0 ? target / h : 1 };
+    // 4. Chuẩn hoá chiều cao theo chiều cao tư thế gốc đã biết (KHÔNG đo bằng Box3: xem BIND_HEIGHT).
+    return { root, scale: heightFor(kind, look.build) / BIND_HEIGHT[model] };
   }, [gltf.scene, model, kind, look]);
 
   const mixer = useMemo(() => new AnimationMixer(root), [root]);
