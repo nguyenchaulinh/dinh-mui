@@ -30,7 +30,8 @@ Ngày 12/11/2026. Thay bản 1 ("Tết giấy đỏ") sau phản hồi: nhân v�
 | Chữ | `--cream` / `--cream-soft` | `#fff6e5` / 72% |
 | Nhấn | `--gold` / `--red` | `#f6c343` / `#d9363e` |
 | Tốt / xấu | `--good` / `--bad` | `#3fb36b` / `#e5484d` |
-| Chỉ số | `--harmony` / `--stamina` / `--wallet` | `#ff5f86` / `#4cd47b` / `#ffc23d` |
+| Chỉ số | `--harmony` / `--stamina` / `--wallet` | `#ff5f86` / `#4cd47b` / `#ffc23d` (biểu tượng) |
+| Mức chỉ số | `--lv-danger` / `--lv-medium` / `--lv-confident` | `#ff4d4f` / `#ffb020` / `#3fd17a` (thanh, con số) |
 | Kiểu đáp | `--kheo` / `--that-tha` / `--lay` / `--phan-don` | ngọc / xanh trời / vàng / đỏ |
 | Cỡ chữ | `--fs-xs/s/m/l/xl` | 11 / 13 / 15 / 18 / 22 px |
 | Bo góc | `--r-s/m/l` | 8 / 12 / 16 px |
@@ -60,7 +61,7 @@ Nói chuyện: bong bóng của NPC trên đầu họ; dock đáy (≤ 42%) ch�
 
 | Thành phần | Class | Ghi chú |
 |---|---|---|
-| HUD | `.hud`, `.meters` | Tên (vàng), vai · thành phố, 3 thanh nhỏ; thanh ≤ 25 nhấp nháy |
+| HUD | `.hud`, `.meters` | Tên (vàng), vai · thành phố, 3 thanh nhỏ có **con số điểm còn lại**. Màu thanh theo mức (`statLevel` trong labels.ts): **nguy hiểm ≤ 25** đỏ, rung giật + quầng đỏ nhấp nháy; **trung bình 26-59** vàng cam; **tự tin ≥ 60** xanh lá. Biểu tượng giữ màu riêng của chỉ số. Tắt rung khi `prefers-reduced-motion` (màu đỏ vẫn còn) |
 | Việc cần làm | `.tasks` | Thu/mở; việc của nhiệm vụ đích lên đầu, màu vàng |
 | Bong bóng thoại | `.speech` (drei `Html`) | Nền trắng, tên màu áo, tối đa 230px; `.speech-alert` viền đỏ rung khi lao tới hỏi |
 | Dock lựa chọn | `.dock`, `.opt` | Tối đa 42% chiều cao; nhãn phím (A, B, C, D) và nhãn kiểu đáp màu ở đầu dòng; phím A–D hoặc 1–4 chọn không cần chuột. Sau khi chọn: câu của bạn (trên đầu bạn) và lời NPC đáp hiện cùng lúc, hai phía ngược nhau; dock chỉ còn nút Tiếp nổi (thêm thẻ mẹo nếu có) |
