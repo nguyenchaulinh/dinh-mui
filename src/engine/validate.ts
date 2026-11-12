@@ -16,6 +16,8 @@ export interface ValidateOptions {
   sets?: Record<string, { spots: Record<string, unknown> }>;
   /** Id các set có vùng đi lại (walk.ts); bản đồ phải trỏ tới set nằm trong danh sách này. */
   roamSets?: readonly string[];
+  /** Model nhân vật có sẵn (scene3d/rigging.ts); `look.model` phải nằm trong danh sách này. */
+  models?: readonly string[];
 }
 
 /**
@@ -95,6 +97,11 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
   };
 
   for (const ch of c.characters) {
+    const m = ch.look?.model;
+    if (m !== undefined && opts.models && !opts.models.includes(m)) err(`character ${ch.id}: model ${m} không có trong public/models`);
+  }
+
+  for (const ch of c.characters) {
     if (ch.enabled) continue;
     const fb = ch.fallbackId ? chars.get(ch.fallbackId) : undefined;
     if (!fb) err(`character ${ch.id} bị tắt nhưng fallbackId thiếu/không tồn tại`);
@@ -154,7 +161,7 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
     c.maps.flatMap((m) => [
       ...(m.npcs ?? []).flatMap((n) => [
         ...(n.action?.kind === 'talk' ? (n.action.sceneIds ?? []) : []),
-        ...(n.shoots?.hitSceneIds ?? []),
+        ...(n.ambush?.hitSceneIds ?? []),
       ]),
       ...(m.objects ?? []).flatMap((o) => (o.action?.kind === 'talk' ? (o.action.sceneIds ?? []) : [])),
       ...(m.events ?? []).flatMap((e) => e.sceneIds ?? []),
@@ -215,8 +222,8 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
     const spot = def ? (def.spots as Record<string, { seated?: boolean } | undefined>)[n.spot] : undefined;
     if (def && !(n.spot in def.spots)) err(`${w}: vị trí ${n.spot} không có trong set ${mapSet}`);
     if (!['stand', 'wander', 'approach'].includes(n.behavior)) err(`${w}: hành vi lạ ${String(n.behavior)}`);
-    if (spot?.seated === true && (n.behavior !== 'stand' || n.shoots)) {
-      err(`${w}: vị trí ${n.spot} là chỗ ngồi, NPC chỉ được đứng yên (không đi lại, không bắn)`);
+    if (spot?.seated === true && (n.behavior !== 'stand' || n.ambush)) {
+      err(`${w}: vị trí ${n.spot} là chỗ ngồi, NPC chỉ được đứng yên (không đi lại, không lao tới hỏi)`);
     }
     for (const k of ['speed', 'leash', 'aware', 'stopDist', 'reach'] as const) {
       const v = n[k];
@@ -230,22 +237,23 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
       if (!n.action.line.trim()) err(`${w} pet: thiếu câu thoại (line)`);
       checkEffects(`${w} pet`, n.action.effects);
     }
-    if (n.shoots) {
-      const sh = n.shoots;
-      if (!(Number.isFinite(sh.everySec) && sh.everySec >= 0.5)) err(`${w} shoots: everySec phải >= 0.5`);
-      if (!(Number.isFinite(sh.range) && sh.range > 0 && sh.range <= 30)) err(`${w} shoots: range phải trong (0, 30]`);
-      if (!(Number.isFinite(sh.speed) && sh.speed > 0 && sh.speed <= 8)) {
-        err(`${w} shoots: speed phải trong (0, 8] m/s (nhanh hơn thì xuyên người chơi giữa hai khung hình)`);
-      }
+    if (n.ambush) {
+      const sh = n.ambush;
+      if (!(Number.isFinite(sh.everySec) && sh.everySec >= 1)) err(`${w} ambush: everySec phải >= 1`);
+      if (!(Number.isFinite(sh.range) && sh.range > 0 && sh.range <= 30)) err(`${w} ambush: range phải trong (0, 30]`);
       if (!(Number.isFinite(sh.minRange) && sh.minRange >= 0 && sh.minRange < sh.range)) {
-        err(`${w} shoots: minRange phải trong [0, range)`);
+        err(`${w} ambush: minRange phải trong [0, range)`);
       }
-      checkTexts(`${w} shoots.questions`, sh.questions);
+      const warn = sh.warnSec ?? 1.6;
+      const win = sh.windowSec ?? 0.5;
+      if (!(Number.isFinite(warn) && warn >= 0.6 && warn <= 4)) err(`${w} ambush: warnSec phải trong [0.6, 4] (báo trước quá ngắn thì không kịp phản ứng)`);
+      if (!(Number.isFinite(win) && win >= 0.2 && win < warn)) err(`${w} ambush: windowSec phải trong [0.2, warnSec)`);
+      checkTexts(`${w} ambush.questions`, sh.questions);
       for (const [pid, qs] of Object.entries(sh.questionsByPersona ?? {})) {
-        if (!personaIds.has(pid)) err(`${w} shoots.questionsByPersona: persona ${pid} không tồn tại`);
-        checkTexts(`${w} shoots.questionsByPersona.${pid}`, qs);
+        if (!personaIds.has(pid)) err(`${w} ambush.questionsByPersona: persona ${pid} không tồn tại`);
+        checkTexts(`${w} ambush.questionsByPersona.${pid}`, qs);
       }
-      checkSceneList(`${w} shoots.hitSceneIds`, sh.hitSceneIds, n.characterId, n.personas);
+      checkSceneList(`${w} ambush.hitSceneIds`, sh.hitSceneIds, n.characterId, n.personas);
     }
   };
 
@@ -332,7 +340,7 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
       };
       for (const n of m.npcs) {
         addSource(npcDoneFlag(m.id, n), n.personas);
-        if (n.shoots) for (const f of [hitFlag(m.id), ...DODGE_MILESTONES.map((k) => dodgedFlag(m.id, k))]) addSource(f, n.personas);
+        if (n.ambush) for (const f of [hitFlag(m.id), ...DODGE_MILESTONES.map((k) => dodgedFlag(m.id, k))]) addSource(f, n.personas);
       }
       for (const o of objects) addSource(objectDoneFlag(m.id, o), o.personas);
       dup(`quest trong ${at}`, m.quests.map((q) => q.id));

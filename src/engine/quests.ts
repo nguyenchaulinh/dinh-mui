@@ -6,7 +6,7 @@ import type { GameState, MapEvent, MapNpc, MapObject, Objective, Quest, RoamMap 
  * id bản đồ để không lẫn giữa các chặng (cùng một nhân vật có thể xuất hiện ở nhiều chặng):
  * - nói chuyện xong với NPC X -> `talked:<bản đồ>:X`; vuốt ve/tặng quà -> `petted:<bản đồ>:X`
  * - dùng đồ / ra cửa -> `used:<bản đồ>:<đồ>`; nhặt đồ -> `picked:<bản đồ>:<đồ>`; sự kiện đã bật -> `event:<bản đồ>:<id>`
- * - né được n câu trong bản đồ -> `dodged:<bản đồ>:<n>` (n thuộc DODGE_MILESTONES); bị trúng lần đầu -> `hit:<bản đồ>`
+ * - né được n câu trong bản đồ -> `dodged:<bản đồ>:<n>` (n thuộc DODGE_MILESTONES); bị bắt lần đầu -> `hit:<bản đồ>`
  * - né được tổng cộng n câu cả hành trình -> `dodged:<n>` (n thuộc DODGE_TOTAL_MILESTONES; dùng cho kết thúc)
  * - hoàn thành nhiệm vụ Q -> `quest:Q` (id nhiệm vụ không trùng giữa các bản đồ)
  */
@@ -44,7 +44,7 @@ export function mapAutoFlags(map: RoamMap): string[] {
   // Chịu được dữ liệu thiếu trường (JSON viết tay): validate sẽ báo lỗi dễ đọc thay vì ném TypeError ở đây.
   for (const n of map.npcs ?? []) {
     flags.push(npcDoneFlag(map.id, n));
-    if (n.shoots) flags.push(...DODGE_MILESTONES.map((k) => dodgedFlag(map.id, k)), hitFlag(map.id));
+    if (n.ambush) flags.push(...DODGE_MILESTONES.map((k) => dodgedFlag(map.id, k)), hitFlag(map.id));
   }
   for (const o of map.objects ?? []) flags.push(objectDoneFlag(map.id, o));
   for (const e of map.events ?? []) flags.push(eventFlag(map.id, e.id));

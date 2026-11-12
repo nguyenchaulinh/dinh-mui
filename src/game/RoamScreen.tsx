@@ -23,12 +23,14 @@ import {
 import type { Content, GameState, MapNpc, MapObject, Stage } from '../engine/types';
 import { SETS, styleOfRegion } from '../scene3d/registry';
 import { walkAreaFor } from '../scene3d/walk';
-import { PauseIcon, StatBars } from '../ui/ui';
+import { HudMeters, PauseIcon, accentOf } from '../ui/ui';
+import type { ActiveAmbush } from './ambush';
+import { DodgeQte, type QteView } from './DodgeQte';
 import { InputController } from './input';
 import { RoamControls } from './RoamControls';
 import { buildNpcParams, getRoamMap } from './roamDemo';
-import type { RoamNpc, RoamObject } from './RoamView';
-import { TalkPanel, type Talk } from './TalkPanel';
+import type { RoamNpc, RoamObject, SpeechBubble } from './RoamView';
+import { TalkDock, type Talk } from './TalkDock';
 
 const RoamView = lazy(() => import('./RoamView'));
 
@@ -76,8 +78,12 @@ export function RoamScreen({
   const gameRef = useRef(game);
   const [nearby, setNearby] = useState<string | null>(null);
   const [talk, setTalkState] = useState<Talk | null>(null);
-  const [questsOpen, setQuestsOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  /** Lượt bấm NÉ đang chạy (người lao tới, câu hỏi, vòng thời gian). */
+  const [qte, setQte] = useState<(QteView & { key: string; text: string }) | null>(null);
+  /** Chữ nổi to giữa màn hình ("NÉ ĐƯỢC!", "SỚM QUÁ!"), tự tắt. */
+  const [flash, setFlash] = useState<{ id: number; text: string; tone: 'good' | 'bad' } | null>(null);
+  const [tasksOpen, setTasksOpen] = useState(true);
   // Bản đồng bộ của talk/done: hai lần bấm E sát nhau (trước khi React kịp render lại) không được mở hai hội thoại
   // hay áp hiệu ứng hai lần. State chỉ để vẽ; quyết định dựa trên ref.
   const talkRef = useRef<Talk | null>(null);
@@ -152,10 +158,10 @@ export function RoamScreen({
                 spot: spec.spot,
                 params: buildNpcParams(spec, spot.seated === true),
                 reach: spec.reach,
-                // Câu hỏi trên bong bóng theo vai của người chơi để khớp với cảnh hội thoại khi bị trúng.
-                shoots: spec.shoots && {
-                  ...spec.shoots,
-                  questions: spec.shoots.questionsByPersona?.[personaId] ?? spec.shoots.questions,
+                // Câu hỏi lúc lao tới theo vai của người chơi để khớp với cảnh hội thoại khi bị bắt.
+                ambush: spec.ambush && {
+                  ...spec.ambush,
+                  questions: spec.ambush.questionsByPersona?.[personaId] ?? spec.ambush.questions,
                 },
               },
             ];
@@ -337,35 +343,48 @@ export function RoamScreen({
     openChoose(t.key, t.sceneIds, false);
   }, [setTalk, openChoose]);
 
-  // ---- bong bóng câu hỏi ----
-  const onShoot = useCallback(
-    (key: string, text: string) => {
-      pushToast(`${resolveCharacter(content, key).name}: ${text}`, 'info', 1800, 'shoot');
+  // ---- bấm NÉ đúng lúc ----
+  const showFlash = useCallback((text: string, tone: 'good' | 'bad') => {
+    const id = ++toastId.current;
+    setFlash({ id, text, tone });
+    timers.current.push(window.setTimeout(() => setFlash((f) => (f?.id === id ? null : f)), 1100));
+  }, []);
+
+  const onAmbush = useCallback(
+    (a: ActiveAmbush) => {
+      setQte({ key: a.key, text: a.text, name: resolveCharacter(content, a.key).name, warnSec: a.warnSec, windowSec: a.windowSec, startedAt: performance.now() });
     },
-    [content, pushToast],
+    [content],
   );
 
   const onDodge = useCallback(() => {
     if (!map) return;
+    setQte(null);
     dodgedRef.current += 1;
     const inMap = dodgedRef.current;
-    pushToast(`Né được! (${inMap})`, 'good', 1200, 'dodge');
+    showFlash(`NÉ ĐƯỢC! (${inMap})`, 'good');
     commit((g) => withFlags({ ...g, dodges: g.dodges + 1 }, dodgeFlags(map.id, inMap, g.dodges + 1)));
-  }, [map, pushToast, commit]);
+  }, [map, showFlash, commit]);
 
   const onHit = useCallback(
-    (key: string) => {
+    (key: string, early: boolean) => {
+      setQte(null);
       if (talkRef.current !== null || gameRef.current.endingId !== null || !map) return;
       const spec = specOf(key);
-      if (!spec?.shoots) return;
+      if (!spec?.ambush) return;
       commit((g) => withFlag(g, hitFlag(map.id)));
-      pushToast('Trúng rồi!', 'bad', 1500);
-      if (!openChoose(key, spec.shoots.hitSceneIds, true)) {
+      showFlash(early ? 'SỚM QUÁ!' : 'BỊ BẮT RỒI!', 'bad');
+      if (!openChoose(key, spec.ambush.hitSceneIds, true)) {
         setTalk({ kind: 'line', key, speaker: resolveCharacter(content, key), text: spec.action.after });
       }
     },
-    [content, map, specOf, commit, pushToast, openChoose, setTalk],
+    [content, map, specOf, commit, showFlash, openChoose, setTalk],
   );
+
+  // Hội thoại mở hoặc tạm dừng thì lượt NÉ bị huỷ (ambush.ts cũng huỷ phía luật).
+  useEffect(() => {
+    if (talk !== null || !active) setQte(null);
+  }, [talk, active]);
 
   // Nút tương tác: NPC hoặc đồ vật đang trong tầm.
   const nearNpc = nearby && !talk ? specOf(nearby) : undefined;
@@ -388,6 +407,34 @@ export function RoamScreen({
   const doneCount = progress.filter((p) => p.recorded).length;
   const paused = !active || talk !== null || ended;
   const showHud = active;
+  // Việc còn dở, nhiệm vụ đích lên đầu.
+  const pending = progress
+    .filter((p) => !p.recorded)
+    .sort((a, b) => Number(b.q.id === map.goalQuestId) - Number(a.q.id === map.goalQuestId));
+  const todo = pending.flatMap(({ q }) => objectivesFor(q, game).filter((o) => !objectiveDone(o, game)).map((o) => ({ q, o })));
+
+  // Bong bóng thoại trên đầu nhân vật đang đứng trong cảnh.
+  const onMap = (key: string) => myNpcs.some((n) => n.characterId === key);
+  const bubbles: SpeechBubble[] = [];
+  if (qte) bubbles.push({ key: qte.key, name: qte.name, text: qte.text, color: accentOf(resolveCharacter(content, qte.key)), alert: true });
+  let speakerOnMap = false;
+  if (talk && talk.kind !== 'call') {
+    const k = talk.key;
+    if (talk.kind === 'choose' && onMap(k) && talk.view.scene.ui !== 'feed') {
+      speakerOnMap = true;
+      bubbles.push({ key: k, name: talk.view.speaker.name, text: talk.view.line, color: accentOf(talk.view.speaker) });
+    } else if (talk.kind === 'reply') {
+      if (talk.said && !talk.feed) bubbles.push({ key: 'player', name: game.playerName || 'Bạn', text: talk.said, color: 'var(--gold-dark)' });
+      if (onMap(k)) {
+        speakerOnMap = true;
+        bubbles.push({ key: k, name: talk.speaker.name, text: talk.reply, color: accentOf(talk.speaker) });
+      }
+    } else if (talk.kind === 'line' && talk.speaker && onMap(k)) {
+      speakerOnMap = true;
+      bubbles.push({ key: k, name: talk.speaker.name, text: talk.text, color: accentOf(talk.speaker) });
+    }
+  }
+  const actionLabel = qte ? 'NÉ!' : nearNpc ? nearNpc.prompt : nearObj ? nearObj.prompt : 'Tương tác';
 
   return (
     <div className="game">
@@ -405,9 +452,10 @@ export function RoamScreen({
               controller={controller}
               paused={paused}
               talkingKey={talk?.key ?? null}
+              bubbles={bubbles}
               onNearby={setNearby}
               onInteract={onInteract}
-              onShoot={onShoot}
+              onAmbush={onAmbush}
               onDodge={onDodge}
               onHit={onHit}
               onFps={DEBUG ? setFps : undefined}
@@ -416,53 +464,50 @@ export function RoamScreen({
         ) : (
           <div className="loading">Cảnh này chưa hỗ trợ đi lại.</div>
         )}
-        {DEBUG && fps !== null && <div className="fps">{fps} FPS</div>}
       </div>
 
       {showHud && (
         <>
-          {!talk && <RoamControls controller={controller} />}
+          {!talk && <RoamControls controller={controller} actionLabel={actionLabel} actionHot={qte !== null || prompt !== null} />}
 
-          <div className="hud">
-            <p className="hud-who">
-              <strong>{game.playerName || 'Bạn'}</strong>
-              <span>
-                {persona?.name} · {region?.city}
-              </span>
-            </p>
-            <StatBars stats={game.stats} compact />
+          <div className="hud-stack">
+            <div className="hud">
+              <p className="hud-who">
+                <strong>{game.playerName || 'Bạn'}</strong>
+                <span>
+                  {persona?.name} · {region?.city}
+                </span>
+              </p>
+              <HudMeters stats={game.stats} />
+            </div>
+
+            <section className="tasks" aria-label="Việc cần làm">
+              <button className="tasks-head" aria-expanded={tasksOpen} onClick={() => setTasksOpen((o) => !o)}>
+                <span>Việc cần làm</span>
+                <span className="tasks-count">
+                  {doneCount}/{map.quests.length} {tasksOpen ? '▴' : '▾'}
+                </span>
+              </button>
+              {tasksOpen && (
+                <ul>
+                  {todo.slice(0, 5).map(({ q, o }) => (
+                    <li key={`${q.id}/${o.id}`} className={q.id === map.goalQuestId ? 'task-goal' : ''}>
+                      {o.text}
+                    </li>
+                  ))}
+                  {todo.length > 5 && <li className="task-more">và {todo.length - 5} việc nữa</li>}
+                  {todo.length === 0 && <li className="task-more">Xong hết rồi!</li>}
+                </ul>
+              )}
+            </section>
           </div>
 
           <div className="top-actions">
-            <button className="pill-btn" aria-expanded={questsOpen} onClick={() => setQuestsOpen((o) => !o)}>
-              Nhiệm vụ {doneCount}/{map.quests.length}
-            </button>
+            {DEBUG && fps !== null && <span className="fps">{fps} FPS</span>}
             <button className="icon-btn" aria-label="Tạm dừng" onClick={onPause}>
               <PauseIcon />
             </button>
           </div>
-
-          {questsOpen && (
-            <section className="quest-panel" aria-label="Nhiệm vụ">
-              {progress.map(({ q, done, total, recorded }) => (
-                <div key={q.id} className={recorded ? 'quest quest-done' : 'quest'}>
-                  <p className="quest-title">
-                    <span>{q.id === map.goalQuestId ? `★ ${q.title}` : q.title}</span>
-                    <small>{recorded ? 'xong' : `${done}/${total}`}</small>
-                  </p>
-                  {!recorded && (
-                    <ul>
-                      {objectivesFor(q, game).map((o) => (
-                        <li key={o.id} className={objectiveDone(o, game) ? 'obj-done' : ''}>
-                          {o.text}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </section>
-          )}
 
           <div className="toasts" aria-live="polite">
             {toasts.map((t) => (
@@ -472,16 +517,24 @@ export function RoamScreen({
             ))}
           </div>
 
-          {prompt && (
+          {flash && (
+            <p key={flash.id} className={`flash flash-${flash.tone}`} aria-live="assertive">
+              {flash.text}
+            </p>
+          )}
+
+          {qte && !talk && <DodgeQte qte={qte} onPress={() => controller.pressInteract()} />}
+
+          {prompt && !qte && (
             <button className="prompt" onClick={() => controller.pressInteract()}>
               <kbd>E</kbd> {prompt}
             </button>
           )}
 
           {talk && (
-            <TalkPanel
+            <TalkDock
               talk={talk}
-              playerName={game.playerName}
+              speakerOnMap={speakerOnMap}
               onChoose={onChoose}
               onClose={() => setTalk(null)}
               onAnswer={onAnswer}

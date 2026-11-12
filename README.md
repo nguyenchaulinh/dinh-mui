@@ -34,8 +34,8 @@ http://localhost:5173/?roam=cuoi-nam&persona=sinh-vien&region=da-nang
 Thiết kế: [docs/07-thiet-ke-ui-ux.md](docs/07-thiet-ke-ui-ux.md) (giao diện), [docs/08-thiet-ke-choi-truoc-que.md](docs/08-thiet-ke-choi-truoc-que.md) (lối chơi).
 
 1. **Mở game:** cảnh chặng 1 làm nền, thẻ giữa màn hình bốc ngẫu nhiên bối cảnh (vai: sinh viên năm cuối / mới đi làm / độc thân 27+; thành phố: Hà Nội / Đà Nẵng / Sài Gòn). Bạn chỉ nhập tên rồi "Lên đường".
-2. **Chặng 1 · Cuối năm ở phố** (văn phòng nếu đi làm, lớp học nếu là sinh viên): dùng máy tính **săn vé** trên feed (4/6 bài là lừa đảo), **nhặt** sạc, hộp bánh, áo ấm, nói chuyện với đồng nghiệp/bạn, Sếp/Cô và chị Thu/Lớp trưởng, **né việc** Sếp/Lớp trưởng ném tới. Săn vé xong Bé Dê hỏi về bằng gì, rồi **mẹ gọi video**. Đủ việc thì **cửa ra** mới mở.
-3. **Chặng 2 · Bước vào nhà** (sân nhà, giọng thoại và cảnh đổi theo miền): nói chuyện với Cô Hai, Bác Cả, Bà Tám, vuốt chó Vàng, chơi với bé Bin, **né câu hỏi** của Dì Út.
+2. **Chặng 1 · Cuối năm ở phố** (văn phòng nếu đi làm, lớp học nếu là sinh viên): dùng máy tính **săn vé** trên feed (4/6 bài là lừa đảo), **nhặt** sạc, hộp bánh, áo ấm, nói chuyện với đồng nghiệp/bạn, Sếp/Cô và chị Thu/Lớp trưởng, **bấm NÉ đúng lúc** khi Sếp/Lớp trưởng lao tới giao việc. Săn vé xong Bé Dê hỏi về bằng gì, rồi **mẹ gọi video**. Đủ việc thì **cửa ra** mới mở.
+3. **Chặng 2 · Bước vào nhà** (sân nhà, giọng thoại và cảnh đổi theo miền): nói chuyện với Cô Hai, Bác Cả, Bà Tám, vuốt chó Vàng, chơi với bé Bin, **bấm NÉ đúng lúc** khi Dì Út lao tới hỏi (băng rôn báo trước, vòng thời gian thu nhỏ; bấm khi chạm vạch vàng).
 4. **Kết thúc:** xong chặng cuối, hoặc một chỉ số (Hòa khí, Sức chịu đựng, Ví) về 0, hoặc nói với mẹ "năm nay con ở lại" rồi xác nhận, thì ra **danh hiệu Tết**. Né tổng cộng 8 câu để mở "Chiến thần né câu hỏi".
 
 Điều khiển:
@@ -47,7 +47,7 @@ Thiết kế: [docs/07-thiet-ke-ui-ux.md](docs/07-thiet-ke-ui-ux.md) (giao diệ
 
 | Lệnh | Việc |
 |---|---|
-| `npm test` | Unit test: engine, validate, chuyển động/va chạm/NPC/bong bóng, và mô phỏng mọi tổ hợp câu đáp của nội dung thật với mọi persona × thành phố |
+| `npm test` | Unit test: engine, validate, chuyển động/va chạm/NPC/bấm NÉ, model nhân vật, và mô phỏng mọi tổ hợp câu đáp của nội dung thật với mọi persona × thành phố |
 | `npm run typecheck` | Kiểm tra type |
 | `npm run build` | Build production ra `dist/` |
 | `npm run perf` | **Đo hiệu năng tự động**: giả lập điện thoại (màn hình, cảm ứng, CPU chậm), chơi thử các bản đồ, in FPS, thời gian khung, draw call. Xem `node scripts/perf.mjs --help`. Kết quả ghi vào `.perf/`. Không thay được máy thật: không giả lập được GPU điện thoại |
@@ -66,8 +66,9 @@ src/game/                  chế độ đi lại: collision (va chạm), movemen
                            input + RoamControls (bàn phím/joystick), RoamView (cảnh 3D) + RoamScreen (ghép: chặng, hội thoại,
                            nhiệm vụ, kết thúc), types (hợp đồng toạ độ)
 src/game/npc.ts, interact.ts   hành vi NPC (đứng, lang thang, đuổi theo) và chọn đối tượng tương tác (thuần, có test)
-src/game/roamWorld.ts      dựng vật cản/vị trí NPC (thuần); roamDemo.ts: tra cứu bản đồ trong nội dung; TalkPanel: khung hội thoại
-src/game/bubbles.ts        mô phỏng bong bóng câu hỏi (bắn, bay, trúng, né)
+src/game/roamWorld.ts      dựng vật cản/vị trí NPC (thuần); roamDemo.ts: tra cứu bản đồ trong nội dung; TalkDock: lựa chọn/feed/cuộc gọi ở đáy
+src/game/ambush.ts         luật "bấm NÉ đúng lúc" (báo trước, vòng thời gian, né / bị bắt); DodgeQte vẽ vòng + nút NÉ
+src/scene3d/Rigged.tsx     nhân vật có xương (model CC0 trong public/models): đổi màu, chuẩn chiều cao, hoạt ảnh; rigging.ts: luật thuần
 src/screens/Cards.tsx      thẻ nổi: mở đầu + nhập tên, thẻ chặng, tạm dừng, kết thúc
 src/ui/ui.tsx              thành phần giao diện dùng chung: thẻ nổi, thanh chỉ số, bảng tên, biểu tượng
 src/styles.css             token + thành phần của hệ thống giao diện (docs/07)
@@ -86,10 +87,10 @@ Sửa `src/content/v1.json`, rồi chạy `npm test`. Validate báo lỗi ngay n
 - **Vùng:** `lineByRegion`, `textByRegion`, `replyByRegion` thay giọng theo thành phố. Scene có `regions` chỉ hiện với vùng đó.
 - **Persona:** `personas` trong scene (cùng một NPC có thể hỏi mỗi vai một câu khác nhau).
 - **Cờ:** lựa chọn có `setFlags`; scene, dòng thoại, lựa chọn có `if: { flags, notFlags, history, ... }`; kết thúc có `flags`. Chế độ đi lại tự sinh cờ `talked:`, `petted:`, `dodged:`, `hit:`, `quest:`.
-- **Bản đồ:** `maps[]` gồm `setId` (bộ cảnh 3D có vùng đi lại trong `walk.ts`), `playerId`, `npcs` (vị trí, hành vi `stand`/`wander`/`approach`, hành động `talk`/`pet`, tuỳ chọn `shoots` để bắn câu hỏi, `personas` nếu chỉ có với một số vai), `objects` (đồ vật: `talk` mở hội thoại/feed, `pickup` nhặt, `exit` ra cửa; `requires` để khoá), `events` (tự bật khi đủ cờ; `kind: "call"` là cuộc gọi đến), `variantByPersona` (trang trí theo vai), `quests` (mục tiêu có thể giới hạn `personas`) và `goalQuestId` (nhiệm vụ đích: xong thì hết chặng).
+- **Bản đồ:** `maps[]` gồm `setId` (bộ cảnh 3D có vùng đi lại trong `walk.ts`), `playerId`, `npcs` (vị trí, hành vi `stand`/`wander`/`approach`, hành động `talk`/`pet`, tuỳ chọn `ambush` để lao tới hỏi (bấm NÉ đúng lúc), `personas` nếu chỉ có với một số vai), `objects` (đồ vật: `talk` mở hội thoại/feed, `pickup` nhặt, `exit` ra cửa; `requires` để khoá), `events` (tự bật khi đủ cờ; `kind: "call"` là cuộc gọi đến), `variantByPersona` (trang trí theo vai), `quests` (mục tiêu có thể giới hạn `personas`) và `goalQuestId` (nhiệm vụ đích: xong thì hết chặng).
 - **Tên người chơi:** viết `{ten}` trong câu thoại/lựa chọn/phản ứng để chèn tên người chơi.
 - **Feed:** scene có `"ui": "feed"` hiện như điện thoại; mỗi lựa chọn là một bài đăng, cần `author`.
-- **Nhân vật:** `look` quyết định tạo hình. Nhân vật nhại người thật phải có `"parody": true` và `fallbackId`; đặt `"enabled": false` để tắt ngay.
+- **Nhân vật:** `look.model` chọn model có xương trong `public/models` (danh sách ở `src/scene3d/rigging.ts`, nguồn và giấy phép ở `public/models/CREDITS.md`); `outfit`, `pants`, `hair`, `skin` đổi màu. Không có `model` thì dựng bằng code (Bé Dê). Nhân vật nhại người thật phải có `"parody": true` và `fallbackId`; đặt `"enabled": false` để tắt ngay.
 - **Thẻ mẹo:** chỉ dùng thẻ có nguồn thật. Không bịa số liệu.
 - **Kết thúc:** duyệt từ trên xuống, cái đầu tiên khớp (chỉ số + cờ) thắng; cái cuối là mặc định. Cập nhật `AWAITING_CONTENT` trong `src/content/content.test.ts` khi nội dung mới làm một kết thúc tới được.
 

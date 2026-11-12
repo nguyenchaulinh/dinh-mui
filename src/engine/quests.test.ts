@@ -24,7 +24,7 @@ import { validateContent } from './validate';
 const clone = (): Content => structuredClone(v1) as unknown as Content;
 const c0 = clone();
 const base = (): GameState => createGame(clone(), 'moi-di-lam', 'ha-noi');
-/** Sân nhà: bản đồ có đủ NPC đứng, ngồi, đuổi theo và bắn câu hỏi. */
+/** Sân nhà: bản đồ có đủ NPC đứng, ngồi, đuổi theo và lao tới hỏi. */
 const mapOf = (c: Content): RoamMap => c.maps.find((m) => m.id === 'san-nha')!;
 
 const quest = (over: Partial<Quest> = {}): Quest => ({
@@ -209,9 +209,9 @@ describe('validate dữ liệu bản đồ', () => {
     expect(e3.some((m) => m.includes('persona doc-than-27'))).toBe(true);
   });
 
-  it('bắt cấu hình bắn câu hỏi hỏng', () => {
-    const shooter = (c: Content) => mapOf(c).npcs.find((n) => n.shoots)!.shoots!;
-    expect(errs((c) => (shooter(c).everySec = 0)).some((m) => m.includes('everySec phải >= 0.5'))).toBe(true);
+  it('bắt cấu hình lao tới hỏi hỏng', () => {
+    const shooter = (c: Content) => mapOf(c).npcs.find((n) => n.ambush)!.ambush!;
+    expect(errs((c) => (shooter(c).everySec = 0)).some((m) => m.includes('everySec phải >= 1'))).toBe(true);
     expect(errs((c) => (shooter(c).minRange = shooter(c).range)).some((m) => m.includes('minRange'))).toBe(true);
     expect(errs((c) => (shooter(c).questions = [])).some((m) => m.includes('questions'))).toBe(true);
     expect(errs((c) => (shooter(c).questions = ['ok', '  '])).some((m) => m.includes('questions'))).toBe(true);
@@ -228,9 +228,9 @@ describe('validate dữ liệu bản đồ', () => {
     expect(errs((c) => mapOf(c).quests.push({ ...mapOf(c).quests[0]! })).some((m) => m.includes('trùng'))).toBe(true);
   });
 
-  it('bắt lỗ hổng dữ liệu hay gặp: chỗ ngồi đi lại/bắn, hai NPC cùng chỗ, nói sai người, thiếu scene theo persona × vùng', () => {
+  it('bắt lỗ hổng dữ liệu hay gặp: chỗ ngồi đi lại/lao tới hỏi, hai NPC cùng chỗ, nói sai người, thiếu scene theo persona × vùng', () => {
     const npc = (c: Content, id: string) => mapOf(c).npcs.find((n) => n.characterId === id)!;
-    // Dì Út đặt ở ghế ngồi: ngồi mà đi lại/bắn thì xuyên bàn
+    // Dì Út đặt ở ghế ngồi: ngồi mà đi lại/lao tới thì xuyên bàn
     expect(errs((c) => (npc(c, 'di-ut').spot = 'ghe-2')).some((m) => m.includes('chỗ ngồi'))).toBe(true);
     // Hai NPC cùng một vị trí xuất phát
     expect(errs((c) => (npc(c, 'bin').spot = npc(c, 'vang').spot)).some((m) => m.includes('vị trí xuất phát'))).toBe(true);
@@ -245,11 +245,12 @@ describe('validate dữ liệu bản đồ', () => {
     }).some((m) => m.includes('vùng ha-noi'))).toBe(true);
   });
 
-  it('bắt số liệu nguy hiểm: bắn quá nhanh/xa, câu hỏi quá dài, câu hỏi theo vai sai, speed NPC quá lớn', () => {
-    const sh = (c: Content) => mapOf(c).npcs.find((n) => n.shoots)!.shoots!;
-    expect(errs((c) => (sh(c).speed = 200)).some((m) => m.includes('speed phải trong (0, 8]'))).toBe(true);
+  it('bắt số liệu nguy hiểm: hỏi quá dày/xa, báo trước quá ngắn, câu hỏi quá dài, câu hỏi theo vai sai, speed NPC quá lớn', () => {
+    const sh = (c: Content) => mapOf(c).npcs.find((n) => n.ambush)!.ambush!;
+    expect(errs((c) => (sh(c).warnSec = 0.2)).some((m) => m.includes('warnSec phải trong'))).toBe(true);
+    expect(errs((c) => (sh(c).windowSec = 5)).some((m) => m.includes('windowSec phải trong'))).toBe(true);
     expect(errs((c) => (sh(c).range = 1000)).some((m) => m.includes('range phải trong'))).toBe(true);
-    expect(errs((c) => (sh(c).everySec = 0.05)).some((m) => m.includes('everySec phải >= 0.5'))).toBe(true);
+    expect(errs((c) => (sh(c).everySec = 0.05)).some((m) => m.includes('everySec phải >= 1'))).toBe(true);
     expect(errs((c) => (sh(c).questions = ['x'.repeat(500)])).some((m) => m.includes('dài quá'))).toBe(true);
     expect(errs((c) => (sh(c).questionsByPersona = { 'vai-la': ['ok'] })).some((m) => m.includes('persona vai-la'))).toBe(true);
     expect(errs((c) => (sh(c).questionsByPersona = { 'sinh-vien': [] })).some((m) => m.includes('questionsByPersona.sinh-vien'))).toBe(true);

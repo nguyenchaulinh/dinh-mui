@@ -165,9 +165,9 @@ function playMap(
       if (a.kind === 'pet') return skipNpcs ? [s, petted()] : [petted()];
       return talkOptions(s, a.sceneIds, talkedFlag(map.id, key), skipNpcs);
     });
-    if (n.shoots) {
-      const sh = n.shoots;
-      // Bị trúng tối đa một lần (trúng nhiều lần là hành vi lặp, không phải lựa chọn nội dung).
+    if (n.ambush) {
+      const sh = n.ambush;
+      // Bị bắt tối đa một lần (bị bắt nhiều lần là hành vi lặp, không phải lựa chọn nội dung).
       f = step(f, (s) => (forPersona(n, s.personaId) ? [s, ...talkOptions(withFlag(s, hitFlag(map.id)), sh.hitSceneIds, null, false)] : [s]));
     }
   }

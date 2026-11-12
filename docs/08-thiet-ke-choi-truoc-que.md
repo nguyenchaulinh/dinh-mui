@@ -14,7 +14,7 @@ Mỗi chặng dùng một tổ hợp khác nhau để không lặp lại cảm g
 |---|---|---|---|
 | Nói chuyện | Lại gần NPC, bấm, chọn câu đáp | `npcs[].action: talk` | đã có |
 | Vuốt ve / tặng | Lại gần, bấm, một lần | `npcs[].action: pet` | đã có |
-| Né câu hỏi / né việc | NPC bắn bong bóng về chỗ bạn đứng; bước ngang để né, trúng thì bị kéo vào hội thoại | `npcs[].shoots` | đã có |
+| Né câu hỏi / né việc | **Bấm NÉ đúng lúc** (thay cơ chế né bong bóng từ 12/11 tối, theo phản hồi "phiền"): NPC lao tới, băng rôn báo trước 1.6s kèm câu hỏi trên đầu họ và vòng thời gian thu nhỏ; bấm NÉ khi vòng chạm vạch vàng (0.5s cuối) thì né được, bấm sớm hoặc không bấm thì bị kéo vào hội thoại | `npcs[].ambush` | đã có |
 | **Dùng đồ vật** | Lại gần máy tính/điện thoại, bấm: mở một mini-game hoặc hội thoại | `objects[].action: talk` | **mới** |
 | **Nhặt đồ** | Lại gần đồ có dấu vàng, bấm: đồ biến mất, vào túi | `objects[].action: pickup` | **mới** |
 | **Ra cửa** | Cửa ra chỉ mở khi xong việc chính; chưa xong thì báo còn thiếu gì | `objects[].action: exit` + `requires` | **mới** |
@@ -67,10 +67,10 @@ Chặng 2–3 chưa có thì thẻ chặng "Bước vào nhà" nói ngắn chuy�
 | NPC | Vai có mặt | Hành vi | Tương tác |
 |---|---|---|---|
 | Tú (đồng nghiệp / bạn cùng lớp) | mọi vai | đứng cạnh quầy | "Mua vé Tết chưa?" (kịch bản 1.1) |
-| Sếp | đi làm | đi lang thang, **bắn "việc gấp"** ("Làm nốt slide nhé!") | Nói chuyện: "Thưởng Tết vừa lòng chưa?" (2A.1). Trúng việc: bị nhờ làm thêm |
+| Sếp | đi làm | đi lang thang, **lao tới giao "việc gấp"** ("Làm nốt slide nhé!"), bấm NÉ đúng lúc | Nói chuyện: "Thưởng Tết vừa lòng chưa?" (2A.1). Bị bắt: bị nhờ làm thêm |
 | Chị Thu (kế toán) | đi làm | đứng cạnh bàn 3 | "Lì xì con sếp bao nhiêu?" (2A.3) |
 | Cô chủ nhiệm | sinh viên | đứng ở bàn giáo viên | "Ra trường em định làm gì?" (2B.1) |
-| Lớp trưởng | sinh viên | đi lang thang, **bắn "góp tiền!"** | "Góp tiền mua mâm cúng ông Táo" (2B.2). Trúng: bị đòi tiền liên hoan |
+| Lớp trưởng | sinh viên | đi lang thang, **lao tới đòi "góp tiền!"**, bấm NÉ đúng lúc | "Góp tiền mua mâm cúng ông Táo" (2B.2). Bị bắt: bị đòi tiền liên hoan |
 
 ### Đồ vật
 
