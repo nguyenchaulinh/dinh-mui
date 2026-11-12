@@ -33,6 +33,8 @@ export interface World {
   talkingKey: string | null;
   /** NPC đang lao tới hỏi (lượt bấm NÉ đang chạy), hoặc null. */
   ambushKey: string | null;
+  /** Nhân vật chính đang làm hoạt cảnh (ngồi, nhặt, ra cửa): khoá điều khiển, không ai lao tới hỏi. */
+  busy: boolean;
   bounds: WalkArea['bounds'];
   targets: Target[];
   playerCol: MutCircle;
@@ -102,6 +104,7 @@ export function buildRoamWorld(npcs: readonly RoamNpc[], def: Pick<SetDef, 'spot
     paused: false,
     talkingKey: null,
     ambushKey: null,
+    busy: false,
     bounds: area.bounds,
     targets: runtimes.map((r) => r.target),
     playerCol,

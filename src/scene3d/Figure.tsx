@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, type RefObject } from 'react';
 import type { Group, Mesh } from 'three';
 import type { Look } from '../engine/types';
-import { RiggedFigure } from './Rigged';
+import { RiggedFigure, type PoseState } from './Rigged';
 import { isCharacterModel } from './rigging';
 
 /**
@@ -16,7 +16,7 @@ const color = (v: string | undefined, fallback: string): string => (v && HEX.tes
 const INK = '#1f1410';
 
 /** Bộ chuyển động có sẵn của nhân vật. */
-export type Anim = 'idle' | 'talk' | 'wave' | 'dance' | 'sit' | 'walk' | 'run' | 'cry';
+export type Anim = 'idle' | 'talk' | 'wave' | 'dance' | 'sit' | 'walk' | 'run' | 'cry' | 'reach' | 'type';
 
 interface FigureProps {
   look?: Look;
@@ -26,6 +26,8 @@ interface FigureProps {
   speaking?: boolean;
   /** Lệch pha động tác để cả đám không nhún đồng loạt. */
   phase?: number;
+  /** Tư thế điều khiển mỗi khung (ngồi, gật đầu) cho model có xương. */
+  pose?: { current: PoseState };
 }
 
 function Mat({ c }: Readonly<{ c: string }>) {
@@ -441,7 +443,7 @@ export function Figure(props: Readonly<FigureProps>) {
   if (props.look && isCharacterModel(model)) {
     return (
       <Suspense fallback={<CodeFigure {...props} />}>
-        <RiggedFigure model={model} look={props.look} anim={props.anim} phase={props.phase} />
+        <RiggedFigure model={model} look={props.look} anim={props.anim} phase={props.phase} pose={props.pose} />
       </Suspense>
     );
   }

@@ -159,6 +159,11 @@ function SanNha({ regionId }: Readonly<{ regionId: string }>) {
       <CountryHouse style={s} position={[0, 0, -3.6]} />
       <VillageGate style={s} position={[0, 0, 5.6]} />
       <TeaTable position={[0, 0, -0.4]} />
+      {/* Ghế đẩu cho người ngồi quanh bàn trà (Cô Hai, Bác Cả, Bà Tám ngồi thật bằng xương). */}
+      {(['ghe-1', 'ghe-2', 'ghe-3'] as const).map((k) => {
+        const p = SETS['san-nha']!.spots[k]!.pos;
+        return <Stool key={k} position={[p[0], 0, p[2]]} />;
+      })}
       <BlossomTree kind={BLOSSOM[s]} position={[-3.2, 0, -1.2]} scale={1.4} />
       <BlossomTree kind="quat" position={[3.2, 0, -1.2]} scale={1.2} />
       {s === 'bac' && (

@@ -9,9 +9,15 @@ export interface QteView {
   startedAt: number;
 }
 
+/** Đường kính (px) của nút NÉ và của vòng lúc bắt đầu. Vòng co từ OUTER về sát mép nút (BTN), không chui vào sau nút. */
+const BTN = 64;
+const OUTER = 150;
+/** Đường kính vòng khi còn lại phần `left` (0..1) thời gian. */
+export const ringDiameter = (left: number): number => BTN + (OUTER - BTN) * Math.max(0, Math.min(1, left));
+
 /**
- * Báo trước + vòng thời gian cho lượt "bấm NÉ đúng lúc". Vòng ngoài thu nhỏ theo thời gian thật; khi nó chạm vòng
- * vàng ở giữa (còn <= windowSec giây) thì bấm NÉ là né được. Luật đếm giờ thật nằm ở ambush.ts (vòng lặp khung hình);
+ * Báo trước + vòng thời gian cho lượt "bấm NÉ đúng lúc". Vòng ngoài thu nhỏ theo thời gian thật; khi nó chạm vạch
+ * vàng (còn <= windowSec giây) thì bấm NÉ là né được. Cả vòng lẫn vạch vàng luôn lớn hơn nút nên không bị nút che. Luật đếm giờ thật nằm ở ambush.ts (vòng lặp khung hình);
  * ở đây chỉ vẽ (cập nhật trực tiếp style, không render lại React mỗi khung).
  */
 export function DodgeQte({ qte, onPress }: Readonly<{ qte: QteView; onPress: () => void }>) {
@@ -22,7 +28,11 @@ export function DodgeQte({ qte, onPress }: Readonly<{ qte: QteView; onPress: () 
     let raf = 0;
     const tick = () => {
       const left = Math.max(0, 1 - (performance.now() - qte.startedAt) / 1000 / qte.warnSec);
-      if (ring.current) ring.current.style.transform = `scale(${Math.max(left, 0.02)})`;
+      if (ring.current) {
+        const d = `${ringDiameter(left)}px`;
+        ring.current.style.width = d;
+        ring.current.style.height = d;
+      }
       if (wrap.current) wrap.current.dataset.hot = left <= target ? 'true' : 'false';
       if (left > 0) raf = requestAnimationFrame(tick);
     };
@@ -35,7 +45,7 @@ export function DodgeQte({ qte, onPress }: Readonly<{ qte: QteView; onPress: () 
         ⚠ {qte.name} đang tới! Chuẩn bị NÉ!
       </p>
       <div ref={wrap} className="qte" data-hot="false">
-        <span className="qte-target" style={{ transform: `scale(${target})` }} aria-hidden="true" />
+        <span className="qte-target" style={{ width: ringDiameter(target), height: ringDiameter(target) }} aria-hidden="true" />
         <span ref={ring} className="qte-ring" aria-hidden="true" />
         <button
           className="qte-btn"

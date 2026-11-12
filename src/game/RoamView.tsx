@@ -5,6 +5,7 @@ import type { Group, PerspectiveCamera } from 'three';
 import { DEBUG, publish } from '../debug';
 import type { Look, ObjectModel } from '../engine/types';
 import { Figure } from '../scene3d/Figure';
+import type { PoseState } from '../scene3d/Rigged';
 import { preloadModels } from '../scene3d/Rigged';
 import { isCharacterModel } from '../scene3d/rigging';
 import { FpsProbe } from '../scene3d/FpsProbe';
@@ -12,6 +13,7 @@ import { SETS } from '../scene3d/registry';
 import { SetView, envOf } from '../scene3d/sets';
 import { DEFAULT_CAM, applyLook, computeCameraPose, computeTalkPose, smoothPose, yawBehind } from './camera';
 import { clipRay, isBlocked, resolveMove } from './collision';
+import { startAction, stepAction, type ActionRun, type ActionStep, type PlayerAction } from './action';
 import { createAmbushState, stepAmbush, type ActiveAmbush, type AmbushState, type AmbusherRuntime } from './ambush';
 import { findInteractable, type Target } from './interact';
 import type { SpeechBubble } from './speech';
@@ -79,6 +81,10 @@ export interface RoamViewProps {
   talkingKey: string | null;
   /** Bong bóng thoại đang hiện (trên đầu NPC hoặc người chơi). */
   bubbles?: SpeechBubble[];
+  /** Hoạt cảnh nhân vật chính đang làm (ngồi vào máy tính, nhặt đồ, ra cửa), hoặc null. */
+  action?: PlayerAction | null;
+  /** Hoạt cảnh báo một mốc: ngồi xong, đã cầm đồ, xong hẳn. */
+  onActionStep?: (id: number, step: ActionStep) => void;
   /** NPC trong tầm tương tác thay đổi (null = không có). Chỉ gọi khi giá trị đổi. */
   onNearby: (key: string | null) => void;
   /** Người chơi bấm tương tác khi có NPC trong tầm. */
@@ -93,7 +99,7 @@ export interface RoamViewProps {
   onFps?: (fps: number) => void;
 }
 
-type Callbacks = Pick<RoamViewProps, 'onNearby' | 'onInteract' | 'onAmbush' | 'onDodge' | 'onHit'>;
+type Callbacks = Pick<RoamViewProps, 'onNearby' | 'onInteract' | 'onAmbush' | 'onDodge' | 'onHit' | 'onActionStep'>;
 
 /** Bóng giả dưới chân: rẻ hơn nhiều so với shadow map trên điện thoại. */
 function BlobShadow({ r }: Readonly<{ r: number }>) {
@@ -147,6 +153,7 @@ function hashKey(key: string): number {
 function Player({
   look,
   bubble,
+  action,
   area,
   colliders,
   controller,
@@ -155,6 +162,7 @@ function Player({
 }: Readonly<{
   look?: Look;
   bubble?: SpeechBubble;
+  action: PlayerAction | null;
   area: WalkArea;
   colliders: readonly Collider[];
   controller: InputController;
@@ -172,8 +180,13 @@ function Player({
   });
   const cam = useRef<FollowCam>({ ...DEFAULT_CAM, yaw: yawBehind(area.spawn.rotY) });
   const pose = useRef<CameraPose | null>(null);
-  const walkingRef = useRef<'idle' | 'walk' | 'run'>('idle');
-  const [walking, setWalking] = useState<'idle' | 'walk' | 'run'>('idle');
+  type PAnim = 'idle' | 'walk' | 'run' | 'type' | 'reach';
+  const walkingRef = useRef<PAnim>('idle');
+  const [walking, setWalking] = useState<PAnim>('idle');
+  const actionRef = useRef<PlayerAction | null>(action);
+  actionRef.current = action;
+  const runRef = useRef<ActionRun | null>(null);
+  const posePlayer = useRef<PoseState>({ sit: 0, seatY: 0.48, nod: false });
   const lastPublish = useRef(0);
   const lastNearby = useRef<string | null>(null);
   const lastInteract = useRef(controller.state.interactCount);
@@ -202,19 +215,42 @@ function Player({
     if (!g) return;
     cam.current = applyLook(cam.current, controller.consumeLook());
 
-    const input = world.paused ? IDLE_INPUT : controller.state.move;
+    // Hoạt cảnh (action.ts): nhân vật đi/ngồi/với tay theo kịch bản, khoá điều khiển.
+    const act = actionRef.current;
+    if (act && runRef.current?.id !== act.id) runRef.current = startAction(act);
+    if (!act) runRef.current = null;
     let m = mover.current;
-    let left = Math.min(Number.isFinite(delta) ? delta : 0, STEP * MAX_STEPS);
-    for (let i = 0; i < MAX_STEPS && left > 1e-6; i++) {
-      const dt = Math.min(left, STEP);
-      m = stepMover(m, input, cam.current.yaw, DEFAULT_MOVE, dt, resolve);
-      left -= dt;
+    let shoulder = false;
+    let actAnim: PAnim | null = null;
+    if (act && runRef.current) {
+      const r = stepAction(runRef.current, act, m.pos, m.heading, delta, (k) => {
+        const tg = world.targets.find((x) => x.key === k);
+        return tg ? { x: tg.x, z: tg.z } : null;
+      });
+      runRef.current = r.run;
+      m = { pos: r.frame.pos, vel: { x: 0, z: 0 }, heading: r.frame.heading, speed: 0 };
+      posePlayer.current.sit = r.frame.sit;
+      if (act.kind === 'sit') posePlayer.current.seatY = act.seatY;
+      shoulder = r.frame.shoulder;
+      actAnim = r.frame.anim;
+      for (const s of r.emit) cbs.current.onActionStep?.(act.id, s);
+    } else {
+      posePlayer.current.sit = 0;
+      const input = world.paused ? IDLE_INPUT : controller.state.move;
+      let left = Math.min(Number.isFinite(delta) ? delta : 0, STEP * MAX_STEPS);
+      for (let i = 0; i < MAX_STEPS && left > 1e-6; i++) {
+        const dt = Math.min(left, STEP);
+        m = stepMover(m, input, cam.current.yaw, DEFAULT_MOVE, dt, resolve);
+        left -= dt;
+      }
     }
+    world.busy = act !== null;
 
     // Tương tác: tìm NPC trong tầm; bấm nút thì quay mặt về NPC rồi báo ra ngoài.
     // Đang có người lao tới hỏi: nút tương tác dùng để NÉ, không mở hội thoại.
-    let key = world.paused || world.ambushKey ? null : findInteractable(m.pos, m.heading, world.targets);
-    if (key === null && !world.paused && !world.ambushKey && lastNearby.current !== null) {
+    const blocked = world.paused || world.ambushKey !== null || world.busy;
+    let key = blocked ? null : findInteractable(m.pos, m.heading, world.targets);
+    if (key === null && !blocked && lastNearby.current !== null) {
       // Giữ mục tiêu cũ thêm một chút (hysteresis): NPC chạy lăng xăng khiến mục tiêu chớp tắt giữa các khung,
       // lời nhắc vẫn hiện mà phím bấm lại bị bỏ qua.
       const prev = world.targets.find((x) => x.key === lastNearby.current);
@@ -252,7 +288,15 @@ function Player({
     // Đang hội thoại: camera chuyển sang góc dựng khung cả hai người ở nửa trên màn hình (khung thoại che nửa dưới).
     const persp = camera as PerspectiveCamera;
     let next: CameraPose;
-    if (talkTarget) {
+    if (shoulder && act?.kind === 'sit') {
+      // Ngồi ở máy tính: camera qua vai, nhìn vào màn hình.
+      const fx = Math.sin(act.seat.rotY);
+      const fz = Math.cos(act.seat.rotY);
+      next = {
+        pos: [act.seat.x - fx * 1.05 + fz * 0.35, 1.45, act.seat.z - fz * 1.05 - fx * 0.35],
+        lookAt: [act.look.x, 0.85, act.look.z],
+      };
+    } else if (talkTarget) {
       next = computeTalkPose(m.pos, talkTarget, size.width / Math.max(1, size.height), (persp.fov * Math.PI) / 180, talkClip);
     } else {
       next = computeCameraPose(m.pos, cam.current, clip);
@@ -264,7 +308,7 @@ function Player({
     camera.position.set(p.pos[0], p.pos[1], p.pos[2]);
     camera.lookAt(p.lookAt[0], p.lookAt[1], p.lookAt[2]);
 
-    const w = m.speed > 3 ? 'run' : m.speed > 0.1 ? 'walk' : 'idle';
+    const w: PAnim = actAnim ?? (m.speed > 3 ? 'run' : m.speed > 0.1 ? 'walk' : 'idle');
     if (w !== walkingRef.current) {
       walkingRef.current = w;
       setWalking(w);
@@ -292,7 +336,7 @@ function Player({
   return (
     <group ref={group} position={[area.spawn.x, 0, area.spawn.z]} rotation={[0, area.spawn.rotY, 0]}>
       <BlobShadow r={0.38} />
-      <Figure look={look} anim={walking} />
+      <Figure look={look} anim={walking} pose={posePlayer} />
       {bubble && <BubbleHtml b={bubble} y={bubbleY(look)} />}
     </group>
   );
@@ -323,7 +367,7 @@ function AmbushLayer({
     const r = stepAmbush(sim.current, delta, {
       player: world.player,
       ambushers,
-      paused: world.paused,
+      paused: world.paused || world.busy,
       press: pressed && sim.current.active !== null,
     });
     sim.current = r.state;
@@ -390,20 +434,38 @@ function ObjectModelMesh({ model }: Readonly<{ model: ObjectModel }>) {
 }
 
 /** Đồ vật: hình dựng (nếu chưa nhặt) và dấu tương tác xoay phía trên (vàng: dùng được, xám: chưa mở). */
-function ObjectView({ obj }: Readonly<{ obj: RoamObject }>) {
+/** Thời gian (s) món đồ vừa nhặt bay vào người chơi rồi biến mất. */
+const FLY_TIME = 0.45;
+
+function ObjectView({ obj, world }: Readonly<{ obj: RoamObject; world: World }>) {
   const marker = useRef<Group>(null);
+  const model = useRef<Group>(null);
   const y = obj.model ? MODEL_Y[obj.model] : 0;
+  /** Lúc bắt đầu bay (giây đồng hồ cảnh), null = chưa nhặt hoặc đã bay xong. */
+  const flyFrom = useRef<number | null>(null);
+  const [gone, setGone] = useState(obj.taken);
   useFrame((state) => {
-    const m = marker.current;
-    if (!m) return;
     const t = state.clock.elapsedTime;
-    m.rotation.y = t * 1.6;
-    m.position.y = y + 0.55 + Math.sin(t * 2.4) * 0.06;
+    const m = marker.current;
+    if (m) {
+      m.rotation.y = t * 1.6;
+      m.position.y = y + 0.55 + Math.sin(t * 2.4) * 0.06;
+    }
+    const g = model.current;
+    if (!g || gone) return;
+    if (obj.taken && flyFrom.current === null) flyFrom.current = t;
+    if (flyFrom.current === null) return;
+    // Bay từ chỗ cũ vào ngực người chơi, nhỏ dần.
+    const k = Math.min(1, (t - flyFrom.current) / FLY_TIME);
+    const e = k * k * (3 - 2 * k);
+    g.position.set((world.player.x - obj.x) * e, y + (1.1 - y) * e + Math.sin(k * Math.PI) * 0.25, (world.player.z - obj.z) * e);
+    g.scale.setScalar(1 - 0.7 * e);
+    if (k >= 1) setGone(true);
   });
   return (
     <group position={[obj.x, 0, obj.z]}>
-      {obj.model && !obj.taken && (
-        <group position={[0, y, 0]}>
+      {obj.model && !gone && (
+        <group ref={model} position={[0, y, 0]}>
           <ObjectModelMesh model={obj.model} />
         </group>
       )}
@@ -439,6 +501,9 @@ function NpcView({
   const movingRef = useRef(false);
   const holdRef = useRef(0);
   const [moving, setMoving] = useState(false);
+  // Người ngồi (ghế đẩu quanh bàn trà, cao ~0.3 m) ngồi thật bằng xương; ai đang nói thì gật đầu.
+  const npcPose = useRef<PoseState>({ sit: rt.seated ? 1 : 0, seatY: 0.3, nod: false });
+  npcPose.current.nod = talking;
 
   const resolve = useCallback(
     (from: Vec2, delta: Vec2): Vec2 => resolveMove(from, delta, rt.radius, rt.obstacles, world.bounds),
@@ -486,9 +551,8 @@ function NpcView({
   return (
     <group ref={group} position={[rt.home.x, 0, rt.home.z]} rotation={[0, rt.spot.rotY ?? 0, 0]}>
       {!rt.seated && <BlobShadow r={dog || rt.npc.look?.build === 'kid' ? 0.25 : 0.35} />}
-      <Figure look={rt.npc.look} anim={anim} seated={rt.seated} speaking={talking} phase={index * 0.7} />
-      {/* Model có xương chưa có hoạt ảnh ngồi nên người "ngồi" vẫn hiện đứng cạnh bàn: bong bóng không hạ thấp. */}
-      {bubble && <BubbleHtml b={bubble} y={rt.seated && !rt.npc.look?.model ? bubbleY(rt.npc.look) - 0.5 : bubbleY(rt.npc.look)} />}
+      <Figure look={rt.npc.look} anim={anim} seated={rt.seated} speaking={talking} phase={index * 0.7} pose={npcPose} />
+      {bubble && <BubbleHtml b={bubble} y={rt.seated ? bubbleY(rt.npc.look) - 0.5 : bubbleY(rt.npc.look)} />}
     </group>
   );
 }
@@ -505,6 +569,8 @@ export default function RoamView({
   paused,
   talkingKey,
   bubbles = [],
+  action = null,
+  onActionStep,
   onNearby,
   onInteract,
   onAmbush,
@@ -540,10 +606,10 @@ export default function RoamView({
     world.paused = paused;
     world.talkingKey = talkingKey;
   }, [world, paused, talkingKey]);
-  const cbs = useRef<Callbacks>({ onNearby, onInteract, onAmbush, onDodge, onHit });
+  const cbs = useRef<Callbacks>({ onNearby, onInteract, onAmbush, onDodge, onHit, onActionStep });
   useEffect(() => {
-    cbs.current = { onNearby, onInteract, onAmbush, onDodge, onHit };
-  }, [onNearby, onInteract, onAmbush, onDodge, onHit]);
+    cbs.current = { onNearby, onInteract, onAmbush, onDodge, onHit, onActionStep };
+  }, [onNearby, onInteract, onAmbush, onDodge, onHit, onActionStep]);
 
   return (
     <Canvas
@@ -560,7 +626,7 @@ export default function RoamView({
       <SetView setId={setId} regionId={regionId} variant={variant} />
 
       {objects.map((o) => (
-        <ObjectView key={o.key} obj={o} />
+        <ObjectView key={o.key} obj={o} world={world} />
       ))}
 
       {runtimes.map((rt, i) => (
@@ -578,6 +644,7 @@ export default function RoamView({
 
       <Player
         look={playerLook}
+        action={action}
         bubble={bubbles.find((b) => b.key === 'player')}
         area={area}
         colliders={playerColliders}

@@ -1,10 +1,10 @@
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
-import { AnimationMixer, type AnimationAction, type Material, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
+import { AnimationMixer, LoopOnce, LoopRepeat, Quaternion, Vector3, type AnimationAction, type Bone, type Material, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Look } from '../engine/types';
-import { BIND_HEIGHT, POM_BONES, POM_FUR, clipFor, heightFor, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
+import { BIND_HEIGHT, BONES, HIP_ABOVE_SEAT, POM_BONES, POM_FUR, SIT_POSE, clipFor, heightFor, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
 
 const HEX = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 /** Không dùng Draco/Meshopt: file không nén theo kiểu đó, và tránh tự tải bộ giải mã từ CDN ngoài. */
@@ -12,6 +12,33 @@ const NO_DRACO = false;
 const NO_MESHOPT = false;
 
 export const urlOf = (model: CharacterModel) => modelUrl(model, import.meta.env.BASE_URL);
+
+/**
+ * Tư thế điều khiển từ ngoài, đọc mỗi khung (không render lại React): `sit` 0..1 (0 đứng, 1 ngồi hẳn),
+ * `seatY` độ cao mặt ghế (m), `nod` gật đầu khi đang nói.
+ */
+export interface PoseState {
+  sit: number;
+  seatY: number;
+  nod: boolean;
+}
+
+const _axis = new Vector3();
+const _pq = new Quaternion();
+const _rot = new Quaternion();
+const _gq = new Quaternion();
+const _v = new Vector3();
+const _w = new Vector3();
+
+/** Xoay một xương quanh trục thế giới `axis` một góc: local mới = (cha)^-1 · R · cha · local. */
+function rotateBoneWorld(bone: Bone, axis: Vector3, angle: number): void {
+  if (!bone.parent || angle === 0) return;
+  bone.parent.getWorldQuaternion(_pq);
+  _rot.setFromAxisAngle(axis, angle);
+  const m = _pq.clone().invert().multiply(_rot).multiply(_pq);
+  bone.quaternion.premultiply(m);
+  bone.updateMatrixWorld(true);
+}
 
 /** Tải trước model (gọi khi biết bản đồ sắp vào dùng những ai). */
 export function preloadModels(models: readonly CharacterModel[]): void {
@@ -45,11 +72,17 @@ const partName = (o: Object3D) => partOf(o.name) ?? (o.parent ? partOf(o.parent.
  * Nhân vật có xương: nhân bản cảnh GLB (mỗi nhân vật một bộ xương riêng), đổi màu vật liệu theo `look`,
  * chuẩn hoá chiều cao, phát hoạt ảnh theo `anim` (chuyển mượt 0.2 s).
  */
-export function RiggedFigure({ model, look, anim, phase = 0 }: Readonly<{ model: CharacterModel; look: Look; anim?: string; phase?: number }>) {
+export function RiggedFigure({
+  model,
+  look,
+  anim,
+  phase = 0,
+  pose,
+}: Readonly<{ model: CharacterModel; look: Look; anim?: string; phase?: number; pose?: { current: PoseState } }>) {
   const gltf = useGLTF(urlOf(model), NO_DRACO, NO_MESHOPT);
   const kind = look.kind;
 
-  const { root, scale } = useMemo(() => {
+  const { root, bones, scale } = useMemo(() => {
     const root = cloneSkinned(gltf.scene);
     // 1. Vật liệu chiếm nhiều nhất của mỗi bộ phận (để biết đâu là áo, đâu là quần).
     const count = new Map<string, Map<string, number>>();
@@ -90,8 +123,19 @@ export function RiggedFigure({ model, look, anim, phase = 0 }: Readonly<{ model:
         if (s !== undefined && (o as { isBone?: boolean }).isBone) o.scale.setScalar(s);
       });
     }
-    // 4. Chuẩn hoá chiều cao theo chiều cao tư thế gốc đã biết (KHÔNG đo bằng Box3: xem BIND_HEIGHT).
-    return { root, scale: heightFor(kind, look.build) / BIND_HEIGHT[model] };
+    // 4. Xương dùng cho tư thế (người).
+    const byName = new Map<string, Bone>();
+    root.traverse((o) => {
+      if ((o as Bone).isBone) byName.set(o.name, o as Bone);
+    });
+    const bones = {
+      hips: byName.get(BONES.hips),
+      thighs: BONES.thighs.map((n) => byName.get(n)).filter((b): b is Bone => b !== undefined),
+      shins: BONES.shins.map((n) => byName.get(n)).filter((b): b is Bone => b !== undefined),
+      head: byName.get(BONES.head),
+    };
+    // 5. Chuẩn hoá chiều cao theo chiều cao tư thế gốc đã biết (KHÔNG đo bằng Box3: xem BIND_HEIGHT).
+    return { root, bones, scale: heightFor(kind, look.build) / BIND_HEIGHT[model] };
   }, [gltf.scene, model, kind, look]);
 
   const mixer = useMemo(() => new AnimationMixer(root), [root]);
@@ -101,6 +145,9 @@ export function RiggedFigure({ model, look, anim, phase = 0 }: Readonly<{ model:
   useEffect(() => {
     const next = actions.get(clipFor(anim, kind)) ?? actions.get('Idle');
     if (!next || next === current.current) return;
+    const once = anim === 'reach';
+    next.setLoop(once ? LoopOnce : LoopRepeat, once ? 1 : Infinity);
+    next.clampWhenFinished = false;
     next.reset().play();
     if (current.current) {
       next.crossFadeFrom(current.current, 0.2, false);
@@ -119,7 +166,27 @@ export function RiggedFigure({ model, look, anim, phase = 0 }: Readonly<{ model:
     [mixer, root],
   );
 
-  useFrame((_, dt) => mixer.update(Math.min(dt, 0.1)));
+  useFrame((state, dt) => {
+    mixer.update(Math.min(dt, 0.1));
+    const p = pose?.current;
+    if (kind !== 'human' || !p || !root.parent) return;
+    const sit = Math.max(0, Math.min(1, p.sit));
+    root.position.y = 0;
+    if (sit <= 0 && !p.nod) return;
+    root.parent.updateMatrixWorld(true);
+    // Trục ngang của nhân vật trong toạ độ thế giới (+X trong khung nhân vật).
+    root.parent.getWorldQuaternion(_gq);
+    _axis.set(1, 0, 0).applyQuaternion(_gq);
+    if (sit > 0 && bones.hips && bones.thighs.length === 2 && bones.shins.length === 2) {
+      // Đo độ cao hông lúc đứng (theo hoạt ảnh hiện tại) để biết phải hạ bao nhiêu.
+      const hipY = bones.hips.getWorldPosition(_v).y - root.parent.getWorldPosition(_w).y;
+      for (const b of bones.thighs) rotateBoneWorld(b, _axis, SIT_POSE.thigh * sit);
+      for (const b of bones.shins) rotateBoneWorld(b, _axis, SIT_POSE.shin * sit);
+      const drop = Math.max(0, hipY - (p.seatY + HIP_ABOVE_SEAT)) * sit;
+      root.position.y = -drop / Math.max(scale, 1e-6);
+    }
+    if (p.nod && bones.head) rotateBoneWorld(bones.head, _axis, Math.sin(state.clock.elapsedTime * 7) * 0.07);
+  });
 
   return (
     <group scale={scale}>

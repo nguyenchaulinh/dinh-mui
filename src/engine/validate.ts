@@ -262,6 +262,8 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
     checkPersonas(w, o.personas);
     const def = opts.sets?.[mapSet];
     if (def && !(o.spot in def.spots)) err(`${w}: vị trí ${o.spot} không có trong set ${mapSet}`);
+    if (o.seat !== undefined && def && !(o.seat in def.spots)) err(`${w}: chỗ ngồi/điểm đến ${o.seat} không có trong set ${mapSet}`);
+    if (o.seat !== undefined && o.action?.kind === 'pickup') err(`${w}: đồ để nhặt không dùng seat`);
     if (!o.label.trim()) err(`${w}: thiếu tên đồ (label)`);
     if (!o.prompt.trim()) err(`${w}: thiếu chữ trên nút tương tác (prompt)`);
     checkCond(`${w} requires`, o.requires);

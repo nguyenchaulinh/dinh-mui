@@ -79,3 +79,13 @@ describe('bấm NÉ đúng lúc', () => {
     expect(stepAmbush(createAmbushState(1), Number.NaN, args()).events.warned).toBeNull();
   });
 });
+
+describe('vòng thời gian NÉ', () => {
+  it('vòng và vạch vàng luôn lớn hơn nút (không bị nút che), vòng co dần', async () => {
+    const { ringDiameter } = await import('./DodgeQte');
+    expect(ringDiameter(1)).toBe(150);
+    expect(ringDiameter(0)).toBe(64);
+    expect(ringDiameter(0.5 / 1.6)).toBeGreaterThan(64 + 20); // vạch vàng cách mép nút rõ ràng
+    expect(ringDiameter(0.8)).toBeGreaterThan(ringDiameter(0.4));
+  });
+});
