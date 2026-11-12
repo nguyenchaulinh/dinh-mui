@@ -256,8 +256,15 @@ button, input { font: inherit; color: inherit; }
 .dock-slim { display: grid; gap: var(--s-2); }
 .dock-say { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0 0 var(--s-2); padding: 2px 4px; font-size: var(--fs-m); line-height: 1.4; }
 .dock-say .nameplate { display: inline-flex; }
-.dock-said { margin: 0; padding: 2px 6px; font-size: var(--fs-s); color: var(--cream-soft); }
-.dock-said strong { color: var(--gold); }
+.dock-me { color: var(--gold); }
+/* Nhãn phím tắt (A, B, C...) trên lựa chọn và bài đăng. */
+.key {
+  display: inline-grid; place-items: center; flex: none;
+  min-width: 20px; height: 20px; padding: 0 4px;
+  font: 800 var(--fs-xs) / 1 var(--font); color: var(--ink);
+  background: var(--cream); border-radius: 5px; box-shadow: 0 2px 0 rgb(0 0 0 / 0.35);
+}
+.post .key { margin-right: 4px; color: #fff; background: #1d6fd1; }
 /* Dock chỉ có nút Tiếp (lời nói đã ở bong bóng): gọn một dòng, căn phải. */
 .dock-slim { width: auto; min-width: 200px; max-width: min(560px, calc(100vw - 2 * var(--s-2))); }
 .dock-aside { margin: 0 0 6px; padding: 4px 8px; font-size: var(--fs-s); color: var(--cream-soft); border-left: 2px solid var(--gold); }

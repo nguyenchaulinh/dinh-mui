@@ -15,7 +15,8 @@ export interface SpeechBubble {
 /**
  * Bong bóng nào đang hiện. Quy tắc: TỐI ĐA MỘT bong bóng mỗi lúc (người chơi và NPC đứng sát nhau nên hai bong bóng
  * sẽ đè lên nhau, không đọc được). Ưu tiên hội thoại đang mở; không có hội thoại thì là câu hỏi của người đang lao tới.
- * Câu người chơi vừa chọn KHÔNG thành bong bóng (nằm trong dock). Hàm thuần.
+ * Sau khi chọn: bước đầu là câu người chơi vừa nói (bong bóng trên đầu người chơi, khoá `player`), bước sau là phản
+ * ứng của NPC (bong bóng trên đầu NPC); hai bước lần lượt, không cùng lúc. Hàm thuần.
  *
  * `speakerOnMap` = lời nói đã nằm trong bong bóng, dock không cần nhắc lại.
  */
@@ -24,6 +25,7 @@ export function speechBubbles(
   qte: { key: string; name: string; text: string; speaker: Character | null } | null,
   onMap: (key: string) => boolean,
   colorOf: (ch: Character | null) => string,
+  playerName = '',
 ): { bubbles: SpeechBubble[]; speakerOnMap: boolean } {
   if (!talk) {
     return qte
@@ -31,6 +33,9 @@ export function speechBubbles(
       : { bubbles: [], speakerOnMap: false };
   }
   const k = talk.key;
+  if (talk.kind === 'reply' && talk.showSaid && talk.said) {
+    return { bubbles: [{ key: 'player', name: playerName || 'Bạn', text: talk.said, color: 'var(--gold-dark)' }], speakerOnMap: true };
+  }
   if (!onMap(k)) return { bubbles: [], speakerOnMap: false };
   switch (talk.kind) {
     case 'choose':

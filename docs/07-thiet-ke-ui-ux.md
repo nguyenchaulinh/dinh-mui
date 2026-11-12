@@ -63,7 +63,7 @@ Nói chuyện: bong bóng của NPC trên đầu họ; dock đáy (≤ 42%) ch�
 | HUD | `.hud`, `.meters` | Tên (vàng), vai · thành phố, 3 thanh nhỏ; thanh ≤ 25 nhấp nháy |
 | Việc cần làm | `.tasks` | Thu/mở; việc của nhiệm vụ đích lên đầu, màu vàng |
 | Bong bóng thoại | `.speech` (drei `Html`) | Nền trắng, tên màu áo, tối đa 230px; `.speech-alert` viền đỏ rung khi lao tới hỏi |
-| Dock lựa chọn | `.dock`, `.opt` | Tối đa 42% chiều cao; nhãn kiểu đáp màu ở đầu dòng |
+| Dock lựa chọn | `.dock`, `.opt` | Tối đa 42% chiều cao; nhãn phím (A, B, C, D) và nhãn kiểu đáp màu ở đầu dòng; phím A–D hoặc 1–4 chọn không cần chuột. Sau khi chọn: câu của bạn thành bong bóng trên đầu bạn (~1.6s hoặc bấm Tiếp), rồi tới bong bóng NPC đáp |
 | Thẻ mẹo | `.tip` | Nền vàng, chữ mực, ghi nguồn |
 | Điện thoại | `.phone` | Rộng tối đa 340px, cao tối đa 56%, cuộn bên trong |
 | Cuộc gọi đến | `.callcard` | Thẻ nhỏ trên cùng, nút Nghe xanh |
