@@ -1,0 +1,259 @@
+{
+  "version": 1,
+  "regions": [
+    { "id": "ha-noi", "city": "Hà Nội", "tagline": "Từ Hà Nội về quê miền Bắc ăn Tết." },
+    { "id": "da-nang", "city": "Đà Nẵng", "tagline": "Từ Đà Nẵng về quê miền Trung ăn Tết." },
+    { "id": "sai-gon", "city": "Sài Gòn", "tagline": "Từ Sài Gòn về quê miền Nam ăn Tết." }
+  ],
+  "personas": [
+    {
+      "id": "moi-di-lam",
+      "name": "Mới đi làm",
+      "description": "22–26 tuổi, làm xa quê, lần đầu phải tính chuyện lì xì.",
+      "startStats": { "wallet": 40 }
+    },
+    {
+      "id": "doc-than-27",
+      "name": "Độc thân 27+",
+      "description": "Vừa ngồi xuống đã bị hỏi bao giờ cưới.",
+      "startStats": { "stamina": 40 }
+    }
+  ],
+  "stages": [
+    {
+      "id": "buoc-vao-nha",
+      "title": "Bước vào nhà",
+      "intro": "Chưa kịp đặt balo xuống thì câu hỏi đầu tiên đã bay tới.",
+      "firstSceneId": "demo-vao-1"
+    },
+    {
+      "id": "mam-com",
+      "title": "Mâm cơm tất niên",
+      "intro": "Cả họ ngồi quanh mâm. Không ai ăn trước khi hỏi xong.",
+      "firstSceneId": "demo-mam-1"
+    }
+  ],
+  "characters": [
+    {
+      "id": "be-de",
+      "name": "Bé Dê",
+      "role": "Dẫn chuyện",
+      "enabled": true,
+      "look": { "kind": "goat", "skin": "#f5ead7", "outfit": "#b91c1c", "accessory": "scarf" }
+    },
+    {
+      "id": "co-hai",
+      "name": "Cô Hai",
+      "role": "Họ hàng",
+      "enabled": true,
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#3b2a20", "outfit": "#d97706", "accessory": "none" }
+    },
+    {
+      "id": "demo-duy-den-cay",
+      "name": "Duy Đèn Cầy",
+      "role": "Review mâm cỗ",
+      "enabled": true,
+      "parody": true,
+      "fallbackId": "chu-ba-an-nhau",
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "outfit": "#7c3aed", "accessory": "bowtie" }
+    },
+    {
+      "id": "chu-ba-an-nhau",
+      "name": "Chú Ba Ăn Nhậu",
+      "role": "Họ hàng (bản trung tính)",
+      "enabled": true,
+      "look": { "kind": "human", "skin": "#e0b088", "hair": "#6b7280", "outfit": "#0f766e", "accessory": "glasses" }
+    }
+  ],
+  "scenes": [
+    {
+      "id": "demo-vao-1",
+      "stageId": "buoc-vao-nha",
+      "characterId": "co-hai",
+      "line": "Về rồi đó hả? Ngồi chưa nóng chỗ, cô hỏi nè: giờ lương tháng bao nhiêu?",
+      "next": "demo-vao-hn",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ cũng đủ sống thôi cô, mà cô dạo này khỏe không ạ?",
+          "effects": { "harmony": 5, "stamina": -5 },
+          "reply": "Cô khỏe, khỏe lắm! Mà con ốm đi hay sao ấy...",
+          "tipId": "demo-tip-chuyen-huong"
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Dạ con chưa muốn nói con số ạ.",
+          "effects": { "harmony": -10, "stamina": 5 },
+          "reply": "Ơ hay, cô hỏi cho vui chứ có đòi con đâu."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Đủ mua vé về thăm cô thôi ạ.",
+          "effects": { "harmony": 3, "stamina": 5, "wallet": -5 },
+          "reply": "Cái con bé này, nhanh miệng ghê!"
+        }
+      ]
+    },
+    {
+      "id": "demo-vao-hn",
+      "stageId": "buoc-vao-nha",
+      "characterId": "co-hai",
+      "line": "Từ Hà Nội về, đường có kẹt không con? Mà ở trên đó thuê nhà bao nhiêu một tháng?",
+      "regions": ["ha-noi"],
+      "next": "demo-vao-dn",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ đường ổn cô ơi, nhà thì con ở ghép cho đỡ tốn ạ.",
+          "effects": { "harmony": 5, "wallet": -5 },
+          "reply": "Ở ghép thì phải giữ gìn nghe con."
+        },
+        {
+          "id": "b",
+          "style": "lay",
+          "text": "Dạ tiền nhà bằng tiền vé về thăm cô luôn đó ạ.",
+          "effects": { "harmony": 3, "stamina": 5, "wallet": -5 },
+          "reply": "Trời, thuê nhà gì mà đắt dữ vậy!"
+        }
+      ]
+    },
+    {
+      "id": "demo-vao-dn",
+      "stageId": "buoc-vao-nha",
+      "characterId": "co-hai",
+      "line": "Từ Đà Nẵng về hả con? Biển trong đó đẹp mà sao con vẫn ốm vậy?",
+      "regions": ["da-nang"],
+      "next": "demo-vao-sg",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ tại con đi làm hoài chưa kịp ra biển cô ơi.",
+          "effects": { "harmony": 5, "stamina": -5 },
+          "reply": "Đi làm thì cũng phải ăn uống đầy đủ nghe."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Dạ con ăn hơi bừa, để con sửa.",
+          "effects": { "harmony": 3, "stamina": 5 },
+          "reply": "Biết sửa là ngoan rồi."
+        }
+      ]
+    },
+    {
+      "id": "demo-vao-sg",
+      "stageId": "buoc-vao-nha",
+      "characterId": "co-hai",
+      "line": "Từ Sài Gòn về mấy tiếng xe vậy con? Ở trên đó kẹt xe hoài mà sao con còn ốm?",
+      "regions": ["sai-gon"],
+      "next": "demo-vao-2",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ kẹt xe nên con tập kiên nhẫn luôn rồi cô.",
+          "effects": { "harmony": 5, "stamina": -5 },
+          "reply": "Kiên nhẫn thì mới chịu nổi mâm cơm nhà mình."
+        },
+        {
+          "id": "b",
+          "style": "phan-don",
+          "text": "Dạ kẹt xe thì còn đỡ hơn kẹt câu hỏi của cô ạ.",
+          "effects": { "harmony": -10, "stamina": 10 },
+          "reply": "Cái thằng này, dám đáp lại cô hả!"
+        }
+      ]
+    },
+    {
+      "id": "demo-vao-2",
+      "stageId": "buoc-vao-nha",
+      "characterId": "co-hai",
+      "line": "Còn bạn trai bạn gái đâu, bao giờ dẫn về cho cả nhà vui?",
+      "personas": ["doc-than-27"],
+      "next": null,
+      "choices": [
+        {
+          "id": "a",
+          "style": "phan-don",
+          "text": "Dạ khi nào có con dẫn liền, còn cô thì bao giờ hết hỏi ạ?",
+          "effects": { "harmony": -15, "stamina": 10 },
+          "reply": "Trời đất, con nói vậy mà nghe được à!"
+        },
+        {
+          "id": "b",
+          "style": "kheo",
+          "text": "Dạ duyên chưa tới, con đang tập trung công việc ạ.",
+          "effects": { "harmony": 5, "stamina": -10 },
+          "reply": "Công việc thì công việc, nhưng tuổi đâu có chờ ai.",
+          "tipId": "demo-tip-chuyen-huong"
+        }
+      ]
+    },
+    {
+      "id": "demo-mam-1",
+      "stageId": "mam-com",
+      "characterId": "demo-duy-den-cay",
+      "line": "Bánh chưng này có vị của sự đoàn viên... chưa chín. Con thấy sao?",
+      "next": null,
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ, con xin phép ăn thêm miếng nữa cho chắc ạ.",
+          "effects": { "harmony": 10, "stamina": -5 },
+          "reply": "Có tâm! Chú thơ chậm một câu tặng con."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Dạ con thấy hơi sống thật.",
+          "effects": { "harmony": -5, "stamina": 5 },
+          "reply": "Thật thà là một đức tính... dễ bị đuổi khỏi mâm.",
+          "tipId": "demo-tip-banh-chung"
+        }
+      ]
+    }
+  ],
+  "tips": [
+    {
+      "id": "demo-tip-chuyen-huong",
+      "text": "Trả lời nhẹ nhàng rồi chuyển sang chuyện khác (hỏi thăm sức khỏe, kế hoạch năm mới) là cách nhiều bạn trẻ dùng để né câu hỏi riêng tư mà không mất lòng.",
+      "source": "Tổng hợp từ VnExpress, Vietcetera"
+    },
+    {
+      "id": "demo-tip-banh-chung",
+      "text": "Bánh chưng nên được nấu chín kỹ và bảo quản đúng cách; đây chỉ là thẻ mẫu, cần thay bằng nội dung có nguồn trước khi ra mắt.",
+      "source": "Thẻ mẫu, chưa kiểm chứng"
+    }
+  ],
+  "endings": [
+    {
+      "id": "demo-ve-rong-tim-day",
+      "title": "Ví rỗng tim đầy",
+      "description": "Ví mỏng nhưng cả nhà vẫn ôm bạn thật chặt.",
+      "when": { "wallet": { "max": 20 }, "harmony": { "min": 50 } }
+    },
+    {
+      "id": "demo-chau-ngoan",
+      "title": "Cháu ngoan quốc dân",
+      "description": "Cả họ khen bạn, riêng bạn thì cần ngủ một giấc.",
+      "when": { "harmony": { "min": 60 } }
+    },
+    {
+      "id": "demo-chien-than-ne",
+      "title": "Chiến thần né câu hỏi",
+      "description": "Bạn thoát được mâm cơm với một chút xích mích.",
+      "when": { "stamina": { "min": 50 } }
+    },
+    {
+      "id": "demo-van-ve-nha",
+      "title": "Dù sao vẫn phải về nhà",
+      "description": "Dù thế nào, năm sau bạn vẫn sẽ về."
+    }
+  ]
+}
