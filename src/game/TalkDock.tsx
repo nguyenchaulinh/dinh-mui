@@ -34,12 +34,14 @@ function NextButton({ label, onClick, tone = 'primary' }: Readonly<{ label: stri
 }
 
 /**
- * Phần hội thoại ở đáy màn hình (docs/07). Lời nói luôn có một dòng gọn trong dock ("TÊN  câu nói") để chắc chắn
- * đọc được kể cả khi bong bóng trên đầu bị khuất; người nói đang đứng trong cảnh thì có thêm bong bóng (RoamView).
+ * Phần hội thoại ở đáy màn hình (docs/07). Người nói đang đứng trong cảnh thì lời của họ là bong bóng trên đầu
+ * (RoamView) và dock chỉ còn lựa chọn / nút Tiếp; người nói không có trong cảnh (Bé Dê, Mẹ qua điện thoại, máy tính)
+ * thì lời nằm trong dock. Mỗi lúc chỉ một bong bóng: câu người chơi vừa chọn là một dòng nhỏ trong dock.
  */
 export function TalkDock({
   talk,
   speakerOnMap,
+  playerName,
   onChoose,
   onClose,
   onAnswer,
@@ -47,6 +49,7 @@ export function TalkDock({
   talk: Talk;
   /** Người nói đang đứng trong cảnh (lời nói đã có bong bóng). */
   speakerOnMap: boolean;
+  playerName: string;
   onChoose: (choiceId: string) => void;
   onClose: () => void;
   onAnswer: () => void;
@@ -85,10 +88,12 @@ export function TalkDock({
     }
     return (
       <section className="dock" aria-live="polite">
-        <p className="dock-say">
-          <Nameplate ch={view.speaker} name={view.speaker.name} />
-          <span>{view.line}</span>
-        </p>
+        {!speakerOnMap && (
+          <p className="dock-say">
+            <Nameplate ch={view.speaker} name={view.speaker.name} />
+            <span>{view.line}</span>
+          </p>
+        )}
         {view.lines.map((l, i) => (
           <p key={`${l.character.id}-${i}`} className="dock-aside">
             <strong>{l.character.name}:</strong> {l.text}
@@ -109,11 +114,18 @@ export function TalkDock({
   const text = talk.kind === 'reply' ? talk.reply : talk.text;
   const speaker = talk.kind === 'reply' ? talk.speaker : talk.speaker;
   return (
-    <section className={speakerOnMap ? 'dock dock-slim dock-onmap' : 'dock dock-slim'} aria-live="polite">
-      <p className="dock-say">
-        {speaker ? <Nameplate ch={speaker} name={speaker.name} /> : talk.kind === 'line' && talk.title && <Nameplate name={talk.title} />}
-        <span>{text}</span>
-      </p>
+    <section className="dock dock-slim" aria-live="polite">
+      {talk.kind === 'reply' && talk.said && !talk.feed && (
+        <p className="dock-said">
+          <strong>{playerName || 'Bạn'}:</strong> {talk.said}
+        </p>
+      )}
+      {(!speakerOnMap || speaker === null) && (
+        <p className="dock-say">
+          {speaker ? <Nameplate ch={speaker} name={speaker.name} /> : talk.kind === 'line' && talk.title && <Nameplate name={talk.title} />}
+          <span>{text}</span>
+        </p>
+      )}
       {talk.kind === 'reply' && talk.tip && (
         <aside className="tip">
           <strong>Mẹo thật</strong> {talk.tip.text}
