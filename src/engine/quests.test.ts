@@ -17,8 +17,8 @@ import type { Content, GameState, Quest, RoamMap } from './types';
 import { validateContent } from './validate';
 
 const clone = (): Content => structuredClone(v1) as unknown as Content;
-const base = (): GameState => createGame(clone(), 'moi-di-lam', ['ha-noi']);
-const mapOf = (c: Content): RoamMap => c.maps![0]!;
+const base = (): GameState => createGame(clone(), 'moi-di-lam', 'ha-noi');
+const mapOf = (c: Content): RoamMap => c.maps[0]!;
 
 const quest = (over: Partial<Quest> = {}): Quest => ({
   id: 'q',
@@ -234,11 +234,6 @@ describe('validate dữ liệu bản đồ', () => {
     expect(errs((c) => {
       c.scenes.find((s) => s.id === 'bvn-2')!.regions = ['sai-gon'];
     }).some((m) => m.includes('vùng ha-noi'))).toBe(true);
-    // hitSceneIds trỏ cắt cảnh
-    expect(errs((c) => {
-      const sh = npc(c, 'di-ut').shoots!;
-      sh.hitSceneIds = ['rb-shipper'];
-    }).some((m) => m.includes('cắt cảnh'))).toBe(true);
   });
 
   it('bắt số liệu nguy hiểm: bắn quá nhanh/xa, câu hỏi quá dài, câu hỏi theo vai sai, speed NPC quá lớn', () => {
@@ -255,8 +250,11 @@ describe('validate dữ liệu bản đồ', () => {
   it('bắt nhiệm vụ không hoàn thành được: điều kiện rỗng, giới hạn persona, cờ ngoài bản đồ, vòng phụ thuộc', () => {
     expect(errs((c) => (mapOf(c).quests[0]!.objectives[0]!.done = {})).some((m) => m.includes('điều kiện done rỗng'))).toBe(true);
     expect(errs((c) => (mapOf(c).quests[0]!.objectives[0]!.done = { flags: ['talked:co-hai'], personas: ['sinh-vien'] })).some((m) => m.includes('giới hạn persona'))).toBe(true);
-    // Cờ của luồng chính (xem-mat) có thật nhưng không bật được khi đi lại
-    expect(errs((c) => (mapOf(c).quests[0]!.objectives[0]!.done = { flags: ['xem-mat'] })).some((m) => m.includes('không do bản đồ này sinh ra'))).toBe(true);
+    // Cờ do một lựa chọn hội thoại bật (có thật) nhưng không phải cờ tự sinh của bản đồ: mục tiêu không dựa vào nó được
+    expect(errs((c) => {
+      c.scenes[0]!.choices[0]!.setFlags = ['co-tu-hoi-thoai'];
+      mapOf(c).quests[0]!.objectives[0]!.done = { flags: ['co-tu-hoi-thoai'] };
+    }).some((m) => m.includes('không do bản đồ này sinh ra'))).toBe(true);
     expect(errs((c) => {
       const qs = mapOf(c).quests;
       qs[0]!.objectives = [{ id: 'x', text: 'x', done: { flags: ['quest:ne-cau-hoi'] } }];
@@ -282,9 +280,18 @@ describe('validate dữ liệu bản đồ', () => {
     expect(validateContent(c, { sets: SETS, roamSets: ['san-nha'] })).toEqual([]);
   });
 
-  it('nội dung không có maps vẫn hợp lệ (dữ liệu cũ)', () => {
-    const c = clone();
-    delete c.maps;
-    expect(validateContent(c, { sets: SETS })).toEqual([]);
+  it('bắt chặng trỏ bản đồ không tồn tại, bản đồ không chặng nào dùng, hai chặng dùng chung bản đồ', () => {
+    expect(errs((c) => (c.stages[0]!.mapId = 'ban-do-la')).some((m) => m.includes('mapId ban-do-la'))).toBe(true);
+    expect(errs((c) => c.maps.push({ ...mapOf(c), id: 'ban-do-thua' })).some((m) => m.includes('ban-do-thua: không chặng nào'))).toBe(true);
+    expect(errs((c) => c.stages.push({ ...c.stages[0]!, id: 'chang-trung' })).some((m) => m.includes('trùng id: san-nha'))).toBe(true);
+  });
+
+  it('bắt nhiệm vụ đích không tồn tại', () => {
+    expect(errs((c) => (mapOf(c).goalQuestId = 'khong-co')).some((m) => m.includes('goalQuestId khong-co'))).toBe(true);
+  });
+
+  it('bắt scene mồ côi: không NPC nào gọi tới', () => {
+    const e = errs((c) => c.scenes.push({ ...c.scenes[0]!, id: 'scene-mo-coi' }));
+    expect(e.some((m) => m.includes('scene-mo-coi') && m.includes('mồ côi'))).toBe(true);
   });
 });

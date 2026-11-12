@@ -17,7 +17,7 @@ describe('bản đồ san-nha trong nội dung', () => {
   it('có bản đồ, tra cứu theo id; id lạ thì null', () => {
     expect(map).toBeTruthy();
     expect(getRoamMap(content, 'khong-co')).toBeNull();
-    expect(getRoamMap({ ...content, maps: undefined }, 'san-nha')).toBeNull();
+    expect(getRoamMap({ ...content, maps: [] }, 'san-nha')).toBeNull();
   });
 
   it('khoá NPC không trùng và không trùng người chơi', () => {
@@ -35,12 +35,11 @@ describe('bản đồ san-nha trong nội dung', () => {
             const scene = content.scenes.find((s) => s.id === id)!;
             // Chỉ kiểm tra scene hợp persona (scene khác persona không bao giờ được chọn cho người chơi này).
             if (scene.personas && !scene.personas.includes(p.id)) continue;
-            const state = { ...createGame(content, p.id, [r.id]), sceneId: id };
-            const view = getView(content, state);
-            expect(view, `${n.characterId}/${id}`).not.toBeNull();
-            expect(view!.choices.length, `${id} không có lựa chọn`).toBeGreaterThan(0);
-            for (const ch of view!.choices) {
-              expect(choose(content, state, ch.id).reply, `${id}/${ch.id}`).toBeTruthy();
+            const state = createGame(content, p.id, r.id);
+            const view = getView(content, state, id);
+            expect(view.choices.length, `${n.characterId}/${id} không có lựa chọn`).toBeGreaterThan(0);
+            for (const ch of view.choices) {
+              expect(choose(content, state, id, ch.id).reply, `${id}/${ch.id}`).toBeTruthy();
             }
           }
         }

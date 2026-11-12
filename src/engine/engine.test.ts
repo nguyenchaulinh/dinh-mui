@@ -1,40 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import demo from './__fixtures__/demo.json';
 import {
-  advance,
+  afterStage,
   applyEffects,
   choose,
   createGame,
+  finishGame,
   getEnding,
-  getScene,
   getView,
   pickEnding,
+  pickRegion,
+  pickScene,
   resolveCharacter,
-  sceneRegion,
 } from './engine';
-import type { Content, GameState } from './types';
+import type { Content } from './types';
 import { validateContent } from './validate';
 
-const clone = (): Content => structuredClone(demo) as Content;
-
-/** Đi hết game: cắt cảnh thì advance, hội thoại thì chọn lựa chọn thứ `pickIndex` (vòng). */
-function playThrough(c: Content, s0: GameState, pickIndex = 0): { path: string[]; end: GameState } {
-  let s = s0;
-  const path: string[] = [];
-  for (let guard = 0; s.sceneId && guard < 500; guard++) {
-    path.push(s.sceneId);
-    const view = getView(c, s)!;
-    if (view.scene.kind === 'cutscene') {
-      s = advance(c, s);
-    } else {
-      const ch = view.choices[pickIndex % view.choices.length]!;
-      s = choose(c, s, ch.id).state;
-    }
-  }
-  return { path, end: s };
-}
-
-/** Nội dung nhỏ để thử cờ, điều kiện, cắt cảnh, biến thể vùng. */
+/** Nội dung nhỏ để thử cờ, điều kiện, biến thể vùng, vai, chỉ số về 0 và kết thúc. */
 function mini(): Content {
   return {
     version: 1,
@@ -42,95 +23,115 @@ function mini(): Content {
       { id: 'hn', city: 'Hà Nội', tagline: '' },
       { id: 'sg', city: 'Sài Gòn', tagline: '' },
     ],
-    personas: [{ id: 'p', name: 'P', description: '' }],
-    stages: [{ id: 's1', title: 'S1', intro: '', firstSceneId: 'a' }],
+    personas: [
+      { id: 'p', name: 'P', description: '', startStats: { wallet: 40 } },
+      { id: 'q', name: 'Q', description: '' },
+    ],
+    stages: [{ id: 's1', title: 'S1', intro: '', mapId: 'm' }],
     characters: [
+      { id: 'player', name: 'Bạn', role: '', enabled: true },
       { id: 'x', name: 'X', role: '', enabled: true },
       { id: 'y', name: 'Y', role: '', enabled: true },
+      { id: 'nhai', name: 'Nhại', role: '', enabled: true, parody: true, fallbackId: 'x' },
     ],
     scenes: [
       {
         id: 'a',
-        stageId: 's1',
         characterId: 'x',
         line: 'mặc định',
         lineByRegion: { sg: 'giọng Nam' },
-        next: 'cut',
-        choices: [
-          { id: 'flag', style: 'kheo', text: 'bật cờ', effects: {}, reply: 'ok', replyByRegion: { sg: 'ok nghen' }, setFlags: ['f'] },
-          { id: 'plain', style: 'lay', text: 'thường', effects: {}, reply: 'ừ' },
-          { id: 'stop', style: 'phan-don', text: 'thôi', effects: {}, reply: 'hết', end: true, setFlags: ['g'] },
-        ],
-      },
-      {
-        id: 'cut',
-        stageId: 's1',
-        kind: 'cutscene',
-        characterId: 'x',
-        line: 'cắt cảnh',
         lines: [
           { characterId: 'y', text: 'chỉ khi có cờ', if: { flags: ['f'] } },
           { text: 'luôn hiện', byRegion: { sg: 'luôn hiện nghen' } },
           { text: 'nhớ lựa chọn thường', if: { history: ['a/plain'] } },
         ],
-        next: 'only-flag',
-        choices: [],
+        choices: [
+          { id: 'flag', style: 'kheo', text: 'bật cờ', effects: { harmony: 5 }, reply: 'ok', replyByRegion: { sg: 'ok nghen' }, setFlags: ['f'], tipId: 't1' },
+          { id: 'plain', style: 'lay', text: 'thường', textByRegion: { sg: 'thường nghen' }, effects: { stamina: -5 }, reply: 'ừ' },
+          { id: 'drain', style: 'phan-don', text: 'tụt hết', effects: { harmony: -100 }, reply: 'hết sạch' },
+          { id: 'stop', style: 'that-tha', text: 'thôi', effects: {}, reply: 'hết', end: true, setFlags: ['g'] },
+          { id: 'only-f', style: 'kheo', text: 'chỉ khi có cờ f', effects: {}, reply: '', if: { flags: ['f'] } },
+          { id: 'no-f', style: 'lay', text: 'chỉ khi chưa có cờ f', effects: {}, reply: '', if: { notFlags: ['f'] } },
+        ],
       },
       {
-        id: 'only-flag',
-        stageId: 's1',
+        id: 'b-p',
         characterId: 'y',
-        line: 'chỉ khi có cờ f',
-        if: { flags: ['f'] },
-        next: 'last',
+        line: 'chỉ vai p',
+        personas: ['p'],
         choices: [{ id: 'o', style: 'kheo', text: 'o', effects: {}, reply: '' }],
       },
       {
-        id: 'last',
-        stageId: 's1',
-        characterId: 'x',
-        line: 'cuối',
-        next: null,
-        choices: [
-          { id: 'always', style: 'kheo', text: 'luôn có', effects: {}, reply: '' },
-          { id: 'noflag', style: 'lay', text: 'khi chưa có cờ', effects: {}, reply: '', if: { notFlags: ['f'] } },
-        ],
+        id: 'b-sg',
+        characterId: 'y',
+        line: 'chỉ vùng sg',
+        regions: ['sg'],
+        choices: [{ id: 'o', style: 'kheo', text: 'o', effects: {}, reply: '' }],
+      },
+      {
+        id: 'b-flag',
+        characterId: 'y',
+        line: 'chỉ khi có cờ f',
+        if: { flags: ['f'] },
+        choices: [{ id: 'o', style: 'kheo', text: 'o', effects: {}, reply: '' }],
+      },
+      {
+        id: 'b-nhai',
+        characterId: 'nhai',
+        line: 'nhân vật nhại nói',
+        choices: [{ id: 'o', style: 'kheo', text: 'o', effects: {}, reply: '' }],
       },
     ],
-    tips: [],
+    tips: [{ id: 't1', text: 'mẹo', source: 'nguồn' }],
     endings: [
       { id: 'by-g', title: 'G', description: '', flags: ['g'] },
-      { id: 'by-f', title: 'F', description: '', flags: ['f'] },
+      { id: 'by-f', title: 'F', description: '', flags: ['f'], when: { harmony: { min: 50 } } },
+      { id: 'rich', title: 'R', description: '', when: { wallet: { min: 80 } } },
       { id: 'default', title: 'D', description: '' },
+    ],
+    maps: [
+      {
+        id: 'm',
+        setId: 'set',
+        playerId: 'player',
+        goalQuestId: 'goal',
+        npcs: [
+          { characterId: 'x', spot: 'a', behavior: 'stand', prompt: 'Nói', action: { kind: 'talk', sceneIds: ['a'], after: 'ok' } },
+          { characterId: 'y', spot: 'b', behavior: 'stand', prompt: 'Nói', action: { kind: 'talk', sceneIds: ['b-p', 'b-sg', 'b-flag'], after: 'ok' } },
+          { characterId: 'nhai', spot: 'c', behavior: 'stand', prompt: 'Nói', action: { kind: 'talk', sceneIds: ['b-nhai'], after: 'ok' } },
+        ],
+        quests: [{ id: 'goal', title: 'Đích', objectives: [{ id: 'o', text: 'x', done: { flags: ['talked:x'] } }] }],
+      },
     ],
   };
 }
 
 describe('validateContent', () => {
-  it('dữ liệu mẫu và mini hợp lệ', () => {
-    expect(validateContent(clone())).toEqual([]);
+  it('nội dung mini hợp lệ', () => {
+    // 'b-p' chỉ hợp vai p và 'b-sg' chỉ hợp vùng sg: NPC y cần bao phủ mọi vai × vùng nên mini() dùng thêm 'b-flag'
+    // (không giới hạn vai/vùng) làm phương án cuối.
     expect(validateContent(mini())).toEqual([]);
   });
 
   it('bắt tham chiếu hỏng', () => {
-    const c = clone();
-    c.scenes[0]!.next = 'khong-ton-tai';
+    const c = mini();
     c.scenes[0]!.choices[0]!.tipId = 'khong-co-tip';
+    c.scenes[0]!.characterId = 'ai-do';
     const errs = validateContent(c);
-    expect(errs.some((e) => e.includes('next khong-ton-tai'))).toBe(true);
     expect(errs.some((e) => e.includes('tipId khong-co-tip'))).toBe(true);
+    expect(errs.some((e) => e.includes('nhân vật ai-do'))).toBe(true);
   });
 
   it('bắt nhân vật bị tắt mà thiếu fallback', () => {
-    const c = clone();
-    const ch = c.characters.find((x) => x.id === 'demo-duy-den-cay')!;
+    const c = mini();
+    const ch = c.characters.find((x) => x.id === 'nhai')!;
     ch.enabled = false;
     delete ch.fallbackId;
     expect(validateContent(c).some((e) => e.includes('fallbackId'))).toBe(true);
   });
 
   it('bắt kết thúc cuối không phải mặc định và effect không nguyên', () => {
-    const c = clone();
+    const c = mini();
     c.endings[c.endings.length - 1]!.when = { harmony: { min: 1 } };
     c.scenes[0]!.choices[0]!.effects = { harmony: 1.5 };
     const errs = validateContent(c);
@@ -138,28 +139,32 @@ describe('validateContent', () => {
     expect(errs.some((e) => e.includes('số nguyên'))).toBe(true);
   });
 
-  it('bắt cờ gõ sai, lịch sử sai, vùng lạ, cắt cảnh có lựa chọn', () => {
+  it('bắt cờ gõ sai, lịch sử sai, vùng lạ', () => {
     const c = mini();
-    c.scenes[2]!.if = { flags: ['f-go-sai'] };
-    c.scenes[1]!.lines![2]!.if = { history: ['a/khong-co'] };
+    c.scenes[3]!.if = { flags: ['f-go-sai'] };
+    c.scenes[0]!.lines![2]!.if = { history: ['a/khong-co'] };
     c.scenes[0]!.lineByRegion = { hue: 'x' };
-    c.scenes[1]!.choices = [{ id: 'z', style: 'kheo', text: '', effects: {}, reply: '' }];
     const errs = validateContent(c);
     expect(errs.some((e) => e.includes('cờ f-go-sai'))).toBe(true);
     expect(errs.some((e) => e.includes('lịch sử a/khong-co'))).toBe(true);
     expect(errs.some((e) => e.includes('vùng lạ hue'))).toBe(true);
-    expect(errs.some((e) => e.includes('cắt cảnh không được có lựa chọn'))).toBe(true);
   });
 
-  it('bắt set 3D, vị trí và góc máy không tồn tại', () => {
+  it('bắt scene không có lựa chọn và id lựa chọn trùng', () => {
     const c = mini();
-    c.scenes[0]!.stage3d = { set: 'nha', camera: 'khong-co', actors: [{ characterId: 'x', spot: 'xa-lac' }] };
-    c.scenes[2]!.stage3d = { set: 'set-la' };
-    const sets = { nha: { spots: { ghe: {} }, cameras: { rong: {} } } };
-    const errs = validateContent(c, { sets });
-    expect(errs.some((e) => e.includes('góc máy khong-co'))).toBe(true);
-    expect(errs.some((e) => e.includes('vị trí xa-lac'))).toBe(true);
-    expect(errs.some((e) => e.includes('set 3D set-la'))).toBe(true);
+    c.scenes[1]!.choices = [];
+    c.scenes[2]!.choices.push({ ...c.scenes[2]!.choices[0]! });
+    const errs = validateContent(c);
+    expect(errs.some((e) => e.includes('scene b-p: cần ít nhất 1 lựa chọn'))).toBe(true);
+    expect(errs.some((e) => e.includes('choice trong scene b-sg trùng id'))).toBe(true);
+  });
+
+  it('bắt set 3D và vị trí đứng không tồn tại khi có danh mục set', () => {
+    const c = mini();
+    expect(validateContent(c, { sets: { set: { spots: { a: {}, b: {}, c: {} } } } })).toEqual([]);
+    const errs = validateContent(c, { sets: { set: { spots: { a: {} } } } });
+    expect(errs.some((e) => e.includes('vị trí b'))).toBe(true);
+    expect(validateContent(c, { sets: {} }).some((e) => e.includes('set 3D set'))).toBe(true);
   });
 });
 
@@ -174,160 +179,156 @@ describe('applyEffects', () => {
 });
 
 describe('createGame', () => {
-  it('dùng chỉ số khởi đầu của persona', () => {
-    const s = createGame(clone(), 'moi-di-lam', ['ha-noi']);
+  it('dùng chỉ số khởi đầu của vai và chưa có kết thúc', () => {
+    const s = createGame(mini(), 'p', 'hn');
     expect(s.stats).toEqual({ harmony: 50, stamina: 50, wallet: 40 });
-    expect(s.sceneId).toBe('demo-vao-1');
-    expect(s.flags).toEqual([]);
+    expect(s).toMatchObject({ personaId: 'p', regionId: 'hn', flags: [], history: [], tipsSeen: [], endingId: null });
   });
 
-  it('từ chối persona lạ, vùng rỗng, vùng lạ, seed không nguyên', () => {
-    expect(() => createGame(clone(), 'khong-co', ['ha-noi'])).toThrow();
-    expect(() => createGame(clone(), 'moi-di-lam', [])).toThrow();
-    expect(() => createGame(clone(), 'moi-di-lam', ['hue'])).toThrow();
-    expect(() => createGame(clone(), 'moi-di-lam', ['ha-noi'], 1.5)).toThrow();
+  it('từ chối vai lạ và vùng lạ', () => {
+    expect(() => createGame(mini(), 'khong-co', 'hn')).toThrow();
+    expect(() => createGame(mini(), 'p', 'hue')).toThrow();
   });
 });
 
-describe('choose (dữ liệu mẫu)', () => {
-  it('lọc scene theo persona và vùng', () => {
-    const c = clone();
-    expect(playThrough(c, createGame(c, 'doc-than-27', ['ha-noi'])).path).toEqual([
-      'demo-vao-1',
-      'demo-vao-hn',
-      'demo-vao-2',
-      'demo-mam-1',
-    ]);
-    expect(playThrough(c, createGame(c, 'moi-di-lam', ['sai-gon'])).path).toEqual([
-      'demo-vao-1',
-      'demo-vao-sg',
-      'demo-mam-1',
-    ]);
-    expect(playThrough(c, createGame(c, 'moi-di-lam', ['ha-noi', 'da-nang', 'sai-gon'])).path).toEqual([
-      'demo-vao-1',
-      'demo-vao-hn',
-      'demo-vao-dn',
-      'demo-vao-sg',
-      'demo-mam-1',
-    ]);
+describe('pickRegion', () => {
+  it('chọn một vùng thì lấy luôn; chọn nhiều thì ổn định theo seed và phủ hết các vùng', () => {
+    expect(pickRegion(['hn'], 1)).toBe('hn');
+    expect(pickRegion(['hn', 'sg'], 42, 'k')).toBe(pickRegion(['hn', 'sg'], 42, 'k'));
+    const seen = new Set(Array.from({ length: 40 }, (_, i) => pickRegion(['hn', 'sg'], i, 'k')));
+    expect(seen).toEqual(new Set(['hn', 'sg']));
+    expect(() => pickRegion([], 1)).toThrow();
+  });
+});
+
+describe('pickScene và getView', () => {
+  it('lọc scene theo vai, vùng và cờ; trả scene đầu tiên hợp', () => {
+    const c = mini();
+    const ids = ['b-p', 'b-sg', 'b-flag'];
+    expect(pickScene(c, createGame(c, 'p', 'hn'), ids)?.id).toBe('b-p');
+    expect(pickScene(c, createGame(c, 'q', 'sg'), ids)?.id).toBe('b-sg');
+    expect(pickScene(c, createGame(c, 'q', 'hn'), ids)).toBeNull(); // vai q + vùng hn + chưa có cờ: không scene nào hợp
+    const flagged = { ...createGame(c, 'q', 'hn'), flags: ['f'] };
+    expect(pickScene(c, flagged, ids)?.id).toBe('b-flag');
+    expect(pickScene(c, createGame(c, 'p', 'hn'), ['khong-co'])).toBeNull();
   });
 
-  it('không đổi state đầu vào; ghi lịch sử và thẻ mẹo không trùng', () => {
-    const c = clone();
-    const s0 = createGame(c, 'moi-di-lam', ['ha-noi']);
+  it('thoại, lựa chọn đổi giọng theo vùng; thoại phụ và lựa chọn lọc theo cờ/lịch sử', () => {
+    const c = mini();
+    const hn = getView(c, createGame(c, 'p', 'hn'), 'a');
+    expect(hn.line).toBe('mặc định');
+    expect(hn.lines.map((l) => l.text)).toEqual(['luôn hiện']);
+    expect(hn.choices.map((x) => x.id)).toEqual(['flag', 'plain', 'drain', 'stop', 'no-f']);
+    const sg = getView(c, createGame(c, 'p', 'sg'), 'a');
+    expect(sg.line).toBe('giọng Nam');
+    expect(sg.lines.map((l) => l.text)).toEqual(['luôn hiện nghen']);
+    expect(sg.choices.find((x) => x.id === 'plain')!.text).toBe('thường nghen');
+
+    const after = choose(c, createGame(c, 'p', 'hn'), 'a', 'flag').state;
+    const v = getView(c, after, 'a');
+    expect(v.lines.map((l) => l.text)).toEqual(['chỉ khi có cờ', 'luôn hiện']);
+    expect(v.lines[0]!.character.id).toBe('y');
+    expect(v.choices.map((x) => x.id)).toEqual(['flag', 'plain', 'drain', 'stop', 'only-f']);
+    const plain = choose(c, createGame(c, 'p', 'hn'), 'a', 'plain').state;
+    expect(getView(c, plain, 'a').lines.map((l) => l.text)).toContain('nhớ lựa chọn thường');
+  });
+
+  it('scene không tồn tại thì ném lỗi', () => {
+    const c = mini();
+    expect(() => getView(c, createGame(c, 'p', 'hn'), 'khong-co')).toThrow();
+  });
+});
+
+describe('choose', () => {
+  it('áp hiệu ứng, cờ, lịch sử, thẻ mẹo (không trùng); không đổi state đầu vào', () => {
+    const c = mini();
+    const s0 = createGame(c, 'p', 'hn');
     const snapshot = structuredClone(s0);
-    const r = choose(c, s0, 'a');
+    const r = choose(c, s0, 'a', 'flag');
     expect(s0).toEqual(snapshot);
-    expect(r.tip?.id).toBe('demo-tip-chuyen-huong');
-    expect(r.state.history).toEqual(['demo-vao-1/a']);
-    expect(r.state.tipsSeen).toEqual(['demo-tip-chuyen-huong']);
+    expect(r.state.stats.harmony).toBe(55);
+    expect(r.state.flags).toEqual(['f']);
+    expect(r.state.history).toEqual(['a/flag']);
+    expect(r.tip?.id).toBe('t1');
+    expect(r.state.tipsSeen).toEqual(['t1']);
+    const again = choose(c, r.state, 'a', 'flag').state;
+    expect(again.tipsSeen).toEqual(['t1']);
+    expect(again.flags).toEqual(['f']);
+    expect(again.history).toEqual(['a/flag', 'a/flag']);
   });
 
-  it('từ chối lựa chọn không thuộc scene hoặc khi game đã xong', () => {
-    const c = clone();
-    const s = createGame(c, 'moi-di-lam', ['ha-noi']);
-    expect(() => choose(c, s, 'z')).toThrow();
-    expect(() => choose(c, { ...s, sceneId: null, endingId: 'demo-van-ve-nha' }, 'a')).toThrow();
+  it('phản ứng đổi theo vùng', () => {
+    const c = mini();
+    expect(choose(c, createGame(c, 'p', 'sg'), 'a', 'flag').reply).toBe('ok nghen');
+    expect(choose(c, createGame(c, 'p', 'hn'), 'a', 'flag').reply).toBe('ok');
+  });
+
+  it('từ chối scene lạ, lựa chọn lạ, lựa chọn đang bị ẩn, và game đã kết thúc', () => {
+    const c = mini();
+    const s = createGame(c, 'p', 'hn');
+    expect(() => choose(c, s, 'khong-co', 'flag')).toThrow();
+    expect(() => choose(c, s, 'a', 'z')).toThrow();
+    expect(() => choose(c, s, 'a', 'only-f')).toThrow(); // cần cờ f
+    expect(() => choose(c, { ...s, endingId: 'default' }, 'a', 'flag')).toThrow();
   });
 
   it('chỉ số về 0 thì kết thúc ngay', () => {
-    const c = clone();
-    const s0 = createGame(c, 'moi-di-lam', ['ha-noi']);
-    const r = choose(c, { ...s0, stats: { harmony: 5, stamina: 50, wallet: 40 } }, 'b'); // harmony -10 -> 0
+    const c = mini();
+    const r = choose(c, createGame(c, 'p', 'hn'), 'a', 'drain');
     expect(r.state.stats.harmony).toBe(0);
-    expect(r.state.sceneId).toBeNull();
-    expect(r.state.endingId).toBe('demo-chien-than-ne'); // stamina 55
-  });
-});
-
-describe('cờ, điều kiện, cắt cảnh, biến thể vùng', () => {
-  it('cờ mở scene và dòng thoại có điều kiện; lựa chọn notFlags bị ẩn', () => {
-    const c = mini();
-    const r = choose(c, createGame(c, 'p', ['hn']), 'flag');
-    expect(r.state.flags).toEqual(['f']);
-    const cut = getView(c, r.state)!;
-    expect(cut.scene.id).toBe('cut');
-    expect(cut.lines.map((l) => l.text)).toEqual(['chỉ khi có cờ', 'luôn hiện']);
-    expect(cut.lines[0]!.character.id).toBe('y');
-
-    let s = advance(c, r.state);
-    expect(s.sceneId).toBe('only-flag');
-    s = choose(c, s, 'o').state;
-    expect(getView(c, s)!.choices.map((x) => x.id)).toEqual(['always']);
-    expect(() => choose(c, s, 'noflag')).toThrow();
-    s = choose(c, s, 'always').state;
-    expect(s.endingId).toBe('by-f');
+    expect(r.state.endingId).toBe('default');
   });
 
-  it('không có cờ thì bỏ qua scene; dòng thoại theo lịch sử hiện ra', () => {
+  it('lựa chọn `end` kết thúc ngay, theo cờ vừa bật', () => {
     const c = mini();
-    const s = choose(c, createGame(c, 'p', ['hn']), 'plain').state;
-    expect(getView(c, s)!.lines.map((l) => l.text)).toEqual(['luôn hiện', 'nhớ lựa chọn thường']);
-    const after = advance(c, s);
-    expect(after.sceneId).toBe('last');
-    expect(getView(c, after)!.choices.map((x) => x.id)).toEqual(['always', 'noflag']);
-    expect(choose(c, after, 'noflag').state.endingId).toBe('default');
-  });
-
-  it('lựa chọn end kết thúc ngay, kết thúc theo cờ', () => {
-    const c = mini();
-    const s = choose(c, createGame(c, 'p', ['hn']), 'stop').state;
-    expect(s.sceneId).toBeNull();
+    const s = choose(c, createGame(c, 'p', 'hn'), 'a', 'stop').state;
     expect(s.endingId).toBe('by-g');
     expect(getEnding(c, s)?.title).toBe('G');
   });
-
-  it('advance/choose sai loại scene thì ném lỗi', () => {
-    const c = mini();
-    const s0 = createGame(c, 'p', ['hn']);
-    expect(() => advance(c, s0)).toThrow();
-    const cut = choose(c, s0, 'plain').state;
-    expect(() => choose(c, cut, 'z')).toThrow();
-  });
-
-  it('thoại, lựa chọn và phản ứng đổi theo vùng', () => {
-    const c = mini();
-    const sg = createGame(c, 'p', ['sg']);
-    expect(getView(c, sg)!.line).toBe('giọng Nam');
-    expect(choose(c, sg, 'flag').reply).toBe('ok nghen');
-    const hn = createGame(c, 'p', ['hn']);
-    expect(getView(c, hn)!.line).toBe('mặc định');
-    expect(choose(c, hn, 'flag').reply).toBe('ok');
-  });
-
-  it('chọn nhiều vùng: mỗi scene lấy một vùng ổn định theo seed', () => {
-    const ctx = { personaId: 'p', regionIds: ['hn', 'sg'], seed: 42, flags: [], history: [] };
-    const a = sceneRegion(ctx, 'a');
-    expect(sceneRegion(ctx, 'a')).toBe(a);
-    expect(['hn', 'sg']).toContain(a);
-    const seen = new Set(Array.from({ length: 40 }, (_, i) => sceneRegion({ ...ctx, seed: i }, 'a')));
-    expect(seen).toEqual(new Set(['hn', 'sg']));
-  });
 });
 
-describe('pickEnding', () => {
-  it('chọn cái đầu tiên khớp, rơi về mặc định', () => {
-    const c = clone();
-    expect(pickEnding(c, { harmony: 70, stamina: 10, wallet: 10 }).id).toBe('demo-ve-rong-tim-day');
-    expect(pickEnding(c, { harmony: 70, stamina: 10, wallet: 80 }).id).toBe('demo-chau-ngoan');
-    expect(pickEnding(c, { harmony: 10, stamina: 60, wallet: 80 }).id).toBe('demo-chien-than-ne');
-    expect(pickEnding(c, { harmony: 10, stamina: 10, wallet: 80 }).id).toBe('demo-van-ve-nha');
+describe('kết thúc và chặng', () => {
+  it('pickEnding chọn cái đầu tiên khớp, rơi về mặc định', () => {
+    const c = mini();
+    const stats = { harmony: 60, stamina: 50, wallet: 90 };
+    expect(pickEnding(c, stats, ['g']).id).toBe('by-g');
+    expect(pickEnding(c, stats, ['f']).id).toBe('by-f');
+    expect(pickEnding(c, { ...stats, harmony: 10 }, ['f']).id).toBe('rich'); // cờ f nhưng Hòa khí thấp: rơi xuống kết thúc kế
+    expect(pickEnding(c, { harmony: 10, stamina: 10, wallet: 10 }).id).toBe('default');
+  });
+
+  it('finishGame đặt kết thúc theo chỉ số + cờ và không đổi state đầu vào', () => {
+    const c = mini();
+    const s = createGame(c, 'p', 'hn');
+    const done = finishGame(c, { ...s, flags: ['g'] });
+    expect(done.endingId).toBe('by-g');
+    expect(s.endingId).toBeNull();
+  });
+
+  it('afterStage: còn chặng thì sang chặng kế (giữ state); hết chặng hoặc đã có kết thúc thì kết thúc', () => {
+    const c = mini();
+    c.stages.push({ id: 's2', title: 'S2', intro: '', mapId: 'm2' });
+    const s = createGame(c, 'p', 'hn');
+    expect(afterStage(c, 0, s)).toEqual({ next: 1 });
+    expect(afterStage(c, 1, s)).toEqual({ end: finishGame(c, s) });
+    const ended = { ...s, endingId: 'by-g' };
+    expect(afterStage(c, 0, ended)).toEqual({ end: ended });
   });
 });
 
 describe('kill-switch nhân vật', () => {
   it('nhân vật bật thì giữ nguyên, bị tắt thì thay bằng bản trung tính', () => {
-    const c = clone();
-    expect(resolveCharacter(c, 'demo-duy-den-cay').id).toBe('demo-duy-den-cay');
-    c.characters.find((x) => x.id === 'demo-duy-den-cay')!.enabled = false;
-    expect(resolveCharacter(c, 'demo-duy-den-cay').id).toBe('chu-ba-an-nhau');
+    const c = mini();
+    expect(resolveCharacter(c, 'nhai').id).toBe('nhai');
+    c.characters.find((x) => x.id === 'nhai')!.enabled = false;
+    expect(resolveCharacter(c, 'nhai').id).toBe('x');
   });
 
   it('getView dùng bản thay thế khi nhân vật nhại bị tắt', () => {
-    const c = clone();
-    c.characters.find((x) => x.id === 'demo-duy-den-cay')!.enabled = false;
-    const s = { ...createGame(c, 'moi-di-lam', ['ha-noi']), sceneId: 'demo-mam-1' };
-    expect(getView(c, s)!.speaker.id).toBe('chu-ba-an-nhau');
-    expect(getScene(c, s)!.characterId).toBe('demo-duy-den-cay');
+    const c = mini();
+    c.characters.find((x) => x.id === 'nhai')!.enabled = false;
+    const v = getView(c, createGame(c, 'p', 'hn'), 'b-nhai');
+    expect(v.speaker.id).toBe('x');
+    expect(v.scene.characterId).toBe('nhai');
   });
 });

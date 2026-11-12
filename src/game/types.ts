@@ -120,8 +120,8 @@ export interface DebugInfo {
   /** Số draw call và tam giác của khung gần nhất (renderer.info.render). */
   calls?: number;
   triangles?: number;
-  /** Đang ở cảnh nào. */
-  mode?: 'scene' | 'roam';
+  /** Đang chơi (chế độ đi lại) và bộ cảnh nào. */
+  mode?: 'roam';
   setId?: string;
   /** Chỉ có ở chế độ đi lại. */
   player?: { x: number; z: number; speed: number; insideCollider: boolean };

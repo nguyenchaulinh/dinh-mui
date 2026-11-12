@@ -75,6 +75,8 @@ html:has(.game) { overflow: hidden; }
 }
 .hud li { display: grid; grid-template-columns: 6.5rem 6rem; align-items: center; }
 .hud meter { width: 100%; height: 10px; }
+/* Bảng chỉ số nằm trong dòng chảy trang (màn kết thúc), không dính góc màn hình. */
+.hud-static { position: static; margin: 16px auto; width: max-content; color: var(--ink); background: #fff; box-shadow: 0 1px 6px rgb(0 0 0 / 0.15); }
 
 .panel {
   position: absolute;
@@ -95,7 +97,7 @@ html:has(.game) { overflow: hidden; }
 
 .stage-card, .ending { text-align: center; }
 
-/* ---------- Màn đi lại (bản thử) ---------- */
+/* ---------- Màn chơi (đi lại trong cảnh 3D) ---------- */
 .rs-top {
   position: fixed;
   top: max(8px, env(safe-area-inset-top));

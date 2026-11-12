@@ -8,7 +8,7 @@ export const DEBUG: boolean =
   import.meta.env.DEV || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('fps'));
 
 /**
- * Cho phép nhảy thẳng vào cảnh bằng URL (`?scene=` / `?roam=`): luôn bật khi dev;
+ * Cho phép nhảy thẳng vào một bản đồ bằng URL (`?roam=`): luôn bật khi dev;
  * với bản build chỉ bật khi build bằng `VITE_DEBUG_JUMP=1` (bản đo hiệu năng).
  */
 export const ALLOW_JUMP: boolean = import.meta.env.DEV || import.meta.env.VITE_DEBUG_JUMP === '1';

@@ -26,10 +26,7 @@
     }
   ],
   "stages": [
-    { "id": "ra-ben", "title": "Ra bến", "intro": "28 tháng Chạp. Cả thành phố cùng lúc muốn về quê.", "firstSceneId": "rb-1" },
-    { "id": "duong-ve", "title": "Đường về", "intro": "Trời chập tối. Sắp tới nhà rồi.", "firstSceneId": "dv-den-lang" },
-    { "id": "buoc-vao-nha", "title": "Bước vào nhà", "intro": "Chưa kịp đặt balo xuống thì câu hỏi đầu tiên đã bay tới.", "firstSceneId": "bvn-1-dl" },
-    { "id": "mam-com", "title": "Mâm cơm tất niên", "intro": "29 tháng Chạp. Cả họ đã vào vị trí.", "firstSceneId": "mc-intro" }
+    { "id": "buoc-vao-nha", "title": "Bước vào nhà", "intro": "Chưa kịp đặt balo xuống thì câu hỏi đầu tiên đã bay tới.", "mapId": "san-nha" }
   ],
   "characters": [
     { "id": "be-de", "name": "Bé Dê", "role": "Dẫn chuyện", "enabled": true,
@@ -62,79 +59,12 @@
   ],
   "scenes": [
     {
-      "id": "rb-1", "stageId": "ra-ben", "characterId": "be-de",
-      "line": "28 tháng Chạp. Trước khi ra bến, phải mua quà về quê đã.",
-      "lineByRegion": {
-        "ha-noi": "28 tháng Chạp, Hà Nội mưa phùn. Trước khi ra bến, phải mua quà về quê đã.",
-        "da-nang": "28 tháng Chạp, gió sông thổi lạnh. Trước khi ra bến, phải mua quà về quê đã.",
-        "sai-gon": "28 tháng Chạp, Sài Gòn nắng chang chang. Trước khi ra bến, phải mua quà về quê đã."
-      },
-      "stage3d": { "set": "pho-tet", "camera": "cua-hang",
-        "actors": [ { "characterId": "ban", "spot": "via-he" }, { "characterId": "be-de", "spot": "via-he-2", "anim": "talk" } ] },
-      "next": "rb-2",
-      "choices": [
-        { "id": "a", "style": "kheo", "text": "Lấy giỏ quà to, có nơ đỏ.", "effects": { "wallet": -15, "harmony": 5 },
-          "reply": "Giỏ quà to thế này, cả họ phải mở trong ba ngày." },
-        { "id": "b", "style": "that-tha", "text": "Vài hộp bánh vừa túi tiền.", "effects": { "wallet": -5 },
-          "reply": "Quà nhỏ mà có lòng là được." },
-        { "id": "c", "style": "lay", "text": "Con về là món quà lớn nhất rồi.", "effects": { "harmony": -3, "stamina": 3, "wallet": -5 },
-          "reply": "Câu này nói với mẹ thì được, nói với Cô Hai thì chưa chắc." }
-      ]
-    },
-    {
-      "id": "rb-2", "stageId": "ra-ben", "characterId": "be-de",
-      "line": "Giờ ra bến bằng gì đây? Đường đông như hội.",
-      "stage3d": { "set": "pho-tet", "camera": "duong",
-        "actors": [ { "characterId": "ban", "spot": "via-he", "anim": "walk" }, { "characterId": "be-de", "spot": "via-he-2" } ] },
-      "next": null,
-      "choices": [
-        { "id": "a", "style": "that-tha", "text": "Xe buýt cho rẻ.", "effects": { "wallet": -1, "stamina": -10 },
-          "reply": "Đứng ép giữa xe, vali kẹp giữa hai chân. Nhưng rẻ." },
-        { "id": "b", "style": "kheo", "text": "Gọi xe ôm công nghệ.", "effects": { "wallet": -5, "stamina": -6 },
-          "reply": "Xe tới nhanh. Kẹt xe thì không nhanh bằng.", "next": "rb-shipper" },
-        { "id": "c", "style": "lay", "text": "Nhờ bạn thân chở.", "effects": { "harmony": 3, "stamina": -5, "wallet": -5 },
-          "reply": "Bạn chở luôn cả giỏ quà. Giỏ quà bị bẹp một góc, tình bạn thì không." }
-      ]
-    },
-    {
-      "id": "rb-shipper", "stageId": "ra-ben", "kind": "cutscene", "characterId": "anh-shipper",
-      "line": "Em ơi, Tết của anh bắt đầu sau đơn cuối cùng. Mà đơn cuối thì chưa bao giờ tới.",
-      "lines": [
-        { "characterId": "be-de", "text": "Đèn đỏ 90 giây. Cả thành phố đứng chung một chỗ." }
-      ],
-      "stage3d": { "set": "pho-tet", "camera": "den-do",
-        "actors": [ { "characterId": "anh-shipper", "spot": "den-do", "anim": "talk" }, { "characterId": "ban", "spot": "via-he" } ] },
-      "next": null,
-      "choices": []
-    },
-    {
-      "id": "dv-den-lang", "stageId": "duong-ve", "kind": "cutscene", "characterId": "be-de",
-      "line": "Trời chập tối. Nhà đây rồi.",
-      "lineByRegion": {
-        "ha-noi": "Trời chập tối. Cổng làng hiện ra sau lũy tre.",
-        "da-nang": "Trời chập tối. Con đường cát dẫn về xóm.",
-        "sai-gon": "Trời chập tối. Qua cây cầu gỗ là tới nhà."
-      },
-      "lines": [
-        { "characterId": "vang", "text": "Gâu! Gâu!... (nhận ra chủ, vẫy đuôi lia lịa)" },
-        { "characterId": "be-de", "text": "Chặng khó nhất đã xong. Đùa đấy, chặng khó nhất ở trong nhà." }
-      ],
-      "stage3d": { "set": "san-nha", "camera": "cong",
-        "actors": [ { "characterId": "ban", "spot": "ngoai-cong", "anim": "walk" }, { "characterId": "vang", "spot": "cong", "anim": "dance" } ] },
-      "next": null,
-      "choices": []
-    },
-    {
-      "id": "bvn-1-dl", "stageId": "buoc-vao-nha", "characterId": "co-hai", "personas": ["moi-di-lam"],
+      "id": "bvn-1-dl", "characterId": "co-hai", "personas": ["moi-di-lam"],
       "line": "Về rồi đấy à? Ngồi đây cô hỏi cái, giờ lương tháng bao nhiêu rồi?",
       "lineByRegion": {
         "da-nang": "Về rồi đó hả con? Ngồi xuống đây, răng rồi, lương tháng nhiêu rồi?",
         "sai-gon": "Về rồi hả con? Ngồi đây cô hỏi nè, giờ lương tháng nhiêu rồi?"
       },
-      "stage3d": { "set": "san-nha",
-        "actors": [ { "characterId": "co-hai", "spot": "ghe-1", "anim": "talk" }, { "characterId": "bac-ca", "spot": "ghe-2" },
-          { "characterId": "ba-tam", "spot": "ghe-3" }, { "characterId": "ban", "spot": "nguoi-choi" }, { "characterId": "vang", "spot": "goc-san" } ] },
-      "next": "bvn-1-dt",
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ cũng đủ sống cô ạ. Mà cô dạo này khỏe không?", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Cô khỏe! Mà con ốm đi hay sao ấy...", "tipId": "T03" },
@@ -147,16 +77,12 @@
       ]
     },
     {
-      "id": "bvn-1-dt", "stageId": "buoc-vao-nha", "characterId": "co-hai", "personas": ["doc-than-27"],
+      "id": "bvn-1-dt", "characterId": "co-hai", "personas": ["doc-than-27"],
       "line": "Lương cao rồi mà sao chưa chịu lập gia đình hả con?",
       "lineByRegion": {
         "da-nang": "Lương cao rồi mà răng chưa chịu lập gia đình rứa con?",
         "sai-gon": "Lương cao rồi mà sao hông chịu lập gia đình vậy con?"
       },
-      "stage3d": { "set": "san-nha",
-        "actors": [ { "characterId": "co-hai", "spot": "ghe-1", "anim": "talk" }, { "characterId": "bac-ca", "spot": "ghe-2" },
-          { "characterId": "ba-tam", "spot": "ghe-3" }, { "characterId": "ban", "spot": "nguoi-choi" }, { "characterId": "vang", "spot": "goc-san" } ] },
-      "next": "bvn-1-sv",
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ duyên chưa tới cô ạ. Mà cô dạo này khỏe không?", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Khỏe, khỏe. Duyên thì phải đi tìm chứ ai mang tới tận nhà.", "tipId": "T03" },
@@ -169,16 +95,12 @@
       ]
     },
     {
-      "id": "bvn-1-sv", "stageId": "buoc-vao-nha", "characterId": "co-hai", "personas": ["sinh-vien"],
+      "id": "bvn-1-sv", "characterId": "co-hai", "personas": ["sinh-vien"],
       "line": "Năm cuối rồi hả? Ra trường làm gì? Có xin vào nhà nước được không?",
       "lineByRegion": {
         "da-nang": "Năm cuối rồi hả? Ra trường làm chi? Có xin vô nhà nước được không?",
         "sai-gon": "Năm cuối rồi hả? Ra trường làm gì? Có xin vô nhà nước được hông?"
       },
-      "stage3d": { "set": "san-nha",
-        "actors": [ { "characterId": "co-hai", "spot": "ghe-1", "anim": "talk" }, { "characterId": "bac-ca", "spot": "ghe-2" },
-          { "characterId": "ba-tam", "spot": "ghe-3" }, { "characterId": "ban", "spot": "nguoi-choi" }, { "characterId": "vang", "spot": "goc-san" } ] },
-      "next": "bvn-2",
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ con đang thực tập, có kế hoạch rồi cô ạ.", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Thực tập có lương không con?", "tipId": "T03" },
@@ -189,17 +111,13 @@
       ]
     },
     {
-      "id": "bvn-2", "stageId": "buoc-vao-nha", "characterId": "bac-ca",
+      "id": "bvn-2", "characterId": "bac-ca",
       "line": "Ơ, dạo này trông khác thế? Béo ra hay gầy đi đấy?",
       "lineByRegion": {
         "da-nang": "Ủa, răng dạo ni trông khác rứa? Béo ra hay ốm đi?",
         "sai-gon": "Ủa, sao dạo này trông khác vậy? Mập ra hay ốm đi đó?"
       },
       "lines": [ { "characterId": "be-de", "text": "Chuyện cân nặng của người khác thì không phải chủ đề Tết." } ],
-      "stage3d": { "set": "san-nha",
-        "actors": [ { "characterId": "co-hai", "spot": "ghe-1" }, { "characterId": "bac-ca", "spot": "ghe-2", "anim": "talk" },
-          { "characterId": "ba-tam", "spot": "ghe-3" }, { "characterId": "ban", "spot": "nguoi-choi" }, { "characterId": "be-de", "spot": "be-de" } ] },
-      "next": "bvn-3",
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ tại Tết sắp tới nên con tích trữ ạ.", "effects": { "harmony": 3, "stamina": -6 },
           "reply": "Ha ha, tích trữ thì ăn bánh chưng cho đúng bài." },
@@ -210,12 +128,8 @@
       ]
     },
     {
-      "id": "bvn-3", "stageId": "buoc-vao-nha", "characterId": "ba-tam",
+      "id": "bvn-3", "characterId": "ba-tam",
       "line": "Cả nhà ơi, cháu về rồi nè! Bà gửi lên nhóm chat gia đình liền nha.",
-      "stage3d": { "set": "san-nha",
-        "actors": [ { "characterId": "co-hai", "spot": "ghe-1" }, { "characterId": "bac-ca", "spot": "ghe-2" },
-          { "characterId": "ba-tam", "spot": "ghe-3", "anim": "talk" }, { "characterId": "ban", "spot": "nguoi-choi" }, { "characterId": "vang", "spot": "goc-san" } ] },
-      "next": "bvn-4",
       "choices": [
         { "id": "a", "style": "kheo", "text": "Tạo dáng, vẫy tay chào cả nhóm.", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Đẹp! 47 người thả tim rồi nè." },
@@ -226,194 +140,30 @@
       ]
     },
     {
-      "id": "bvn-4", "stageId": "buoc-vao-nha", "characterId": "co-hai", "personas": ["doc-than-27"],
-      "line": "Mùng 2 qua nhà cô, gặp thử đứa này nhé. Gặp thôi chứ có bắt cưới đâu.",
-      "lineByRegion": {
-        "da-nang": "Mùng 2 qua nhà cô, gặp thử đứa ni nghe. Gặp thôi chớ có bắt cưới mô.",
-        "sai-gon": "Mùng 2 qua nhà cô, gặp thử đứa này nghen. Gặp thôi chứ có bắt cưới đâu."
-      },
-      "stage3d": { "set": "san-nha",
-        "actors": [ { "characterId": "co-hai", "spot": "ghe-1", "anim": "talk" }, { "characterId": "bac-ca", "spot": "ghe-2" },
-          { "characterId": "ba-tam", "spot": "ghe-3" }, { "characterId": "ban", "spot": "nguoi-choi" } ] },
-      "next": null,
-      "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ để con xem lịch ạ.", "effects": { "harmony": 3 }, "setFlags": ["xem-mat"],
-          "reply": "Cô xem lịch giùm con rồi. Mùng 2, 9 giờ sáng." },
-        { "id": "b", "style": "that-tha", "text": "Dạ con xin phép không đi ạ.", "effects": { "harmony": -5, "stamina": 5 },
-          "reply": "Ừ, thôi, để năm sau." },
-        { "id": "c", "style": "lay", "text": "Cô mai mối giỏi vậy sao cô không mở công ty?", "effects": { "harmony": 3, "stamina": 3, "wallet": -5 },
-          "reply": "Mở rồi đó, con là khách hàng đầu tiên." }
-      ]
-    },
-    {
-      "id": "mc-intro", "stageId": "mam-com", "kind": "cutscene", "characterId": "be-de",
-      "line": "29 tháng Chạp. Mâm cơm tất niên đã dọn. Cả họ đã vào vị trí.",
-      "lines": [
-        { "characterId": "ong", "text": "Thắp hương xong rồi, cả nhà ngồi vào ăn đi cho nóng." },
-        { "characterId": "be-de", "text": "Bắt đầu nhé. Mỗi người một chuyên mục." }
-      ],
-      "stage3d": { "set": "nha-tren", "camera": "toan-canh",
-        "actors": [ { "characterId": "ban", "spot": "ghe-0" }, { "characterId": "co-hai", "spot": "ghe-1" }, { "characterId": "bac-ca", "spot": "ghe-2" },
-          { "characterId": "ong", "spot": "ghe-3", "anim": "talk" }, { "characterId": "duy-den-cay", "spot": "ghe-4" }, { "characterId": "chu-ba", "spot": "ghe-5" },
-          { "characterId": "bin", "spot": "ghe-6" }, { "characterId": "be-de", "spot": "be-de", "anim": "wave" } ] },
-      "next": "mc-1",
-      "choices": []
-    },
-    {
-      "id": "mc-1", "stageId": "mam-com", "characterId": "duy-den-cay",
-      "line": "Miếng bánh chưng này có vị... của sự đoàn viên chưa chín. Còn con thấy sao?",
-      "lineByRegion": {
-        "da-nang": "Miếng bánh tét này có vị... của sự đoàn viên chưa chín. Còn con thấy răng?",
-        "sai-gon": "Miếng bánh tét này có vị... của sự đoàn viên chưa chín. Còn con thấy sao?"
-      },
-      "stage3d": { "set": "nha-tren",
-        "actors": [ { "characterId": "ban", "spot": "ghe-0" }, { "characterId": "co-hai", "spot": "ghe-1" }, { "characterId": "bac-ca", "spot": "ghe-2" },
-          { "characterId": "ong", "spot": "ghe-3" }, { "characterId": "duy-den-cay", "spot": "ghe-4", "anim": "talk" }, { "characterId": "chu-ba", "spot": "ghe-5" },
-          { "characterId": "bin", "spot": "ghe-6" } ] },
-      "next": "mc-2",
-      "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ con xin ăn thêm miếng nữa cho chắc ạ.", "effects": { "harmony": 8, "stamina": -6 },
-          "reply": "Có tâm! Chú thơ chậm một câu tặng con." },
-        { "id": "b", "style": "that-tha", "text": "Dạ con thấy hơi sống thật.", "effects": { "harmony": -5, "stamina": 5 },
-          "reply": "Thật thà là một đức tính... dễ bị mời xuống bếp." },
-        { "id": "c", "style": "lay", "text": "Chú review thêm món giò đi, con nghe mà đói.",
-          "textByRegion": { "da-nang": "Chú review thêm món nem chua đi, con nghe mà đói.", "sai-gon": "Chú review thêm nồi thịt kho đi, con nghe mà đói." },
-          "effects": { "harmony": 5, "stamina": 3, "wallet": -5 },
-          "reply": "Được! Thơ chậm nhé: \"Mâm cơm khói tỏa lưng chừng / Miếng giò chưa cắn đã mừng đoàn viên.\"",
-          "replyByRegion": {
-            "da-nang": "Được! Thơ chậm nhé: \"Mâm cơm khói tỏa lưng chừng / Miếng nem chưa cắn đã mừng đoàn viên.\"",
-            "sai-gon": "Được! Thơ chậm nhé: \"Nồi kho khói tỏa lưng chừng / Hột vịt chưa cắn đã mừng đoàn viên.\""
-          } }
-      ]
-    },
-    {
-      "id": "mc-2", "stageId": "mam-com", "characterId": "bac-ca", "personas": ["moi-di-lam", "doc-than-27"],
-      "line": "Con Ngân nhà bác Tư đi làm hai năm đã mua nhà rồi đấy.",
-      "lineByRegion": {
-        "da-nang": "Con Ngân nhà bác Tư đi làm hai năm đã mua nhà rồi đó.",
-        "sai-gon": "Con Ngân nhà bác Tư đi làm hai năm mua nhà rồi đó nghen."
-      },
-      "stage3d": { "set": "nha-tren",
-        "actors": [ { "characterId": "ban", "spot": "ghe-0" }, { "characterId": "co-hai", "spot": "ghe-1" }, { "characterId": "bac-ca", "spot": "ghe-2", "anim": "talk" },
-          { "characterId": "ong", "spot": "ghe-3" }, { "characterId": "duy-den-cay", "spot": "ghe-4" }, { "characterId": "chu-ba", "spot": "ghe-5" },
-          { "characterId": "bin", "spot": "ghe-6" } ] },
-      "next": "mc-2-sv",
-      "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ giỏi quá, để con xin bí quyết bạn ấy ạ.", "effects": { "harmony": 5, "stamina": -8 },
-          "reply": "Bí quyết là tiết kiệm. Bớt cà phê đi." },
-        { "id": "b", "style": "that-tha", "text": "Dạ mỗi người một hoàn cảnh bác ạ.", "effects": { "harmony": -3, "stamina": 5 },
-          "reply": "Ừ thì... hoàn cảnh." },
-        { "id": "c", "style": "lay", "text": "Dạ con mua được nhà rồi, trong game ạ.", "effects": { "harmony": 3, "stamina": 5, "wallet": -5 },
-          "reply": "Nhà trong game thì bác cũng có, ba căn!" },
-        { "id": "d", "style": "phan-don", "text": "Bác ơi, thế bác Tư có hỏi nhà bác chưa?", "effects": { "harmony": -12, "stamina": 8 },
-          "reply": "... (Bác Cả gắp miếng giò rất chậm)" }
-      ]
-    },
-    {
-      "id": "mc-2-sv", "stageId": "mam-com", "characterId": "bac-ca", "personas": ["sinh-vien"],
-      "line": "Con Ngân nhà bác Tư chưa ra trường đã có công ty nhận rồi đấy.",
-      "lineByRegion": {
-        "da-nang": "Con Ngân nhà bác Tư chưa ra trường đã có công ty nhận rồi đó.",
-        "sai-gon": "Con Ngân nhà bác Tư chưa ra trường đã có công ty nhận rồi đó nghen."
-      },
-      "stage3d": { "set": "nha-tren",
-        "actors": [ { "characterId": "ban", "spot": "ghe-0" }, { "characterId": "co-hai", "spot": "ghe-1" }, { "characterId": "bac-ca", "spot": "ghe-2", "anim": "talk" },
-          { "characterId": "ong", "spot": "ghe-3" }, { "characterId": "duy-den-cay", "spot": "ghe-4" }, { "characterId": "chu-ba", "spot": "ghe-5" },
-          { "characterId": "bin", "spot": "ghe-6" } ] },
-      "next": "mc-3",
-      "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ giỏi quá, để con hỏi kinh nghiệm bạn ấy ạ.", "effects": { "harmony": 5, "stamina": -8 },
-          "reply": "Ừ, hỏi đi, đừng ngại." },
-        { "id": "b", "style": "that-tha", "text": "Dạ con cũng đang nộp hồ sơ ạ.", "effects": { "harmony": 2, "stamina": 3 },
-          "reply": "Nộp nhiều vào, chỗ này không được thì chỗ khác." },
-        { "id": "c", "style": "lay", "text": "Dạ con có công ty nhận rồi, công ty gia đình mình ạ.", "effects": { "harmony": 3, "stamina": 5, "wallet": -5 },
-          "reply": "Công ty gia đình mình thì lương trả bằng bánh chưng!" }
-      ]
-    },
-    {
-      "id": "mc-3", "stageId": "mam-com", "characterId": "chu-ba",
-      "line": "Một ly thôi, Tết mà! Không uống là không nể chú đâu nhé.",
-      "lineByRegion": {
-        "da-nang": "Một ly thôi, Tết mà! Không uống là không nể chú nghe.",
-        "sai-gon": "Một ly thôi, Tết mà! Hông uống là hông nể chú nghen."
-      },
-      "stage3d": { "set": "nha-tren",
-        "actors": [ { "characterId": "ban", "spot": "ghe-0" }, { "characterId": "co-hai", "spot": "ghe-1" }, { "characterId": "bac-ca", "spot": "ghe-2" },
-          { "characterId": "ong", "spot": "ghe-3" }, { "characterId": "duy-den-cay", "spot": "ghe-4" }, { "characterId": "chu-ba", "spot": "ghe-5", "anim": "talk" },
-          { "characterId": "bin", "spot": "ghe-6" } ] },
-      "next": "mc-4",
-      "choices": [
-        { "id": "a", "style": "kheo", "text": "Con xin phép, mai con còn chở bà đi chùa ạ.", "effects": { "harmony": 3 },
-          "reply": "Ừ, chở bà thì thôi. Đúng rồi, đã uống thì không lái.", "tipId": "T05" },
-        { "id": "b", "style": "that-tha", "text": "Con không uống được chú ạ.", "effects": { "harmony": -3, "stamina": 3 },
-          "reply": "Không uống được thì ăn bù vậy." },
-        { "id": "c", "style": "lay", "text": "Rót nước chè, nâng ly: \"Trăm phần trăm!\"", "effects": { "harmony": 5, "wallet": -5 },
-          "reply": "Ha! Nước chè cũng là ly. Dzô!" }
-      ]
-    },
-    {
-      "id": "mc-4", "stageId": "mam-com", "characterId": "be-de",
-      "line": "Cả mâm hỏi cùng lúc: lương, người yêu, nhà, cân nặng, bao giờ có cháu. Chọn chiến thuật đi!",
-      "stage3d": { "set": "nha-tren", "camera": "combo",
-        "actors": [ { "characterId": "ban", "spot": "ghe-0" }, { "characterId": "co-hai", "spot": "ghe-1", "anim": "talk" }, { "characterId": "bac-ca", "spot": "ghe-2", "anim": "talk" },
-          { "characterId": "ong", "spot": "ghe-3" }, { "characterId": "duy-den-cay", "spot": "ghe-4", "anim": "talk" }, { "characterId": "chu-ba", "spot": "ghe-5", "anim": "talk" },
-          { "characterId": "bin", "spot": "ghe-6", "anim": "dance" } ] },
-      "next": "mc-ket",
-      "choices": [
-        { "id": "a", "style": "kheo", "text": "Gắp thức ăn mời từng người.", "effects": { "harmony": 10, "stamina": -18 },
-          "reply": "Mỗi lần gắp, một câu hỏi vỡ tan. Tay bạn mỏi nhừ." },
-        { "id": "b", "style": "that-tha", "text": "Đứng dậy trả lời một lần cho cả nhà.", "effects": { "harmony": -5, "stamina": 10 },
-          "reply": "Cả nhà im lặng nghe hết. Rồi Cô Hai hỏi lại câu đầu tiên." },
-        { "id": "c", "style": "lay", "text": "Hỏi ông chuyện Tết ngày xưa.", "effects": { "harmony": 8, "wallet": -5 },
-          "reply": "Ông kể chuyện Tết năm ông mười tuổi. Cả mâm quên hết câu hỏi.", "tipId": "T03" },
-        { "id": "d", "style": "phan-don", "text": "Hỏi ngược lương các bác.", "effects": { "harmony": -15, "stamina": 10 },
-          "reply": "Bin quay TikTok cảnh này. Video đã có 3 lượt xem, cả 3 là người trong họ." }
-      ]
-    },
-    {
-      "id": "mc-ket", "stageId": "mam-com", "kind": "cutscene", "characterId": "be-de",
-      "line": "Mâm cơm đã dọn. Bạn vẫn còn sống.",
-      "lines": [
-        { "characterId": "ong", "text": "Năm nay đông đủ, ông vui." },
-        { "characterId": "be-de", "text": "Bản thử dừng ở đây. Giao thừa, mùng 1 và đường về phố sẽ có ở bản sau." }
-      ],
-      "stage3d": { "set": "nha-tren", "camera": "toan-canh",
-        "actors": [ { "characterId": "ban", "spot": "ghe-0" }, { "characterId": "co-hai", "spot": "ghe-1" }, { "characterId": "bac-ca", "spot": "ghe-2" },
-          { "characterId": "ong", "spot": "ghe-3", "anim": "talk" }, { "characterId": "duy-den-cay", "spot": "ghe-4" }, { "characterId": "chu-ba", "spot": "ghe-5" },
-          { "characterId": "bin", "spot": "ghe-6" }, { "characterId": "be-de", "spot": "be-de", "anim": "wave" } ] },
-      "next": null,
-      "choices": []
-    },
-    {
-      "id": "roam-bin", "stageId": "buoc-vao-nha", "roamOnly": true, "characterId": "bin",
+      "id": "roam-bin", "characterId": "bin",
       "line": "Anh/chị ơi, lì xì em đi! Em hứa năm sau em ngoan.",
       "lineByRegion": {
         "da-nang": "Anh/chị ơi, lì xì em đi! Em hứa năm sau em ngoan mà.",
         "sai-gon": "Anh/chị ơi, lì xì em đi nghen! Em hứa năm sau em ngoan."
       },
-      "stage3d": { "set": "san-nha",
-        "actors": [ { "characterId": "bin", "spot": "goc-san", "anim": "talk" } ] },
-      "next": null,
       "choices": [
         { "id": "a", "style": "kheo", "text": "Đây, mừng tuổi em, mua kẹo nha.", "effects": { "wallet": -5, "harmony": 5 },
           "reply": "Yeah! Em sẽ quay clip cảm ơn anh/chị đăng lên nhóm chat!" },
         { "id": "b", "style": "that-tha", "text": "Anh/chị cũng đang nghèo, để năm sau nhé.", "effects": { "harmony": -3, "stamina": 3 },
           "reply": "Hứ. Em ghi sổ rồi, năm sau tính cả lãi." },
-        { "id": "c", "style": "lay", "text": "Em quét mã anh/chị đi, anh/chị trả lương cho em luôn.", "effects": { "harmony": 3, "stamina": 3 },
+        { "id": "c", "style": "lay", "text": "Em quét mã anh/chị đi, anh/chị trả lương cho em luôn.", "effects": { "harmony": 3, "stamina": 3, "wallet": -5 },
           "reply": "Em làm thì được, nhưng giá cao lắm đó!" }
       ]
     },
     {
-      "id": "roam-ut-sv", "stageId": "buoc-vao-nha", "roamOnly": true, "characterId": "di-ut", "personas": ["sinh-vien"],
+      "id": "roam-ut-sv", "characterId": "di-ut", "personas": ["sinh-vien"],
       "line": "Con ơi, sắp ra trường rồi, định làm gì chưa? Dì hỏi trước kẻo quên.",
       "lineByRegion": {
         "da-nang": "Con ơi, sắp ra trường rồi, định làm chi chưa? Dì hỏi trước kẻo quên.",
         "sai-gon": "Con ơi, sắp ra trường rồi, định làm gì chưa nghen? Dì hỏi trước kẻo quên."
       },
-      "stage3d": { "set": "san-nha", "actors": [ { "characterId": "di-ut", "spot": "cuoi-san", "anim": "talk" } ] },
-      "next": null,
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ con đang tìm hiểu, dì có chỗ nào giới thiệu cho con không ạ?", "effects": { "harmony": 5, "stamina": -5 },
+        { "id": "a", "style": "kheo", "text": "Dạ con đang tìm hiểu, dì có chỗ nào giới thiệu cho con không ạ?", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Để dì hỏi giùm. Mà ăn thêm đi con, việc gì cũng cần có sức.", "tipId": "T03" },
         { "id": "b", "style": "that-tha", "text": "Dạ con chưa biết dì ạ, con cũng đang lo.", "effects": { "harmony": 2, "stamina": 3 },
           "reply": "Chưa biết thì nghĩ nhanh nhanh, dì đợi tin vui." },
@@ -422,16 +172,14 @@
       ]
     },
     {
-      "id": "roam-ut-dl", "stageId": "buoc-vao-nha", "roamOnly": true, "characterId": "di-ut", "personas": ["moi-di-lam"],
+      "id": "roam-ut-dl", "characterId": "di-ut", "personas": ["moi-di-lam"],
       "line": "Lương tháng bao nhiêu rồi con? Dì hỏi để về còn khoe với bà Sáu.",
       "lineByRegion": {
         "da-nang": "Lương tháng nhiêu rồi con? Dì hỏi để về còn khoe với bà Sáu.",
         "sai-gon": "Lương tháng bao nhiêu rồi con? Dì hỏi để về còn khoe với bà Sáu nghen."
       },
-      "stage3d": { "set": "san-nha", "actors": [ { "characterId": "di-ut", "spot": "cuoi-san", "anim": "talk" } ] },
-      "next": null,
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ đủ sống thôi dì, mà dì dạo này có khỏe không ạ?", "effects": { "harmony": 5, "stamina": -5 },
+        { "id": "a", "style": "kheo", "text": "Dạ đủ sống thôi dì, mà dì dạo này có khỏe không ạ?", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Dì khỏe! Mà con trả lời không đúng câu hỏi nha.", "tipId": "T03" },
         { "id": "b", "style": "that-tha", "text": "Dạ con chưa muốn nói con số ạ.", "effects": { "harmony": -5, "stamina": 5 },
           "reply": "Thôi, dì đoán là cao lắm nên con ngại." },
@@ -441,16 +189,14 @@
       ]
     },
     {
-      "id": "roam-ut-dt", "stageId": "buoc-vao-nha", "roamOnly": true, "characterId": "di-ut", "personas": ["doc-than-27"],
+      "id": "roam-ut-dt", "characterId": "di-ut", "personas": ["doc-than-27"],
       "line": "Bao giờ cưới để dì còn xếp lịch? Dì có mối này tốt lắm, con nhà bà Sáu.",
       "lineByRegion": {
         "da-nang": "Bao giờ cưới để dì còn xếp lịch? Dì có mối ni tốt lắm, con nhà bà Sáu.",
         "sai-gon": "Bao giờ cưới để dì còn xếp lịch nghen? Dì có mối này tốt lắm, con nhà bà Sáu."
       },
-      "stage3d": { "set": "san-nha", "actors": [ { "characterId": "di-ut", "spot": "cuoi-san", "anim": "talk" } ] },
-      "next": null,
       "choices": [
-        { "id": "a", "style": "kheo", "text": "Dạ khi nào có duyên con báo dì đầu tiên ạ.", "effects": { "harmony": 5, "stamina": -5 },
+        { "id": "a", "style": "kheo", "text": "Dạ khi nào có duyên con báo dì đầu tiên ạ.", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Nhớ đó, dì giữ chỗ trong sổ rồi.",
           "replyByRegion": { "sai-gon": "Nhớ đó nghen, dì giữ chỗ trong sổ rồi.", "da-nang": "Nhớ đó nghe, dì giữ chỗ trong sổ rồi." } },
         { "id": "b", "style": "that-tha", "text": "Dạ con chưa có kế hoạch, mong dì đừng giới thiệu ạ.", "effects": { "harmony": -5, "stamina": 5 },
@@ -475,19 +221,17 @@
       "when": { "stamina": { "max": 0 } } },
     { "id": "E3", "title": "Cháy ví giữa đường", "description": "Bé Dê cho bạn mượn tiền vé. Lãi suất: một nụ cười.",
       "when": { "wallet": { "max": 0 } } },
-    { "id": "E5", "title": "Có hẹn mùng 2", "description": "Cô Hai đã đặt lịch giúp bạn. Bạn chưa đồng ý, nhưng lịch thì đã đặt.",
-      "flags": ["xem-mat"] },
+    { "id": "E8", "title": "Chiến thần né câu hỏi", "description": "Không câu nào chạm được bạn.",
+      "flags": ["dodged:5"] },
     { "id": "E6", "title": "Ví rỗng tim đầy", "description": "Ví mỏng nhưng cả nhà ôm bạn thật chặt.",
       "when": { "wallet": { "max": 20 }, "harmony": { "min": 60 } } },
     { "id": "E7", "title": "Cháu ngoan quốc dân", "description": "Cả họ khen, riêng bạn thì cần ngủ ba ngày.",
       "when": { "harmony": { "min": 70 } } },
-    { "id": "E8", "title": "Chiến thần né câu hỏi", "description": "Không câu nào chạm được bạn.",
-      "when": { "stamina": { "min": 75 } } },
     { "id": "E9", "title": "Về quê sống sót", "description": "Không hoàn hảo, nhưng bạn đã về. Dù sao vẫn phải về nhà." }
   ],
   "maps": [
     {
-      "id": "san-nha", "setId": "san-nha", "playerId": "ban",
+      "id": "san-nha", "setId": "san-nha", "playerId": "ban", "goalQuestId": "qua-san-nha",
       "npcs": [
         { "characterId": "co-hai", "spot": "ghe-1", "behavior": "stand", "aware": 0, "prompt": "Nói chuyện",
           "action": { "kind": "talk", "sceneIds": ["bvn-1-dl", "bvn-1-dt", "bvn-1-sv"], "after": "Ăn miếng bánh đi con, đứng đó làm gì." } },

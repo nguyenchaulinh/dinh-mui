@@ -17,7 +17,7 @@ export type ByRegion = Partial<Record<string, string>>;
 /**
  * Điều kiện hiển thị. Mọi trường có mặt đều phải thỏa (AND).
  * - flags: phải có đủ các cờ; notFlags: không được có cờ nào.
- * - personas / regions: khớp ít nhất một.
+ * - personas / regions: khớp ít nhất một (regions so với vùng của lượt chơi).
  * - history: phải từng chọn đủ các lựa chọn dạng "sceneId/choiceId".
  */
 export interface Condition {
@@ -92,8 +92,6 @@ export interface Choice {
   replyByRegion?: ByRegion;
   /** Thẻ "mẹo thật" hiện sau lựa chọn này. */
   tipId?: string;
-  /** Ghi đè scene kế tiếp; mặc định theo `Scene.next`. */
-  next?: string | null;
   /** Cờ bật lên khi chọn (dùng để rẽ nhánh về sau). */
   setFlags?: string[];
   /** Kết thúc game ngay sau lựa chọn này. */
@@ -111,53 +109,34 @@ export interface Line {
   if?: Condition;
 }
 
-/** Diễn viên trong cảnh 3D: đứng ở vị trí `spot` của set, làm động tác `anim`. */
-export interface Actor {
-  characterId: string;
-  spot: string;
-  anim?: 'idle' | 'talk' | 'wave' | 'dance' | 'sit' | 'walk' | 'cry';
-}
-
-/** Chỉ đạo cảnh 3D, khai báo trong dữ liệu để khỏi viết code riêng cho từng đoạn. */
-export interface Stage3D {
-  /** Id bộ cảnh (xem `src/scene3d/registry.ts`). */
-  set: string;
-  /** Góc máy dựng sẵn của set; thiếu thì camera tự hướng vào người nói. */
-  camera?: string;
-  actors?: Actor[];
-}
-
+/**
+ * Một cuộc hội thoại có lựa chọn. Không đứng một mình: scene chỉ chơi được khi một NPC trong bản đồ
+ * (`MapNpc.action.sceneIds` hoặc `shoots.hitSceneIds`) gọi tới nó; validate bắt scene mồ côi.
+ */
 export interface Scene {
   id: string;
-  stageId: string;
-  /** 'dialog' (mặc định): có lựa chọn. 'cutscene': chỉ có thoại + nút Tiếp. */
-  kind?: 'dialog' | 'cutscene';
-  /** Cách trình bày lựa chọn: hội thoại thường, feed điện thoại, chia lì xì. */
-  ui?: 'dialog' | 'feed' | 'lixi';
   characterId: string;
   line: string;
   lineByRegion?: ByRegion;
-  /** Thoại cắt cảnh (sau `line`), lọc theo điều kiện. */
+  /** Thoại phụ hiện kèm `line` (ví dụ Bé Dê chen vào), lọc theo điều kiện. */
   lines?: Line[];
   choices: Choice[];
-  /** null/undefined = hết chặng, sang chặng kế. */
-  next?: string | null;
   /** Nếu có, chỉ hiện với các persona này. */
   personas?: string[];
   /** Nếu có, chỉ hiện khi người chơi chọn ít nhất một vùng trong danh sách. */
   regions?: string[];
   /** Điều kiện bổ sung (cờ, lịch sử...). */
   if?: Condition;
-  stage3d?: Stage3D;
-  /** Chỉ mở bằng cách nói chuyện với NPC trong chế độ đi lại; không nằm trên luồng chính (bỏ qua khi kiểm tra "tới được"). */
-  roamOnly?: boolean;
 }
 
+/** Một chặng của hành trình = một bản đồ đi lại được. Thứ tự chặng = thứ tự mảng `Content.stages`. */
 export interface Stage {
   id: string;
   title: string;
+  /** Câu mở đầu hiện trên thẻ chặng trước khi vào bản đồ. */
   intro: string;
-  firstSceneId: string;
+  /** Bản đồ đi lại của chặng này (`Content.maps`). */
+  mapId: string;
 }
 
 export interface Tip {
@@ -252,37 +231,36 @@ export interface RoamMap {
   playerId: string;
   npcs: MapNpc[];
   quests: Quest[];
+  /** Nhiệm vụ cuối của bản đồ: hoàn thành thì chặng này xong (chặng cuối thì game kết thúc). */
+  goalQuestId: string;
 }
 
 export interface Content {
   version: number;
   regions: Region[];
   personas: Persona[];
-  /** Thứ tự chặng = thứ tự mảng. */
+  /** Thứ tự chặng = thứ tự mảng; mỗi chặng trỏ tới một bản đồ. */
   stages: Stage[];
   characters: Character[];
   scenes: Scene[];
   tips: Tip[];
   /** Duyệt từ trên xuống, cái đầu tiên khớp thắng. Cái cuối phải là mặc định. */
   endings: Ending[];
-  /** Bản đồ chế độ đi lại (không bắt buộc: dữ liệu cũ không có). */
-  maps?: RoamMap[];
+  maps: RoamMap[];
 }
 
 export type Stats = Record<StatKey, number>;
 
 export interface GameState {
   personaId: string;
-  /** Các vùng đã chọn (1 hoặc nhiều; chọn nhiều thì mỗi scene lấy một vùng theo `seed`). */
-  regionIds: string[];
-  /** Hạt giống chọn biến thể vùng khi chọn nhiều vùng (không dùng cho bảo mật). */
-  seed: number;
-  sceneId: string | null;
+  /** Vùng (thành phố) của lượt chơi này: quyết định giọng thoại và phong cách cảnh. */
+  regionId: string;
   stats: Stats;
   flags: string[];
   /** Id các thẻ mẹo đã mở, theo thứ tự. */
   tipsSeen: string[];
   /** Các lựa chọn đã chọn, dạng "sceneId/choiceId", theo thứ tự. */
   history: string[];
+  /** Có giá trị khi game đã kết thúc. */
   endingId: string | null;
 }
