@@ -29,6 +29,15 @@ http://localhost:5173/?scene=mc-1&persona=moi-di-lam&region=da-nang
 - `persona`: `sinh-vien`, `moi-di-lam`, `doc-than-27`.
 - `region`: `ha-noi`, `da-nang`, `sai-gon`.
 
+**Chế độ đi lại (bước 1, bản thử):** ở màn chọn vai/vùng bấm "Thử chế độ đi lại", hoặc vào thẳng (chỉ khi chạy dev):
+
+```
+http://localhost:5173/?roam=san-nha&region=ha-noi
+```
+
+- Máy tính: **WASD** hoặc phím mũi tên đi, **Shift** chạy, **kéo chuột** xoay camera, **E** tương tác (chưa có đối tượng).
+- Điện thoại: joystick bên trái, kéo ở bất cứ đâu để xoay camera, nút "Tương tác" bên phải (thêm `&touch` vào URL để thấy joystick trên máy tính).
+
 **Xem toàn bộ nhân vật:** `http://localhost:5173/gallery.html`.
 
 | Lệnh | Việc |
@@ -36,6 +45,7 @@ http://localhost:5173/?scene=mc-1&persona=moi-di-lam&region=da-nang
 | `npm test` | Unit test: engine, validate, và chơi thử toàn bộ nội dung với mọi persona × thành phố |
 | `npm run typecheck` | Kiểm tra type |
 | `npm run build` | Build production ra `dist/` |
+| `npm run perf` | **Đo hiệu năng tự động**: giả lập điện thoại (màn hình, cảm ứng, CPU chậm), chơi thử từng cảnh và chế độ đi lại, in FPS, thời gian khung, draw call. Xem `node scripts/perf.mjs --help`. Kết quả ghi vào `.perf/`. Không thay được máy thật: không giả lập được GPU điện thoại |
 | `npm run preview` | Xem bản build local |
 
 ## Cấu trúc
@@ -44,6 +54,9 @@ http://localhost:5173/?scene=mc-1&persona=moi-di-lam&region=da-nang
 src/engine/types.ts        schema nội dung + state (cờ, điều kiện, biến thể vùng, cắt cảnh, chỉ đạo cảnh 3D)
 src/engine/engine.ts       engine thuần: getView, choose, advance, kết thúc, kill-switch
 src/engine/validate.ts     kiểm tra toàn vẹn nội dung (kể cả set 3D, vị trí đứng, góc máy)
+src/game/                  chế độ đi lại: collision (va chạm), movement (chuyển động), camera (bám góc nhìn thứ ba),
+                           input + RoamControls (bàn phím/joystick), RoamView + RoamScreen (ghép), types (hợp đồng toạ độ)
+src/scene3d/walk.ts        vùng đi lại và vật cản của từng cảnh (khớp hình học trong sets.tsx/props.tsx)
 src/content/v1.json        nội dung thật (đang có chặng Ra bến, Đường về (đến làng), Bước vào nhà, Mâm cơm)
 src/scene3d/registry.ts    danh mục bộ cảnh: vị trí đứng, góc máy (dữ liệu thuần)
 src/scene3d/sets.tsx       dựng 3 bộ cảnh: phố Tết, sân nhà ở quê, nhà trên + mâm cỗ; biến thể theo miền

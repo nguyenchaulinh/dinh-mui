@@ -17,13 +17,11 @@ import {
   type Blossom,
   type Menu,
 } from './props';
-import { SETS } from './registry';
+import { SETS, styleOfRegion } from './registry';
 
-/** Vùng → phong cách miền. Chưa biết vùng thì mặc định miền Bắc. */
+/** Vùng → phong cách miền. Chưa biết vùng thì mặc định miền Bắc (logic dùng chung ở registry.ts). */
 export function styleOf(regionId: string): Menu {
-  if (regionId === 'da-nang') return 'trung';
-  if (regionId === 'sai-gon') return 'nam';
-  return 'bac';
+  return styleOfRegion(regionId);
 }
 
 const BLOSSOM: Record<Menu, Blossom> = { bac: 'dao', trung: 'mai', nam: 'mai' };

@@ -100,3 +100,13 @@ export const SETS: Record<string, SetDef> = {
 };
 
 export const SET_IDS: readonly string[] = Object.keys(SETS);
+
+/** Phong cách miền của một vùng: Bắc, Trung, Nam (quyết định nhà, cổng, hoa, cây trong cảnh). */
+export type RegionStyle = 'bac' | 'trung' | 'nam';
+
+/** Vùng → phong cách miền. Chưa biết vùng thì mặc định miền Bắc. */
+export function styleOfRegion(regionId: string): RegionStyle {
+  if (regionId === 'da-nang') return 'trung';
+  if (regionId === 'sai-gon') return 'nam';
+  return 'bac';
+}
