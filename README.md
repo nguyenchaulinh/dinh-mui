@@ -39,7 +39,7 @@ Thiết kế: [docs/07-thiet-ke-ui-ux.md](docs/07-thiet-ke-ui-ux.md) (giao diệ
 4. **Kết thúc:** xong chặng cuối, hoặc một chỉ số (Hòa khí, Sức chịu đựng, Ví) về 0, hoặc nói với mẹ "năm nay con ở lại" rồi xác nhận, thì ra **danh hiệu Tết**. Né tổng cộng 8 câu để mở "Chiến thần né câu hỏi".
 
 Điều khiển:
-- Máy tính: **WASD** hoặc phím mũi tên đi, **Shift** chạy, **kéo chuột** xoay camera, **E / Space / Enter** tương tác.
+- Máy tính: **WASD** hoặc phím mũi tên đi, **Shift** chạy, **kéo chuột** xoay camera, **E / Space / Enter** tương tác và bấm NÉ, **A / B / C / D** (hoặc 1–4) chọn câu đáp, Enter để Tiếp.
 - Điện thoại: joystick bên trái, kéo ở bất cứ đâu để xoay camera, nút "Tương tác" bên phải (thêm `&touch` vào URL để thấy joystick trên máy tính).
 - Góc trên phải: "Nhiệm vụ" (danh sách việc) và nút tạm dừng.
 

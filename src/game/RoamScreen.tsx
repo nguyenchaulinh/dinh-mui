@@ -39,6 +39,9 @@ const RoamView = lazy(() => import('./RoamView'));
 /** Chờ (ms) sau khi xong nhiệm vụ đích / hết chỉ số để người chơi kịp đọc thông báo trước khi chuyển màn. */
 const FINISH_DELAY_MS = 1800;
 
+/** Bong bóng câu người chơi vừa nói hiện bao lâu (ms) trước khi tự chuyển sang lời NPC đáp. */
+const SAID_MS = 1600;
+
 const OBJ = 'obj:';
 const EV = 'ev:';
 
@@ -298,12 +301,27 @@ export function RoamScreen({
     [setAction],
   );
 
-  /** Đóng khung thoại; nếu đang ngồi ở máy tính thì đứng dậy. */
+  /** Tiếp: đang ở bước "câu bạn vừa nói" thì sang bước NPC đáp; không thì đóng (đang ngồi ở máy tính thì đứng dậy). */
   const closeTalk = useCallback(() => {
+    const cur = talkRef.current;
+    if (cur?.kind === 'reply' && cur.showSaid) {
+      setTalk({ ...cur, showSaid: false });
+      return;
+    }
     setTalk(null);
     const a = actionRef.current;
     if (a?.kind === 'sit' && !a.standUp) setAction({ ...a, standUp: true });
   }, [setTalk, setAction]);
+
+  // Câu bạn vừa nói tự chuyển sang lời NPC đáp sau một nhịp đọc (bấm Tiếp để sang ngay).
+  useEffect(() => {
+    if (talk?.kind !== 'reply' || !talk.showSaid) return;
+    const t = window.setTimeout(() => {
+      const cur = talkRef.current;
+      if (cur?.kind === 'reply' && cur.showSaid) setTalk({ ...cur, showSaid: false });
+    }, SAID_MS);
+    return () => window.clearTimeout(t);
+  }, [talk, setTalk]);
 
   const onObject = useCallback(
     (key: string) => {
@@ -411,6 +429,8 @@ export function RoamScreen({
         reply: r.reply,
         tip: r.tip,
         feed,
+        // Bước đầu: câu bạn vừa nói hiện trên đầu bạn (feed thì đi thẳng vào kết quả).
+        showSaid: !feed && (picked?.text ?? '') !== '',
       });
     },
     [content, map, commit, objOf, markDone, setTalk],
@@ -500,6 +520,7 @@ export function RoamScreen({
     qte && { key: qte.key, name: qte.name, text: qte.text, speaker: resolveCharacter(content, qte.key) },
     onMap,
     accentOf,
+    game.playerName,
   );
   const actionLabel = qte ? 'NÉ!' : nearNpc ? nearNpc.prompt : nearObj ? nearObj.prompt : 'Tương tác';
 
