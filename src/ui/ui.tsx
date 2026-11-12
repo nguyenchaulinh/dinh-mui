@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { STAT_KEYS, STAT_MAX, type Character, type StatKey, type Stats } from '../engine/types';
-import { STAT_LABEL } from '../labels';
+import { STAT_LABEL, STAT_LEVEL_LABEL, statLevel } from '../labels';
 
 /**
  * Thành phần giao diện dùng chung (xem docs/07-thiet-ke-ui-ux.md). Chỉ vẽ, không giữ luật chơi.
@@ -59,7 +59,7 @@ export function StatBars({ stats, compact = false }: Readonly<{ stats: Stats; co
       {STAT_KEYS.map((k) => {
         const v = Math.max(0, Math.min(STAT_MAX, stats[k]));
         return (
-          <li key={k} className={`stat stat-${k}`}>
+          <li key={k} className={`stat stat-${k} level-${statLevel(v)}`}>
             <StatIcon k={k} />
             <span className="stat-label">{STAT_LABEL[k]}</span>
             <span
@@ -83,20 +83,33 @@ export function StatBars({ stats, compact = false }: Readonly<{ stats: Stats; co
 /** Nhãn ngắn trên HUD (in hoa, giống thanh trạng thái của game hành động). */
 const SHORT: Record<StatKey, string> = { harmony: 'Hòa khí', stamina: 'Sức', wallet: 'Ví' };
 
-/** Ba thanh chỉ số nhỏ nằm ngang cho HUD trong màn chơi. Chỉ số thấp (<= 25) thì nhấp nháy. */
+/**
+ * Ba thanh chỉ số nhỏ cho HUD. Màu thanh theo mức (labels.ts, statLevel): nguy hiểm đỏ + rung giật cảnh báo,
+ * trung bình vàng cam, tự tin xanh lá; biểu tượng giữ màu riêng của chỉ số. Có con số điểm còn lại.
+ */
 export function HudMeters({ stats }: Readonly<{ stats: Stats }>) {
   return (
     <ul className="meters" aria-label="Chỉ số">
       {STAT_KEYS.map((k) => {
-        const v = Math.max(0, Math.min(STAT_MAX, stats[k]));
+        const v = Math.round(Math.max(0, Math.min(STAT_MAX, stats[k])));
+        const level = statLevel(v);
         return (
-          <li key={k} className={v <= 25 ? `meter meter-${k} meter-low` : `meter meter-${k}`}>
+          <li key={k} className={`meter meter-${k} level-${level}`}>
             <StatIcon k={k} />
             <span className="meter-body">
-              <span className="meter-bar" role="meter" aria-label={STAT_LABEL[k]} aria-valuemin={0} aria-valuemax={STAT_MAX} aria-valuenow={v}>
+              <span
+                className="meter-bar"
+                role="meter"
+                aria-label={`${STAT_LABEL[k]}: ${v}, ${STAT_LEVEL_LABEL[level]}`}
+                aria-valuemin={0}
+                aria-valuemax={STAT_MAX}
+                aria-valuenow={v}
+              >
                 <span className="meter-fill" style={{ width: `${(v / STAT_MAX) * 100}%` }} />
               </span>
-              <span className="meter-label">{SHORT[k]}</span>
+              <span className="meter-label">
+                {SHORT[k]} <b className="meter-value">{v}</b>
+              </span>
             </span>
           </li>
         );

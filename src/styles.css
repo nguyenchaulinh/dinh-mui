@@ -26,6 +26,10 @@
   --that-tha: #6fb2ff;
   --lay: #ffc23d;
   --phan-don: #ff6b6b;
+  /* Mức chỉ số */
+  --lv-danger: #ff4d4f;
+  --lv-medium: #ffb020;
+  --lv-confident: #3fd17a;
 
   /* Chữ */
   --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
@@ -135,12 +139,20 @@ button, input { font: inherit; color: inherit; }
 .meter svg { flex: none; width: 14px; height: 14px; }
 .meter-body { display: grid; gap: 2px; flex: 1; min-width: 0; }
 .meter-bar { position: relative; height: 6px; overflow: hidden; background: rgb(255 255 255 / 0.15); border-radius: var(--r-pill); }
-.meter-fill { position: absolute; inset: 0 auto 0 0; background: currentColor; border-radius: inherit; transition: width var(--t); }
-.meter-label { font-size: 9px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cream-soft); }
+.meter-fill { position: absolute; inset: 0 auto 0 0; background: var(--lv, currentColor); border-radius: inherit; transition: width var(--t), background var(--t); }
+.meter-label { display: flex; justify-content: space-between; gap: 4px; font-size: 9px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cream-soft); }
+.meter-value { font-size: 10px; font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--lv, var(--cream)); }
 .meter-harmony { color: var(--harmony); }
 .meter-stamina { color: var(--stamina); }
 .meter-wallet { color: var(--wallet); }
-.meter-low .meter-bar { animation: blink 0.9s ease-in-out infinite; }
+
+/* Mức chỉ số (labels.ts, statLevel): nguy hiểm <= 25, trung bình 26-59, tự tin >= 60. */
+.level-danger { --lv: var(--lv-danger); }
+.level-medium { --lv: var(--lv-medium); }
+.level-confident { --lv: var(--lv-confident); }
+.meter.level-danger { animation: shake 0.45s ease-in-out infinite; }
+.meter.level-danger .meter-bar { box-shadow: 0 0 0 1px var(--lv-danger); animation: danger-glow 0.9s ease-in-out infinite; }
+.meter.level-danger .meter-value { font-size: 11px; }
 
 /* Việc cần làm (ngay dưới HUD) */
 .tasks { border-radius: var(--r-m); overflow: hidden; }
@@ -387,8 +399,9 @@ h2.title { font-size: 20px; }
 .stat-wallet { color: var(--wallet); }
 .stat-label { color: var(--cream); font-weight: 600; }
 .stat-bar { position: relative; height: 7px; overflow: hidden; background: rgb(255 255 255 / 0.15); border-radius: var(--r-pill); }
-.stat-fill { position: absolute; inset: 0 auto 0 0; background: currentColor; border-radius: inherit; }
-.stat-value { color: var(--cream-soft); font-variant-numeric: tabular-nums; text-align: right; }
+.stat-fill { position: absolute; inset: 0 auto 0 0; background: var(--lv, currentColor); border-radius: inherit; }
+.stat-value { color: var(--lv, var(--cream-soft)); font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.stat.level-danger .stat-bar { animation: danger-glow 0.9s ease-in-out infinite; }
 
 footer { margin-top: var(--s-3); font-size: 10px; line-height: 1.5; color: var(--cream-soft); }
 footer a { color: inherit; }
@@ -403,6 +416,16 @@ footer a { color: inherit; }
 @keyframes pop-c { from { opacity: 0; transform: translate(-50%, 6px); } }
 @keyframes up { from { opacity: 0; transform: translate(-50%, 16px); } }
 @keyframes blink { 50% { opacity: 0.35; } }
+/* Rung giật ngắn rồi nghỉ: đủ gây chú ý mà không làm chóng mặt. */
+@keyframes shake {
+  0%, 60%, 100% { translate: 0 0; }
+  10% { translate: -2px 0; }
+  20% { translate: 2px 0; }
+  30% { translate: -2px 0; }
+  40% { translate: 2px 0; }
+  50% { translate: -1px 0; }
+}
+@keyframes danger-glow { 50% { box-shadow: 0 0 0 1px var(--lv-danger), 0 0 8px 2px rgb(255 77 79 / 0.7); } }
 @keyframes ring { 50% { box-shadow: 0 0 0 8px rgb(63 179 107 / 0.25); } }
 @keyframes wobble { 50% { rotate: -2deg; } }
 @keyframes flash {
