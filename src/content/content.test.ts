@@ -67,4 +67,48 @@ describe('nội dung v1', () => {
   it('mọi scene đều có chỉ đạo cảnh 3D', () => {
     expect(c.scenes.filter((s) => !s.stage3d).map((s) => s.id)).toEqual([]);
   });
+
+  describe('cân bằng', () => {
+    /** Duyệt mọi đường đi của luồng chính (mỗi lựa chọn đều thử) và đếm số lần ra từng kết thúc. */
+    function distribution(personaId: string): { counts: Record<string, number>; total: number } {
+      const counts: Record<string, number> = {};
+      let total = 0;
+      const walk = (s: GameState): void => {
+        if (s.sceneId === null) {
+          counts[s.endingId!] = (counts[s.endingId!] ?? 0) + 1;
+          total++;
+          return;
+        }
+        const v = getView(c, s)!;
+        if (v.scene.kind === 'cutscene') return walk(advance(c, s));
+        for (const ch of v.choices) walk(choose(c, s, ch.id).state);
+      };
+      walk(createGame(c, personaId, ['ha-noi'], 1));
+      return { counts, total };
+    }
+    const dist = new Map(c.personas.map((p) => [p.id, distribution(p.id)]));
+
+    it('mọi kết thúc đều tới được bằng một cách chơi nào đó ở luồng chính', () => {
+      const reached = new Set<string>();
+      for (const { counts } of dist.values()) for (const id of Object.keys(counts)) reached.add(id);
+      expect(c.endings.map((e) => e.id).filter((id) => !reached.has(id))).toEqual([]);
+    });
+
+    it('không kết thúc nào chiếm quá 75% số đường đi của một persona', () => {
+      for (const [persona, { counts, total }] of dist) {
+        for (const [ending, n] of Object.entries(counts)) {
+          expect(n / total, `${persona} ${ending}`).toBeLessThanOrEqual(0.75);
+        }
+      }
+    });
+
+    it('Lầy không còn là lựa chọn miễn phí: mỗi scene luồng chính, Lầy luôn tốn thứ gì đó', () => {
+      for (const s of c.scenes.filter((x) => !x.roamOnly)) {
+        for (const ch of s.choices.filter((x) => x.style === 'lay')) {
+          const costs = Object.values(ch.effects).some((v) => v !== undefined && v < 0);
+          expect(costs, `${s.id}/${ch.id}`).toBe(true);
+        }
+      }
+    });
+  });
 });
