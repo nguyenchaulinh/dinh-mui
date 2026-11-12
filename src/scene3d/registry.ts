@@ -63,6 +63,9 @@ export const SETS: Record<string, SetDef> = {
       'lop-truong': { pos: [-1.0, 0, 2.4], rotY: Math.PI },
       // Đồ vật (khớp CUOI_NAM trong walk.ts): máy tính trên bàn 4, sạc trên bàn 1, hộp bánh trên quầy, áo ở móc, cửa.
       'ban-minh': { pos: [-2.2, 0, 0.15] },
+      // Ghế của bạn sau bàn 4 (mặt ghế cao ~0.48 m), quay mặt vào bàn; điểm ngoài cửa để đi ra.
+      'ghe-minh': { pos: [-2.2, 0, 0.72], rotY: Math.PI },
+      'ngoai-cua': { pos: [7.2, 0, 2.2], rotY: Math.PI / 2 },
       'do-sac': { pos: [-3.6, 0, -2.55] },
       'do-qua': { pos: [5.3, 0, -2.6] },
       'do-ao': { pos: [5.3, 0, 0.4] },

@@ -198,14 +198,15 @@ button, input { font: inherit; color: inherit; }
 .qte {
   position: fixed; z-index: var(--z-qte);
   left: 50%; bottom: calc(var(--safe-b) + 116px); transform: translateX(-50%);
-  width: 132px; height: 132px; display: grid; place-items: center;
+  width: 150px; height: 150px; display: grid; place-items: center;
 }
-.qte-ring, .qte-target { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; }
+/* Vòng và vạch vàng căn giữa, kích thước đặt bằng script (luôn lớn hơn nút 64px). */
+.qte-ring, .qte-target { position: absolute; left: 50%; top: 50%; translate: -50% -50%; border-radius: 50%; pointer-events: none; }
 .qte-ring { border: 4px solid var(--cream); box-shadow: 0 0 0 2px rgb(0 0 0 / 0.35); }
-.qte-target { border: 3px dashed var(--gold); }
+.qte-target { border: 3px dashed var(--gold); box-shadow: 0 0 0 1px rgb(0 0 0 / 0.4); }
 .qte[data-hot='true'] .qte-ring { border-color: var(--gold); box-shadow: 0 0 18px var(--gold); }
 .qte-btn {
-  position: relative; width: 74px; height: 74px; border-radius: 50%;
+  position: relative; z-index: 1; width: 64px; height: 64px; border-radius: 50%;
   font-size: var(--fs-l); font-weight: 900; color: #fff;
   background: radial-gradient(circle at 40% 35%, #f05a61, var(--red-dark));
   border: 3px solid var(--gold); box-shadow: 0 4px 0 var(--red-dark), var(--shadow);
@@ -374,6 +375,10 @@ h2.title { font-size: 20px; }
 
 footer { margin-top: var(--s-3); font-size: 10px; line-height: 1.5; color: var(--cream-soft); }
 footer a { color: inherit; }
+
+/* Ra cửa: màn hình tối dần trong lúc nhân vật đi ra (trước thẻ chặng kế). */
+.fade-out { position: fixed; inset: 0; z-index: var(--z-dock); background: #000; pointer-events: none; animation: fade-black 1.6s ease-in forwards; }
+@keyframes fade-black { from { opacity: 0; } to { opacity: 0.92; } }
 
 /* ---------- Chuyển động ---------- */
 @keyframes fade { from { opacity: 0; } }

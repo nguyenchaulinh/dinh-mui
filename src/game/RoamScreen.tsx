@@ -29,6 +29,7 @@ import { DodgeQte, type QteView } from './DodgeQte';
 import { InputController } from './input';
 import { RoamControls } from './RoamControls';
 import { buildNpcParams, getRoamMap } from './roamDemo';
+import type { ActionStep, PlayerAction } from './action';
 import type { RoamNpc, RoamObject } from './RoamView';
 import { speechBubbles } from './speech';
 import { TalkDock, type Talk } from './TalkDock';
@@ -85,6 +86,13 @@ export function RoamScreen({
   /** Chữ nổi to giữa màn hình ("NÉ ĐƯỢC!", "SỚM QUÁ!"), tự tắt. */
   const [flash, setFlash] = useState<{ id: number; text: string; tone: 'good' | 'bad' } | null>(null);
   const [tasksOpen, setTasksOpen] = useState(true);
+  /** Hoạt cảnh nhân vật chính đang chạy (action.ts) và việc cần làm ở từng mốc của nó. */
+  const [action, setActionState] = useState<PlayerAction | null>(null);
+  const actionRef = useRef<PlayerAction | null>(null);
+  const actionId = useRef(0);
+  const onSteps = useRef(new Map<number, Partial<Record<ActionStep, () => void>>>());
+  /** Đang đi ra cửa: màn hình tối dần. */
+  const [leaving, setLeaving] = useState(false);
   // Bản đồng bộ của talk/done: hai lần bấm E sát nhau (trước khi React kịp render lại) không được mở hai hội thoại
   // hay áp hiệu ứng hai lần. State chỉ để vẽ; quyết định dựa trên ref.
   const talkRef = useRef<Talk | null>(null);
@@ -237,7 +245,7 @@ export function RoamScreen({
 
   // Sự kiện: tự bật khi đủ điều kiện, lúc không có hội thoại nào đang mở. Đọc từ ref nên chạy lại cũng không bật hai lần.
   useEffect(() => {
-    if (!map || !active || talk !== null || ended) return;
+    if (!map || !active || talk !== null || ended || action !== null) return;
     const ev = dueEvent(map, gameRef.current);
     if (!ev) return;
     commit((g) => withFlag(g, eventFlag(map.id, ev.id)));
@@ -248,7 +256,7 @@ export function RoamScreen({
     } else {
       openChoose(EV + ev.id, ev.sceneIds, false);
     }
-  }, [map, active, talk, ended, game, content, commit, setTalk, openChoose]);
+  }, [map, active, talk, ended, action, game, content, commit, setTalk, openChoose]);
 
   /** Đánh dấu đã tương tác xong (không lặp hội thoại) và bật cờ tương ứng cho nhiệm vụ. */
   const markDone = useCallback(
@@ -260,6 +268,39 @@ export function RoamScreen({
     [commit],
   );
 
+  const setAction = useCallback((a: PlayerAction | null) => {
+    actionRef.current = a;
+    setActionState(a);
+  }, []);
+
+  /** Bắt đầu một hoạt cảnh; `steps` chạy khi hoạt cảnh báo mốc tương ứng. Xong (`done`) thì tự gỡ. */
+  const runAction = useCallback(
+    (make: (id: number) => PlayerAction, steps: Partial<Record<ActionStep, () => void>>) => {
+      const id = ++actionId.current;
+      onSteps.current.set(id, steps);
+      setAction(make(id));
+    },
+    [setAction],
+  );
+
+  const onActionStep = useCallback(
+    (id: number, step: ActionStep) => {
+      onSteps.current.get(id)?.[step]?.();
+      if (step === 'done') {
+        onSteps.current.delete(id);
+        if (actionRef.current?.id === id) setAction(null);
+      }
+    },
+    [setAction],
+  );
+
+  /** Đóng khung thoại; nếu đang ngồi ở máy tính thì đứng dậy. */
+  const closeTalk = useCallback(() => {
+    setTalk(null);
+    const a = actionRef.current;
+    if (a?.kind === 'sit' && !a.standUp) setAction({ ...a, standUp: true });
+  }, [setTalk, setAction]);
+
   const onObject = useCallback(
     (key: string) => {
       const o = objOf(key);
@@ -270,25 +311,52 @@ export function RoamScreen({
         return;
       }
       const a = o.action;
+      const spotOf = (name: string | undefined) => (name ? SETS[map.setId]?.spots[name] : undefined);
       if (a.kind === 'pickup') {
-        markDone(key, objectDoneFlag(map.id, o));
-        if (a.effects) commit((s) => ({ ...s, stats: applyEffects(s.stats, a.effects ?? {}) }));
-        pushToast(`Đã lấy: ${o.label}. ${a.line}`, 'good', 3600, 'pickup');
+        // Với tay lấy; tới mốc "grab" món đồ mới bay vào người và tính là đã nhặt.
+        runAction((id) => ({ id, kind: 'reach', key }), {
+          grab: () => {
+            markDone(key, objectDoneFlag(map.id, o));
+            if (a.effects) commit((s) => ({ ...s, stats: applyEffects(s.stats, a.effects ?? {}) }));
+            pushToast(`Đã lấy: ${o.label}. ${a.line}`, 'good', 3600, 'pickup');
+          },
+        });
         return;
       }
       if (a.kind === 'exit') {
-        markDone(key, objectDoneFlag(map.id, o));
+        const to = spotOf(o.seat);
+        const finish = () => markDone(key, objectDoneFlag(map.id, o));
         pushToast(a.line, 'good', 3000);
+        if (!to) return finish();
+        setLeaving(true);
+        runAction((id) => ({ id, kind: 'leave', to: { x: to.pos[0], z: to.pos[2] } }), { done: finish });
+        return;
+      }
+      const seat = spotOf(o.seat);
+      const here = spotOf(o.spot);
+      if (seat && here) {
+        // Đi tới ghế, ngồi xuống, rồi mới mở máy tính. Đóng khung thoại thì đứng dậy (closeTalk).
+        runAction(
+          (id) => ({
+            id,
+            kind: 'sit',
+            seat: { x: seat.pos[0], z: seat.pos[2], rotY: seat.rotY ?? 0 },
+            seatY: 0.48,
+            look: { x: here.pos[0], z: here.pos[2] },
+            standUp: false,
+          }),
+          { seated: () => void openChoose(key, a.sceneIds, false) },
+        );
         return;
       }
       openChoose(key, a.sceneIds, false);
     },
-    [objOf, map, setTalk, markDone, commit, pushToast, openChoose],
+    [objOf, map, setTalk, markDone, commit, pushToast, openChoose, runAction],
   );
 
   const onInteract = useCallback(
     (key: string) => {
-      if (talkRef.current !== null || gameRef.current.endingId !== null || !map) return;
+      if (talkRef.current !== null || actionRef.current !== null || gameRef.current.endingId !== null || !map) return;
       if (key.startsWith(OBJ)) return onObject(key);
       const spec = specOf(key);
       if (!spec) return;
@@ -299,9 +367,15 @@ export function RoamScreen({
 
       if (spec.action.kind === 'pet') {
         const { effects, line } = spec.action;
-        markDone(key, pettedFlag(map.id, key));
-        commit((g) => ({ ...g, stats: applyEffects(g.stats, effects) }));
-        return setTalk({ kind: 'line', key, speaker, text: line });
+        // Cúi xuống vuốt ve (với tay), xong mới hiện câu thoại.
+        runAction((id) => ({ id, kind: 'reach', key }), {
+          grab: () => {
+            markDone(key, pettedFlag(map.id, key));
+            commit((g) => ({ ...g, stats: applyEffects(g.stats, effects) }));
+          },
+          done: () => setTalk({ kind: 'line', key, speaker, text: line }),
+        });
+        return;
       }
       if (!openChoose(key, spec.action.sceneIds, false)) sayAfter();
     },
@@ -441,6 +515,8 @@ export function RoamScreen({
               paused={paused}
               talkingKey={talk?.key ?? null}
               bubbles={bubbles}
+              action={action}
+              onActionStep={onActionStep}
               onNearby={setNearby}
               onInteract={onInteract}
               onAmbush={onAmbush}
@@ -453,6 +529,7 @@ export function RoamScreen({
           <div className="loading">Cảnh này chưa hỗ trợ đi lại.</div>
         )}
       </div>
+      {leaving && <div className="fade-out" aria-hidden="true" />}
 
       {showHud && (
         <>
@@ -525,7 +602,7 @@ export function RoamScreen({
               speakerOnMap={speakerOnMap}
               playerName={game.playerName}
               onChoose={onChoose}
-              onClose={() => setTalk(null)}
+              onClose={closeTalk}
               onAnswer={onAnswer}
             />
           )}

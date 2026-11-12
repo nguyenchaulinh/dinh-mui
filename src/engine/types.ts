@@ -266,6 +266,11 @@ export interface MapObject {
   model?: ObjectModel;
   /** Nếu có, đồ chỉ có với các vai này. */
   personas?: string[];
+  /**
+   * Spot cho hoạt cảnh: với đồ `talk` là ghế để NGỒI xuống trước khi dùng (máy tính); với `exit` là điểm ngoài cửa
+   * nhân vật đi tới. Không có thì: nhặt đồ = với tay, dùng đồ = mở ngay.
+   */
+  seat?: string;
   /** Điều kiện để dùng được; chưa đủ thì hiện `lockedLine`. */
   requires?: Condition;
   lockedLine?: string;

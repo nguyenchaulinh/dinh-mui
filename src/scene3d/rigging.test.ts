@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../content';
 import credits from '../../public/models/CREDITS.md?raw';
-import { BIND_HEIGHT, CHARACTER_MODELS, bindHeightFromGltf, clipFor, heightFor, isCharacterModel, modelUrl, partOf, roleOf } from './rigging';
+import { BIND_HEIGHT, CHARACTER_MODELS, SIT_POSE, rotateX, bindHeightFromGltf, clipFor, heightFor, isCharacterModel, modelUrl, partOf, roleOf } from './rigging';
 
 /** Nội dung thô của các file GLB (đọc qua Vite, không cần API của node). */
 const FILES = import.meta.glob('../../public/models/*.glb', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
@@ -91,5 +91,14 @@ describe('luật đổi màu, chiều cao, hoạt ảnh', () => {
     expect(heightFor('dog')).toBeLessThan(0.5);
     expect(modelUrl('cho-pom')).toBe('/models/cho-pom.glb');
     expect(modelUrl('cho-pom', '/dinh-mui')).toBe('/dinh-mui/models/cho-pom.glb');
+  });
+
+  it('tư thế ngồi gập đúng chiều: đùi duỗi ra TRƯỚC mặt (+Z), cẳng chân thõng XUỐNG', () => {
+    const thigh = rotateX([0, -1, 0], SIT_POSE.thigh);
+    expect(thigh[2]).toBeCloseTo(1, 9); // ra trước
+    expect(thigh[1]).toBeCloseTo(0, 9);
+    // Cẳng chân: sau khi đùi gập, cẳng chân cũng đang chĩa ra trước; gập tiếp thì thõng xuống.
+    const shin = rotateX(rotateX([0, -1, 0], SIT_POSE.thigh), SIT_POSE.shin);
+    expect(shin[1]).toBeCloseTo(-1, 9);
   });
 });

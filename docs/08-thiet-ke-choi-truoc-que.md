@@ -21,6 +21,12 @@ Mỗi chặng dùng một tổ hợp khác nhau để không lặp lại cảm g
 | **Sự kiện bất ngờ** | Đủ điều kiện thì tự bật: cuộc gọi video của mẹ, Bé Dê hỏi lại "Chắc chưa?" | `events[]` | **mới** |
 | **Lướt feed** | Hội thoại hiển thị như điện thoại: chọn bài đăng để mua vé (thật hay lừa) | `scenes[].ui: feed` | **mới** |
 
+**Hoạt cảnh khi tương tác** (`src/game/action.ts`, có test): không bật bảng ngay mà nhân vật làm động tác thật, điều khiển bị khoá trong lúc đó.
+- **Dùng máy tính:** tự đi tới ghế sau bàn, ngồi xuống (tư thế ngồi dựng bằng xương vì bộ model không có hoạt ảnh ngồi), camera qua vai nhìn vào màn hình, rồi mới mở feed; chọn xong bấm Tiếp thì đứng dậy, lùi ra khỏi ghế.
+- **Nhặt đồ / vuốt chó:** quay mặt về món đồ, với tay; giữa động tác món đồ bay vào người rồi mới tính là đã nhặt.
+- **Ra cửa:** tự đi ra khỏi phòng qua khe cửa, màn hình tối dần, rồi sang thẻ chặng kế.
+- Người ngồi quanh bàn trà (Cô Hai, Bác Cả, Bà Tám) ngồi thật trên ghế đẩu; ai đang nói thì gật đầu.
+
 Mọi hành động sinh cờ riêng của bản đồ (`talked:<bản đồ>:<ai>`, `used:<bản đồ>:<đồ>`, `picked:...`, `dodged:<bản đồ>:<n>`, `event:...`) để nhiệm vụ dựa vào; tổng số câu né được cộng dồn cả hành trình (`dodged:3`, `dodged:5`, `dodged:8`).
 
 **NPC và mục tiêu theo vai:** một bản đồ có thể có NPC chỉ xuất hiện với một số vai (văn phòng có Sếp, lớp học có Cô chủ nhiệm), và mục tiêu nhiệm vụ cũng vậy.

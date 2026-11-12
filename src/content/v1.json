@@ -790,6 +790,7 @@
           "spot": "ban-minh",
           "prompt": "Săn vé",
           "model": "laptop",
+          "seat": "ghe-minh",
           "action": {  "kind": "talk", "sceneIds": ["san-ve"] }
         },
         {
@@ -822,6 +823,7 @@
           "spot": "cua",
           "prompt": "Lên đường",
           "model": "door",
+          "seat": "ngoai-cua",
           "requires": {  "flags": ["quest:san-ve", "quest:thu-don", "nghe-me"] },
           "lockedLine": "Chưa về được: cần săn vé, thu dọn đủ đồ và nghe máy mẹ đã.",
           "action": {  "kind": "exit", "line": "Tắt đèn, khoá cửa. Lên đường về quê thôi!" }

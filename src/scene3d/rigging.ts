@@ -136,7 +136,7 @@ export function heightFor(kind: 'human' | 'dog' | 'goat', build?: 'kid' | 'adult
 export function clipFor(anim: string | undefined, kind: 'human' | 'dog' | 'goat'): string {
   if (kind === 'dog') {
     if (anim === 'walk' || anim === 'dance' || anim === 'run') return 'Run';
-    if (anim === 'talk' || anim === 'wave') return 'Sniff';
+    if (anim === 'talk' || anim === 'wave' || anim === 'reach') return 'Sniff';
     return 'Idle';
   }
   switch (anim) {
@@ -147,6 +147,9 @@ export function clipFor(anim: string | undefined, kind: 'human' | 'dog' | 'goat'
     case 'wave':
       return 'Wave';
     case 'talk':
+    case 'reach':
+    case 'type':
+      // "Interact" của Quaternius: đưa tay ra phía trước, dùng cho nhặt đồ, gõ máy tính.
       return 'Talk';
     case 'cry':
       return 'Hit';
@@ -162,3 +165,28 @@ export function clipFor(anim: string | undefined, kind: 'human' | 'dog' | 'goat'
 export const POM_BONES: Readonly<Record<string, number>> = { Neck1: 1.28, Head: 0.9, Tail1: 1.45 };
 /** Màu lông Pomeranian cam kem mặc định (nếu Look không ghi). */
 export const POM_FUR = { main: '#e08a2e', light: '#f7e3c4' };
+
+/**
+ * Tư thế ngồi dựng bằng xương (bộ model không có hoạt ảnh ngồi). Xoay quanh trục ngang CỦA NHÂN VẬT (trục +X trong
+ * khung của nhân vật, nhân vật nhìn về +Z), tính trong toạ độ thế giới sau mỗi lần cập nhật hoạt ảnh, vì trục cục bộ
+ * của từng xương xoắn khác nhau và hoạt ảnh ghi đè hướng xương mỗi khung:
+ * - đùi xoay `thigh` rad: (0,-1,0) quanh +X góc -90° thành (0,0,1) = duỗi ra trước;
+ * - cẳng chân xoay `shin` rad: (0,0,1) quanh +X góc +90° thành (0,-1,0) = thõng xuống;
+ * - hông hạ xuống còn cao hơn mặt ghế `HIP_ABOVE_SEAT` m.
+ */
+export const SIT_POSE = { thigh: -Math.PI / 2, shin: Math.PI / 2 } as const;
+export const HIP_ABOVE_SEAT = 0.1;
+/** Xương dùng cho tư thế (tên trong bộ xương Quaternius). */
+export const BONES = {
+  hips: 'Hips',
+  thighs: ['UpperLeg.L', 'UpperLeg.R'],
+  shins: ['LowerLeg.L', 'LowerLeg.R'],
+  head: 'Head',
+} as const;
+
+/** Xoay một vector quanh trục X một góc (để test kiểm tra chiều gập đúng). */
+export function rotateX(v: readonly [number, number, number], angle: number): [number, number, number] {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  return [v[0], v[1] * c - v[2] * s, v[1] * s + v[2] * c];
+}
