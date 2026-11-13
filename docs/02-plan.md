@@ -172,8 +172,8 @@ Phần này không phải thủ tục pháp lý mà là những việc rẻ, gi�
 | Khung project + schema + engine + chọn vùng (347 test, CI chạy test/typecheck/build) | ✅ 12/11 |
 | Kịch bản full hành trình, bản nháp 1 ([04-script.md](04-script.md)) | ✅ 12/11, đã duyệt |
 | Mở rộng engine (cờ, điều kiện, biến thể vùng, bản đồ, NPC, nhiệm vụ; cắt cảnh và chỉ đạo cảnh 3D đã gỡ khi chuyển 3D 100%) | ✅ 12/11 |
-| Dựng 3D: phố Tết, sân nhà, nhà trên + mâm cỗ (3 miền), 13 nhân vật. **Chơi được: chặng 1 (văn phòng / lớp học: săn vé, nhặt đồ, cuộc gọi của mẹ, cửa ra) và chặng 5 (sân nhà: đi lại, nói chuyện, bấm NÉ đúng lúc, nhiệm vụ, kết thúc)**. Nội dung hội thoại chặng 3, 4, 6 đã gỡ khỏi runtime (chưa có bản đồ), còn trong lịch sử git (commit `442c7d9`) và 04-script | ✅ 12/11 (chặng 1, 5) |
+| Dựng 3D: phố Tết, sân nhà, nhà trên + mâm cỗ (3 miền), 13 nhân vật. **Chơi được 4 chặng: cuối năm ở phố (văn phòng / lớp học: săn vé, nhặt đồ, cuộc gọi của mẹ, cửa ra), ra bến (phố Tết), đường về (trạm dừng chân) và sân nhà (đi lại, nói chuyện, bấm NÉ đúng lúc, nhiệm vụ, kết thúc)**. Nội dung hội thoại chặng mâm cơm và các chặng sau đã gỡ khỏi runtime (chưa có bản đồ), còn trong lịch sử git (commit `442c7d9`) và 04-script | ✅ 13/11 (4 chặng) |
 | Nhân vật model có xương CC0 (Quaternius), hoạt cảnh ngồi / với tay, bong bóng thoại hai phía, chỉ số có mức, chó Vàng Pomeranian trắng | ✅ 12/11, chờ bạn xem lại bằng mắt |
 | **Đo FPS trên điện thoại của bạn** (điểm quyết định 3D hay 2.5D) | ⏳ chờ bạn |
-| Cảnh còn lại (ra bến, đường về, mâm cơm, giao thừa...) và âm thanh | ⏳ xem [09-ke-hoach-tiep-theo.md](09-ke-hoach-tiep-theo.md) |
+| Chặng còn lại (mâm cơm, giao thừa, mùng 1, quay lại phố) và âm thanh | ⏳ xem [09-ke-hoach-tiep-theo.md](09-ke-hoach-tiep-theo.md) |
 | v1 ra mắt | 🎯 khoảng 15/12 theo plan gốc; lịch thực tế cần chọn ở [05-gameplay.md](05-gameplay.md) mục 5 |

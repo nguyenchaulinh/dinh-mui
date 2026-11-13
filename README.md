@@ -2,7 +2,7 @@
 
 Game web 3D về quê ăn Tết, sống sót qua những câu hỏi của họ hàng. Người chơi điều khiển nhân vật ở **góc nhìn thứ ba**, đi lại trong cảnh 3D, nói chuyện với họ hàng, né câu hỏi và làm nhiệm vụ. Plan, kịch bản và research nằm trong [docs/](docs/).
 
-**Hiện trạng:** chơi được 2 chặng (`cuoi-nam`: văn phòng / lớp học, rồi `san-nha`: sân nhà ở quê), 3 vai × 3 thành phố, 9 kết thúc. Chưa có âm thanh, lưu tiến trình và các chặng ra bến / đường về / mâm cơm. Kế hoạch tiếp theo ở [docs/09-ke-hoach-tiep-theo.md](docs/09-ke-hoach-tiep-theo.md).
+**Hiện trạng:** chơi được 4 chặng (`cuoi-nam`: văn phòng / lớp học, `ra-ben`: phố Tết, `tram-dung`: trạm dừng chân trên đường về, `san-nha`: sân nhà ở quê), 3 vai × 3 thành phố, 9 kết thúc. Chưa có âm thanh, lưu tiến trình, chặng mâm cơm và các chặng từ giao thừa trở đi. Kế hoạch tiếp theo ở [docs/09-ke-hoach-tiep-theo.md](docs/09-ke-hoach-tiep-theo.md).
 
 ## Chạy local
 
@@ -27,7 +27,7 @@ Mở địa chỉ `Network` trong log bằng trình duyệt điện thoại. Gó
 http://localhost:5173/?roam=cuoi-nam&persona=sinh-vien&region=da-nang
 ```
 
-- `roam`: id bản đồ trong [src/content/v1.json](src/content/v1.json), mục `maps`: `cuoi-nam` (văn phòng / lớp học), `ra-ben` (phố Tết, trạm xe buýt), `san-nha` (sân nhà ở quê).
+- `roam`: id bản đồ trong [src/content/v1.json](src/content/v1.json), mục `maps`: `cuoi-nam` (văn phòng / lớp học), `ra-ben` (phố Tết, trạm xe buýt), `tram-dung` (trạm dừng chân trên quốc lộ), `san-nha` (sân nhà ở quê).
 - `persona`: `sinh-vien`, `moi-di-lam`, `doc-than-27`.
 - `region`: `ha-noi`, `da-nang`, `sai-gon`.
 
@@ -120,6 +120,8 @@ Sửa `src/content/v1.json`, rồi chạy `npm test`. Validate báo lỗi ngay n
 - **Feed:** scene có `"ui": "feed"` hiện như điện thoại; mỗi lựa chọn là một bài đăng, cần `author`.
 - **Nhân vật:** `look.model` chọn model có xương trong `public/models` (danh sách ở `src/scene3d/rigging.ts`, nguồn và giấy phép ở `public/models/CREDITS.md`); `outfit`, `pants`, `hair`, `skin` đổi màu (với chó: `skin` là lông chính, `hair` là lông ngực / mõm). Không có `model` thì dựng bằng code (Bé Dê). Nhân vật nhại người thật phải có `"parody": true` và `fallbackId`; đặt `"enabled": false` để tắt ngay.
 - **Thẻ mẹo:** chỉ dùng thẻ có nguồn thật. Không bịa số liệu.
+- **Nhân vật nhại:** chỉ nhận diện qua trang phục và đạo cụ, vai tích cực, có `parody: true` + `fallbackId` (bản trung tính). Không gõ cứng tên nhân vật nhại trong tiêu đề nhiệm vụ, nút hay câu thoại của người khác (kill-switch phải tắt sạch tên). Không ghi tên nền tảng thật.
+- **Cân bằng:** thêm hoặc đổi số liệu một chặng thì chạy lại `npm test` (mô phỏng 1500 lượt mỗi vai, `src/content/content.test.ts`) và chỉnh cho các ngưỡng kết thúc vẫn đạt. Ví của sinh viên (30) rất nhạy: mỗi khoản chi thêm đẩy kết thúc "Cháy ví" lên nhiều. Thêm chặng mới thì thêm cả chặng đó vào các hồ sơ né `NE_*`.
 - **Kết thúc:** duyệt từ trên xuống, cái đầu tiên khớp (chỉ số + cờ) thắng; cái cuối là mặc định. Cập nhật `AWAITING_CONTENT` trong `src/content/content.test.ts` khi nội dung mới làm một kết thúc tới được.
 
 ## Lưu ý trên Windows
