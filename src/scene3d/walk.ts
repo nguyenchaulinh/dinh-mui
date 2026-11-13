@@ -1,5 +1,6 @@
 import type { Bounds, Collider, WalkArea } from '../game/types';
 import type { RegionStyle } from './registry';
+import { buildTramDung } from './walk-tram-dung';
 
 /**
  * Dữ liệu vùng đi lại (bước 1 trong docs/05-gameplay.md). Thuần: chỉ import type, không đụng three/react,
@@ -14,7 +15,7 @@ import type { RegionStyle } from './registry';
  */
 
 /** Các bộ cảnh đã có dữ liệu đi lại. Thêm set mới thì thêm cả case trong walkAreaFor. */
-export const ROAM_SETS: readonly string[] = ['san-nha', 'cuoi-nam', 'pho-tet'];
+export const ROAM_SETS: readonly string[] = ['san-nha', 'cuoi-nam', 'pho-tet', 'tram-dung'];
 
 /** Chiều cao người chơi (m), khớp Figure: đầu ở y ~1.42 + bán kính đầu. */
 const BODY_HEIGHT = 1.7;
@@ -294,6 +295,7 @@ function buildPhoTet(): WalkArea {
 }
 
 let phoTetCache: WalkArea | undefined;
+const tramDungCache: Record<RegionStyle, WalkArea | undefined> = { bac: undefined, trung: undefined, nam: undefined };
 let cuoiNamCache: WalkArea | undefined;
 
 const cache: Record<RegionStyle, WalkArea | undefined> = { bac: undefined, trung: undefined, nam: undefined };
@@ -315,6 +317,11 @@ export function walkAreaFor(setId: string, style: RegionStyle): WalkArea | null 
     case 'pho-tet':
       // Vật cản không đổi theo miền (miền chỉ đổi loại hoa trên chậu).
       return (phoTetCache ??= buildPhoTet());
+    case 'tram-dung': {
+      // Vùng đi lại giống nhau cho 3 miền (miền chỉ đổi chi tiết nhỏ), vẫn lưu theo phong cách để khỏi dựng lại.
+      const key: RegionStyle = style === 'trung' || style === 'nam' ? style : 'bac';
+      return (tramDungCache[key] ??= buildTramDung(key));
+    }
     default:
       return null;
   }
