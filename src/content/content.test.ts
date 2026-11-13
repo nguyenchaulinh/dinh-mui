@@ -13,9 +13,9 @@ const c = loadContent();
  * Hồ sơ né câu hỏi theo bản đồ: né vừa đủ nhiệm vụ (tổng 6 câu), và né giỏi (tổng 8 câu, mở E8).
  * Sân nhà bắt buộc né 3 câu mới xong chặng.
  */
-const NE_VUA = { 'cuoi-nam': 3, 'ra-ben': 0, 'san-nha': 3 };
-const NE_GIOI = { 'cuoi-nam': 3, 'ra-ben': 0, 'san-nha': 5 };
-const NE_IT = { 'cuoi-nam': 0, 'ra-ben': 0, 'san-nha': 3 };
+const NE_VUA = { 'cuoi-nam': 3, 'ra-ben': 0, 'tram-dung': 0, 'san-nha': 3 };
+const NE_GIOI = { 'cuoi-nam': 3, 'ra-ben': 0, 'tram-dung': 0, 'san-nha': 5 };
+const NE_IT = { 'cuoi-nam': 0, 'ra-ben': 0, 'tram-dung': 0, 'san-nha': 3 };
 const RUNS = 1500;
 
 /**
@@ -35,7 +35,7 @@ describe('nội dung v1', () => {
   });
 
   it('chặng đầu là cuối năm ở phố (văn phòng / lớp học), rồi ra bến, rồi về sân nhà', () => {
-    expect(c.stages.map((s) => s.mapId)).toEqual(['cuoi-nam', 'ra-ben', 'san-nha']);
+    expect(c.stages.map((s) => s.mapId)).toEqual(['cuoi-nam', 'ra-ben', 'tram-dung', 'san-nha']);
   });
 
   it('nhân vật nhại đều có cờ parody và bản thay thế', () => {

@@ -28,6 +28,7 @@
   "stages": [
     { "id": "cuoi-nam", "title": "Cuối năm ở phố", "intro": "Chiều cuối năm ở thành phố. Săn vé, thu dọn đồ, chào mọi người rồi lên đường về quê.", "mapId": "cuoi-nam" },
     { "id": "ra-ben", "title": "Ra bến", "intro": "28 tháng Chạp. Cả thành phố cùng lúc muốn về quê. Mua quà ở sạp đầu phố, né mấy bác xe ôm chèo kéo rồi ra trạm xe buýt ở cuối phố.", "mapId": "ra-ben" },
+    { "id": "duong-ve", "title": "Đường về", "intro": "Xe khách dừng ở trạm nghỉ giữa quốc lộ. Mua cái bánh mì cho đỡ đói, tránh mấy lời mời \"đổi đời\" rồi lên xe đi tiếp.", "mapId": "tram-dung" },
     { "id": "buoc-vao-nha", "title": "Bước vào nhà", "intro": "Sau một chuyến xe dài, bạn về tới cổng nhà. Chưa kịp đặt balo xuống thì câu hỏi đầu tiên đã bay tới.", "mapId": "san-nha" }
   ],
   "characters": [
@@ -182,6 +183,56 @@
         "outfit": "#4b5563",
         "accessory": "hat",
         "model": "nam-nong-dan",
+        "pants": "#1f2937"
+      }
+    },
+    {
+      "id": "chu-ba-triet-ly",
+      "name": "Chú Ba Triết Lý",
+      "role": "Livestream khoá học đổi đời",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#e8b98f",
+        "hair": "#4b5563",
+        "hairStyle": "short",
+        "outfit": "#f8fafc",
+        "accessory": "phone",
+        "model": "nam-vest",
+        "pants": "#374151"
+      }
+    },
+    {
+      "id": "thai-gara",
+      "name": "Thái Gara 99",
+      "role": "Anh họ bán xe cũ",
+      "enabled": true,
+      "parody": true,
+      "fallbackId": "anh-ho",
+      "look": {
+        "kind": "human",
+        "skin": "#d9a27a",
+        "hair": "#1f1410",
+        "hairStyle": "short",
+        "outfit": "#0e7490",
+        "accessory": "hat",
+        "model": "nam-tho",
+        "pants": "#1f2937"
+      }
+    },
+    {
+      "id": "anh-ho",
+      "name": "Anh Họ",
+      "role": "Anh họ bán xe cũ (bản trung tính)",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#e0b088",
+        "hair": "#3b2a20",
+        "hairStyle": "short",
+        "outfit": "#334155",
+        "accessory": "none",
+        "model": "nam-hoodie",
         "pants": "#1f2937"
       }
     }
@@ -797,6 +848,107 @@
           "reply": "Lời cảm ơn thì bác chở tới đầu ngõ thôi!"
         }
       ]
+    },
+    {
+      "id": "dv-tren-xe",
+      "characterId": "be-de",
+      "line": "Xe chạy được nửa đường thì người ngồi cạnh ngủ gục, đầu tựa hẳn lên vai bạn. Cả xe im phăng phắc, chỉ có tiếng điều hoà. Bạn tính sao?",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Khẽ nhích vai cho người ta ngủ ngon.",
+          "effects": { "harmony": 2, "stamina": -5 },
+          "reply": "Người bên cạnh ngủ thêm một đoạn dài. Vai bạn tê dần, nhưng lòng thì ấm."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Nhẹ nhàng gọi: \"Tới trạm rồi ạ.\"",
+          "effects": { "harmony": -1, "stamina": -2 },
+          "reply": "Người ta giật mình xin lỗi rối rít. Cả hai cùng ngượng, nhưng vai bạn được giải thoát."
+        },
+        {
+          "id": "c",
+          "style": "phan-don",
+          "text": "Tựa lại vai người ta cho công bằng.",
+          "effects": { "harmony": -2, "stamina": 3 },
+          "reply": "Người ta mở một mắt nhìn bạn rồi nhắm lại. Hai bên cùng ngủ tới trạm."
+        }
+      ]
+    },
+    {
+      "id": "dv-thai-gara",
+      "characterId": "thai-gara",
+      "line": "Lên xem xe anh đi em, anh họ đây! Con xe này anh nói thật, chủ cũ đi rất giữ gìn, chỉ đi chợ ngày Rằm.",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Xe đẹp anh ơi, nhưng em chưa có nhu cầu ạ.",
+          "effects": { "harmony": 3, "stamina": -4 },
+          "reply": "Chưa có nhu cầu là sắp có nhu cầu."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Anh cho em ngồi nghỉ một lát được không ạ?",
+          "effects": { "harmony": -2, "stamina": 6 },
+          "reply": "Được chứ! Ngồi đây nghe anh giới thiệu xe luôn nhé... Anh mở nhạc to hơn cho đỡ buồn."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Anh bớt cho em 99%, em lấy liền.",
+          "effects": { "harmony": 2, "stamina": 2, "wallet": -2 },
+          "reply": "Em lấy 1% thôi thì được, cái gương chiếu hậu. Hai chục nghìn."
+        },
+        {
+          "id": "d",
+          "style": "lay",
+          "text": "Có chú ở quán mời anh ly bia kìa, anh uống không?",
+          "effects": { "harmony": 2, "stamina": -2 },
+          "reply": "Anh không uống giọt nào, còn lái cả trăm cây số.",
+          "tipId": "T05"
+        }
+      ]
+    },
+    {
+      "id": "dv-triet-ly",
+      "characterId": "chu-ba-triet-ly",
+      "line": "Tết này đổi đời! Chỉ một khoá học, tiền tự chảy về túi. Chuyển khoản giữ chỗ đi, chỉ còn năm suất!",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Cười, đi mua bánh mì.",
+          "effects": { "stamina": 2 },
+          "reply": "Chú gọi với theo: \"Chỉ còn bốn suất!\" Nghe cứ như đồng hồ đếm ngược."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Nói nhỏ với người bên cạnh: đừng chuyển khoản cho người lạ.",
+          "effects": { "harmony": 3 },
+          "reply": "Người bên cạnh gật đầu, cất điện thoại vào túi.",
+          "tipId": "T06"
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Chú đổi đời chưa mà còn đứng đây?",
+          "effects": { "harmony": -2, "stamina": 3 },
+          "reply": "Chú im một nhịp, rồi quay lại màn hình: \"Chỉ còn bốn suất!\""
+        },
+        {
+          "id": "d",
+          "style": "that-tha",
+          "text": "Quét mã giữ chỗ cho chắc.",
+          "effects": { "wallet": -5, "harmony": -3, "stamina": -5 },
+          "reply": "Điện thoại báo chuyển khoản thành công. Khoá học thì chưa thấy đâu.",
+          "tipId": "T06"
+        }
+      ]
     }
   ],
   "tips": [
@@ -815,7 +967,10 @@
       "source": "Tổng hợp từ VnExpress, Vietcetera" },
     { "id": "T05",
       "text": "Đã uống rượu bia thì không lái xe.",
-      "source": "Nghị định 168/2024/NĐ-CP" }
+      "source": "Nghị định 168/2024/NĐ-CP" },
+    { "id": "T06",
+      "text": "Dịp Tết, kẻ gian dùng link nhận quà, khuyến mãi, \"giải hạn\" để lừa chuyển tiền. Không bấm link lạ, không chuyển khoản cho người lạ.",
+      "source": "Bộ Công an (qua Báo Lào Cai)" }
   ],
   "endings": [
     {
@@ -1193,6 +1348,138 @@
         }
       ],
       "goalQuestId": "ra-ben-xong"
+    },
+    {
+      "id": "tram-dung",
+      "setId": "tram-dung",
+      "playerId": "ban",
+      "events": [
+        {
+          "id": "tren-xe",
+          "when": { "regions": ["ha-noi", "da-nang", "sai-gon"] },
+          "sceneIds": ["dv-tren-xe"]
+        }
+      ],
+      "npcs": [
+        {
+          "characterId": "thai-gara",
+          "spot": "thai-gara",
+          "behavior": "stand",
+          "prompt": "Nói chuyện",
+          "action": {
+            "kind": "talk",
+            "sceneIds": ["dv-thai-gara"],
+            "after": "Cần xe thì cứ nhắn anh nhé, anh giao tận nhà."
+          }
+        },
+        {
+          "characterId": "chu-ba-triet-ly",
+          "spot": "chu-ba",
+          "behavior": "stand",
+          "prompt": "Nói chuyện",
+          "action": {
+            "kind": "talk",
+            "sceneIds": ["dv-triet-ly"],
+            "after": "Chỉ còn bốn suất thôi nha!"
+          },
+          "ambush": {
+            "everySec": 7,
+            "range": 8,
+            "minRange": 2.5,
+            "questions": [
+              "Chuyển khoản giữ chỗ nha!",
+              "Chỉ còn năm suất thôi em!",
+              "Tết này đổi đời đi em!"
+            ],
+            "hitSceneIds": ["dv-triet-ly"]
+          }
+        }
+      ],
+      "objects": [
+        {
+          "id": "banh-mi",
+          "label": "Bánh mì nóng",
+          "spot": "do-banh-mi",
+          "prompt": "Mua",
+          "action": {
+            "kind": "pickup",
+            "line": "Ổ bánh mì nóng giòn, thơm mùi pate. Đường còn dài, ăn cho có sức.",
+            "effects": { "stamina": 4, "wallet": -1 }
+          }
+        },
+        {
+          "id": "xe-khach",
+          "label": "Xe khách",
+          "spot": "xe-khach",
+          "prompt": "Lên xe",
+          "requires": { "flags": ["picked:tram-dung:banh-mi"] },
+          "lockedLine": "Mua chút gì ăn đã, xe còn đợi mấy phút nữa.",
+          "action": {
+            "kind": "exit",
+            "line": "Bác tài bấm còi, bạn chạy ào lên xe. Quốc lộ lại trải dài về phía quê."
+          }
+        }
+      ],
+      "quests": [
+        {
+          "id": "nghi-chan",
+          "title": "Nghỉ chân ăn chút gì",
+          "objectives": [
+            {
+              "id": "mua",
+              "text": "Mua ổ bánh mì ở quán",
+              "done": { "flags": ["picked:tram-dung:banh-mi"] }
+            }
+          ],
+          "reward": { "stamina": 2 },
+          "rewardLine": "Bụng no, mắt tỉnh. Còn mấy chục cây nữa là tới."
+        },
+        {
+          "id": "gap-anh-ho",
+          "title": "Chào anh họ bán xe cũ",
+          "objectives": [
+            {
+              "id": "chao",
+              "text": "Nói chuyện với anh họ bán xe",
+              "done": { "flags": ["talked:tram-dung:thai-gara"] }
+            }
+          ],
+          "reward": { "wallet": 4 },
+          "rewardLine": "Anh họ nhét vào tay bạn phong bì nhỏ: \"Tiền xăng, đừng kể ai nhé.\""
+        },
+        {
+          "id": "ne-ma-qr",
+          "title": "Né lời mời đổi đời",
+          "objectives": [
+            {
+              "id": "ne-3",
+              "text": "Né được 3 lần chèo kéo \"giữ chỗ\"",
+              "done": { "flags": ["dodged:tram-dung:3"] }
+            }
+          ],
+          "reward": { "stamina": 3 },
+          "rewardLine": "Mã QR không quét được bạn. Ví vẫn nguyên."
+        },
+        {
+          "id": "ve-toi-lang",
+          "title": "Về tới làng",
+          "objectives": [
+            {
+              "id": "q1",
+              "text": "Hoàn thành \"Nghỉ chân ăn chút gì\"",
+              "done": { "flags": ["quest:nghi-chan"] }
+            },
+            {
+              "id": "q2",
+              "text": "Lên xe khách đi tiếp",
+              "done": { "flags": ["used:tram-dung:xe-khach"] }
+            }
+          ],
+          "reward": { "stamina": 2 },
+          "rewardLine": "Xe lăn bánh. Cổng làng đang ở phía cuối đường."
+        }
+      ],
+      "goalQuestId": "ve-toi-lang"
     }
   ]
 }

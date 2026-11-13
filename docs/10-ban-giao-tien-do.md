@@ -4,14 +4,14 @@ Viết để tiếp tục phát triển trên máy khác. Đi kèm [09-ke-hoach-
 
 ## 1. Đang ở đâu
 
-Nhánh `feature/chang-ra-ben` (dựa trên `main` = `3bf0f66`). Typecheck sạch, **437 test xanh**, build sạch.
+Cập nhật 13/11/2026 (sau khi PR #4 `feature/chang-ra-ben` vào `main`; GĐ C làm ở nhánh `feature/duong-ve`). Typecheck sạch, **442 test xanh**, build sạch.
 
 | GĐ (docs/09) | Trạng thái | Ghi chú |
 |---|---|---|
 | A. Kiểm tra bằng mắt | **Xong** (khổ 360×640) | Sửa 3 lỗi: nhãn khoảng cách mũi tên bị xuống dòng; bảng "Việc cần làm" che bong bóng khi hội thoại; bong bóng đứng một mình tràn mép (`soloSide` trong `speech.ts`). Chưa chụp lại tư thế ngồi và chó Pomeranian sau thay đổi của máy kia |
 | B. Chặng "Ra bến" | **Xong** | Bản đồ `ra-ben` (set `pho-tet`). Đã chạy trọn chặng bằng bot trên Chrome headless: mua quà, lấy giỏ, lên xe buýt, sang thẻ "Bước vào nhà" |
-| C. Chặng "Đường về" | **Dở**: có cảnh 3D + vùng đi lại, **chưa có nội dung** | Xem mục 3 |
-| D. Mâm cơm | Chưa | Có vật liệu ở nhánh `wip/chang-3-6-hanh-trinh` (mục 4) |
+| C. Chặng "Đường về" | **Xong về nội dung** (nhánh `feature/duong-ve`) | Bản đồ `tram-dung` + chặng `duong-ve` giữa `ra-ben` và `buoc-vao-nha`; xem mục 3. **Chưa chạy bằng bot trên trình duyệt** |
+| D. Mâm cơm | **Kế tiếp** | Có vật liệu ở nhánh `wip/chang-3-6-hanh-trinh` (mục 4); cần viết tài liệu thiết kế trước (docs/09 mục 4) |
 | E–H | Chưa | Không đụng tới |
 
 ### Đã làm ở nhánh này
@@ -32,26 +32,22 @@ Thêm chặng làm lệch phân bố; đã chỉnh số liệu chặng `ra-ben` 
 - Chụp ảnh khổ điện thoại: Chrome headless + CDP, `Emulation.setDeviceMetricsOverride` 360×640. Phím: WASD, `E` tương tác, `A`–`D` chọn đáp án.
 - Vùng đi lại là dữ liệu thuần: viết test loang lưới (mẫu: `walkCuoiNam.test.ts`, `walkPhoTet.test.ts`) thay vì tin vào mắt.
 
-## 3. Việc kế tiếp: hoàn tất GĐ C "Đường về" (trạm dừng chân)
+## 3. GĐ C "Đường về": đã làm và còn lại
 
-Cảnh 3D đã sẵn. Cần làm trong `v1.json` (+ chỉnh test), theo khuôn của `ra-ben`:
+**Đã làm** (`v1.json`, theo khuôn của `ra-ben`):
+- Nhân vật `chu-ba-triet-ly` (model `nam-vest`, áo trắng), `thai-gara` (nhại, `fallbackId: anh-ho`, model `nam-tho`, áo xanh ngọc, mũ) và `anh-ho` (bản trung tính).
+- Cảnh `dv-tren-xe` (sự kiện đầu chặng, Bé Dê: người bên cạnh ngủ gục lên vai, Sức hao), `dv-thai-gara` (thẻ T05 ở lựa chọn "ly bia"), `dv-triet-ly` (bẫy "quét mã giữ chỗ", thẻ T06).
+- Thẻ mẹo T06 (nguồn Bộ Công an qua Báo Lào Cai). T11–T13 vẫn "CẦN NGUỒN", không dùng.
+- Bản đồ `tram-dung` (set `tram-dung`): NPC `thai-gara` (đứng), `chu-ba-triet-ly` (đứng, bắn câu hỏi, bị bắt thì vào `dv-triet-ly`); đồ vật `banh-mi` (nhặt, Sức +4, Ví -1) và `xe-khach` (cửa ra, chỉ mở khi đã lấy bánh mì); sự kiện `tren-xe` (điều kiện `regions` đủ 3 vùng vì validator không cho `when` rỗng); nhiệm vụ `nghi-chan`, `gap-anh-ho` (thưởng Ví +4: anh họ mừng phong bì), `ne-ma-qr` (né 3), đích `ve-toi-lang`.
+- Chặng `duong-ve` giữa `ra-ben` và `buoc-vao-nha`; `content.test.ts` thêm `'tram-dung': 0` vào các hồ sơ né.
+- Test mới `walkTramDungMap.test.ts`: mọi NPC / đồ vật có chỗ đứng với tới được từ chỗ xuất phát, chú Ba nằm trong tầm bắn câu hỏi.
 
-1. **Nhân vật** (model CC0 có sẵn trong `public/models`):
-   - `chu-ba-triet-ly` ("Chú Ba Triết Lý", livestream khoá học đổi đời; gợi ý model `nam-vest`, áo trắng).
-   - `thai-gara` ("Thái Gara 99", nhân vật nhại, `parody: true`, `fallbackId: "anh-ho"`) và `anh-ho` (bản trung tính). Nhân vật nhại chỉ nhận diện qua trang phục/đạo cụ, vai tích cực (docs/04 mục 7).
-2. **Cảnh** (viết mới theo schema hiện tại, không có `stageId`/`stage3d`): `dv-triet-ly` (câu chào bán khoá học; lựa chọn "quét mã giữ chỗ" là bẫy: Ví giảm mạnh, gắn thẻ mẹo T06), `dv-thai-gara` (giới thiệu xe cũ; có lựa chọn Thái Gara nói "không uống giọt nào vì còn lái" gắn T05), và một cảnh sự kiện đầu chặng `dv-tren-xe` (Bé Dê: người bên cạnh ngủ gục lên vai bạn, lựa chọn Khéo/Thật thà/Phản đòn, đây là chỗ Sức hao).
-   Lời thoại gốc nằm trong nhánh WIP (mục 4): `git show wip/chang-3-6-hanh-trinh:src/content/v1.json`, tìm `roam-thai-gara`, `roam-triet-ly`.
-3. **Thẻ mẹo T06** (có nguồn, docs/04 mục 3): "Dịp Tết, kẻ gian dùng link nhận quà, khuyến mãi, "giải hạn" để lừa chuyển tiền. Không bấm link lạ, không chuyển khoản cho người lạ." Nguồn: Bộ Công an (qua Báo Lào Cai). T11–T13 vẫn "CẦN NGUỒN", **không dùng**.
-4. **Bản đồ `tram-dung`** (set `tram-dung`): 
-   - NPC: `thai-gara` (spot `thai-gara`, đứng), `chu-ba-triet-ly` (spot `chu-ba`, đứng, có `ambush` với câu kiểu "Chuyển khoản giữ chỗ nha!", `hitSceneIds: ["dv-triet-ly"]`).
-   - Đồ vật: `banh-mi` (pickup, spot `do-banh-mi`, `effects` Sức +, Ví -2), `xe-khach` (exit, spot `xe-khach`, `requires` đã lấy bánh mì, `lockedLine`).
-   - Sự kiện đầu chặng `dv-tren-xe` (kiểm tra validator có cho `when` rỗng; nếu không thì dùng điều kiện luôn đúng như `regions` đủ 3 vùng).
-   - Nhiệm vụ: `nghi-chan` (nhặt bánh mì), `gap-anh-ho`, `ne-ma-qr` (né 3), đích `ve-toi-lang`.
-5. **Chặng** `duong-ve` giữa `ra-ben` và `buoc-vao-nha` trong `stages`.
-6. **Đo cân bằng**: thêm `'tram-dung': 0` vào các hồ sơ `NE_*` trong `content.test.ts`, chạy lại, chỉnh số (đặc biệt chi phí bẫy QR) cho tới khi các ngưỡng test đều đạt. Bẫy QR (-20 Ví) gần như chắc chắn làm sinh viên "cháy ví" quá nhiều: hạ mức hoặc đổi sang chi Sức/Hòa khí.
-7. Chạy bot trên trình duyệt (mẫu ở mục 2) để chắc chặng hoàn thành được; cập nhật `docs/09`, README (danh sách `roam`).
+**Cân bằng:** bản đầu (bẫy QR -8 Ví, bánh mì -2 Ví) đẩy sinh viên E3 lên 54% và E8 xuống 35% (test đòi trên 50%). Giảm bẫy QR còn -5 Ví, bánh mì -1 Ví, thêm phong bì +4 Ví từ anh họ, bớt Hòa khí ở vài lựa chọn nhỏ để E7 của độc thân 27+ không vượt 60%. Kết quả ổn định qua 3 hạt giống (7, 11, 23).
 
-Chi tiết cảnh 3D trạm dừng đã được kiểm: vật cản 38 cái, quầy sâu 0.6 m (người chơi đứng được từ z ≥ 3.65 phía nam quầy), xe khách tâm z = 1.4, spawn (-1, 7). `set-tram-dung.tsx` đọc hằng số từ `walk-tram-dung.ts` nên hình và va chạm không lệch.
+**Còn lại:**
+1. Chạy bot trên trình duyệt (mục 2) để chắc chặng hoàn thành được và xem bằng mắt cảnh trạm dừng; chụp ảnh khổ điện thoại.
+2. Hai lựa chọn "Lầy" của anh họ phải tốn gì đó (test `Lầy không còn là lựa chọn miễn phí`): đã gắn Ví -2 và Sức -2.
+3. Nếu thêm / đổi số liệu chặng này: đo lại bằng `sampleJourney` trước khi chốt.
 
 ## 4. Vật liệu ở nhánh `wip/chang-3-6-hanh-trinh`
 
