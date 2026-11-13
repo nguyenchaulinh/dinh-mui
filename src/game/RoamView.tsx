@@ -10,7 +10,8 @@ import { preloadModels } from '../scene3d/Rigged';
 import { isCharacterModel } from '../scene3d/rigging';
 import { FpsProbe } from '../scene3d/FpsProbe';
 import { SETS } from '../scene3d/registry';
-import { SetView, envOf } from '../scene3d/sets';
+import { preloadProps } from '../scene3d/Prop';
+import { SET_PROPS, SetView, envOf } from '../scene3d/sets';
 import { DEFAULT_CAM, applyLook, computeCameraPose, computeTalkPose, smoothPose, yawBehind, fovForAspect } from './camera';
 import { clipRay, isBlocked, resolveMove } from './collision';
 import { startAction, stepAction, type ActionRun, type ActionStep, type PlayerAction } from './action';
@@ -715,6 +716,8 @@ export default function RoamView({
   useEffect(() => {
     preloadModels([playerLook?.model, ...npcs.map((n) => n.look?.model)].filter(isCharacterModel));
   }, [playerLook, npcs]);
+  // Tải trước đồ đạc / cây cối của cảnh (model CC0 nhỏ) để không hiện dần từng món.
+  useEffect(() => preloadProps(SET_PROPS[setId] ?? []), [setId]);
   useEffect(() => publish({ mode: 'roam', setId }), [setId]);
 
   // Dựng NPC lúc chạy: vị trí, vòng va chạm (cố định cho người ngồi/đứng, đổi tại chỗ cho người đi lại),
@@ -757,6 +760,8 @@ export default function RoamView({
       <fog attach="fog" args={[env.sky, env.fog[0], env.fog[1]]} />
       <hemisphereLight args={['#ffffff', '#8d6e63', env.ambient]} />
       <directionalLight position={[6, 10, 5]} intensity={env.sun} color={env.sunColor} />
+      {/* đèn phụ lạnh từ phía đối diện: bớt phẳng ở mặt khuất nắng, không đổ bóng */}
+      <directionalLight position={[-6, 4, -4]} intensity={env.sun * 0.22} color="#bcd0ff" />
 
       <SetView setId={setId} regionId={regionId} variant={variant} />
 

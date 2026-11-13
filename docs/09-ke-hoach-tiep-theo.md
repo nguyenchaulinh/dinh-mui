@@ -37,6 +37,10 @@ Thứ tự đề xuất: A trước, sau đó B → C → D theo mạch truyện
 4. Mục tiêu thiết bị tối thiểu cho giai đoạn G.
 5. `docs/03-cameo.md` đã công khai trên GitHub và ghi họ tên thật gắn với tên nhân vật nhại (xem [10](10-ban-giao-tien-do.md) mục 5): có gỡ và viết lại lịch sử không.
 
+## 3b. Chi tiết hình ảnh (13/11, nhánh `feature/model-cc0`)
+
+Đã làm: 35 model CC0 đồ đạc / cây cối (968 KB), sàn có texture, nhân vật mượt, phụ kiện gắn xương, trang phục theo vai; áp dụng cho lớp học / văn phòng, phố Tết, sân nhà. **Chưa làm:** nhà trên (mâm cơm, chưa có bản đồ), trạm dừng chân (`set-tram-dung.tsx` canh chặt hiệu năng: không `useGLTF`, tối đa 8 thẻ mesh, không shadow map, nên cần thiết kế riêng nếu muốn thêm model), model có texture lớn (cây lớn, hoa nhóm) vì nặng cho điện thoại, bóng đổ thật (chưa đo FPS). Cần xem bằng mắt trên máy thật: hướng và cỡ từng món (hướng đo từ hình khối, chưa nhìn), FPS ở phố Tết.
+
 ## 4. Tài liệu thiết kế còn thiếu (nên viết trước khi làm)
 
 | Giai đoạn | Thiếu gì | Gợi ý nội dung |

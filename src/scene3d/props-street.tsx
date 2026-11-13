@@ -295,20 +295,3 @@ export function FarShop({ w, h, c, sign, position }: Readonly<{ w: number; h: nu
     </group>
   );
 }
-
-/** Cột đèn bên kia đường có đèn lồng đỏ. */
-export function StreetLamp({ position }: Readonly<{ position: V3 }>) {
-  return (
-    <group position={position}>
-      <mesh position={[0, 1.7, 0]}>
-        <cylinderGeometry args={[0.05, 0.07, 3.4, 5]} />
-        <Mat c="#374151" />
-      </mesh>
-      <mesh position={[0.35, 3.35, 0]}>
-        <boxGeometry args={[0.7, 0.05, 0.05]} />
-        <Mat c="#374151" />
-      </mesh>
-      <Lantern position={[0.65, 3.35, 0]} />
-    </group>
-  );
-}
