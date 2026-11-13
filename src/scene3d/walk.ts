@@ -191,6 +191,12 @@ export const CUOI_NAM = {
   counter: { x: 5.3, z: -2.2, w: 0.9, d: 2.0 },
   /** Móc treo áo cạnh cửa. */
   coatRack: { x: 5.3, z: 0.4, r: 0.3 },
+  /** Hai tủ sách sát tường sau (rộng w dọc trục x, sâu d), và đèn đứng cạnh bảng. */
+  shelves: [
+    { x: -3.3, z: -4.7, w: 0.9, d: 0.5 },
+    { x: -2.4, z: -4.7, w: 0.9, d: 0.5 },
+  ],
+  lamp: { x: 1.3, z: -4.6, r: 0.15 },
   /** Chậu quất góc sau trái, chậu đào/mai góc trước trái. */
   plants: [
     { x: -5.3, z: -4.3, r: 0.5 },
@@ -229,6 +235,8 @@ function buildCuoiNam(): WalkArea {
     box('ban-sep', b.x, (bossZMin + bossZMax) / 2, b.w / 2, (bossZMax - bossZMin) / 2, false),
     box('quay', L.counter.x, L.counter.z, L.counter.w / 2, L.counter.d / 2, false),
     circle('moc-ao', L.coatRack.x, L.coatRack.z, L.coatRack.r, false),
+    ...L.shelves.map((s, i) => box(`tu-sach-${i + 1}`, s.x, s.z, s.w / 2, s.d / 2, false)),
+    circle('den-dung', L.lamp.x, L.lamp.z, L.lamp.r, false),
     ...L.plants.map((p, i) => circle(`chau-${i + 1}`, p.x, p.z, p.r, false)),
   ];
   const bounds: Bounds = { minX: -L.wallSideX, maxX: L.wallSideX, minZ: L.wallBackZ, maxZ: L.frontZ };
