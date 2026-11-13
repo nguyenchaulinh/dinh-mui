@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { BackSide, BufferAttribute, Color, SphereGeometry } from 'three';
 import {
   Altar,
   Bamboo,
@@ -19,8 +20,9 @@ import {
   type Menu,
 } from './props';
 import { Prop } from './Prop';
+import { TexMat } from './TexMat';
 import { SETS, styleOfRegion } from './registry';
-import { floorTexture, type FloorKind } from './textures';
+import { floorTexture, skyGradient, type FloorKind } from './textures';
 import { BusStop, Bunting, Crosswalk, FarShop, GiftStall, PARKED_BIKES, STREET_LAMP_XS, ShopFront } from './props-street';
 import { TramDung } from './set-tram-dung';
 import { CUOI_NAM, PHO_TET, phoPots } from './walk';
@@ -53,6 +55,41 @@ export function envOf(setId: string, regionId: string): Env {
   if (s === 'bac') return { sky: '#b8c2cc', fog: [10, 38], sun: 0.9, ambient: 0.85, sunColor: '#e5e7eb' };
   if (s === 'trung') return { sky: '#a5d8ff', fog: [16, 50], sun: 1.4, ambient: 0.7, sunColor: '#fff4e0' };
   return { sky: '#8ecae6', fog: [18, 60], sun: 1.8, ambient: 0.65, sunColor: '#fff1c1' };
+}
+
+/** Màu đỉnh trời theo cảnh (chân trời lấy từ `envOf(...).sky`). Bán kính vòm nhỏ hơn mặt phẳng xa của camera (120). */
+const SKY_ZENITH: Readonly<Record<string, string>> = {
+  'cuoi-nam': '#9a7b68',
+  'pho-tet': '#5f93d8',
+  'tram-dung': '#5f93d8',
+  'san-nha': '#5b4a7a',
+};
+const SKY_RADIUS = 100;
+
+/** Vòm trời chuyển sắc từ chân trời lên đỉnh, thay cho nền một màu. Không chịu sương mù, không ghi độ sâu. */
+function SkyDome({ horizon, zenith }: Readonly<{ horizon: string; zenith: string }>) {
+  const geo = useMemo(() => {
+    const g = new SphereGeometry(SKY_RADIUS, 18, 12);
+    const { horizon: h, top } = skyGradient(horizon, zenith, 0.6);
+    const a = new Color(h);
+    const b = new Color(top);
+    const c = new Color();
+    const pos = g.attributes.position!;
+    const col = new Float32Array(pos.count * 3);
+    for (let i = 0; i < pos.count; i++) {
+      c.copy(a).lerp(b, Math.pow(Math.max(0, pos.getY(i) / SKY_RADIUS), 0.65));
+      col[i * 3] = c.r;
+      col[i * 3 + 1] = c.g;
+      col[i * 3 + 2] = c.b;
+    }
+    g.setAttribute('color', new BufferAttribute(col, 3));
+    return g;
+  }, [horizon, zenith]);
+  return (
+    <mesh geometry={geo} renderOrder={-1}>
+      <meshBasicMaterial vertexColors side={BackSide} fog={false} depthWrite={false} />
+    </mesh>
+  );
 }
 
 function Ground({ c, size = 80 }: Readonly<{ c: string; size?: number }>) {
@@ -125,7 +162,7 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
       {/* lòng đường + vạch kẻ */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0.2]}>
         <planeGeometry args={[80, 4]} />
-        <Mat c="#374151" />
+        <TexMat kind="asphalt" base="#3b4252" rx={20} ry={1} rough={0.95} />
       </mesh>
       {Array.from({ length: 20 }, (_, i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[-38 + i * 4, 0.02, 0.2]}>
@@ -137,7 +174,7 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
       {[-2.9, 3.4].map((z) => (
         <mesh key={z} position={[0, PHO_TET.sidewalkTop / 2, z]}>
           <boxGeometry args={[80, PHO_TET.sidewalkTop, 1.8]} />
-          <Mat c="#d6d3d1" />
+          <TexMat kind="pavers" base="#cbc5bb" rx={60} ry={2} />
         </mesh>
       ))}
       {houses.map((h, i) => (
@@ -206,7 +243,7 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
         </mesh>
       </group>
       {s === 'nam' && <CoconutTree position={[-12, 0, 4.5]} />}
-      <Traffic lanes={lanes} count={22} cargoMix={cargo} />
+      <Traffic lanes={lanes} count={14} cargoMix={cargo} />
     </group>
   );
 }
@@ -545,7 +582,7 @@ export const SET_PROPS: Readonly<Record<string, readonly string[]>> = {
   'san-nha': ['fence', 'banana', 'bush'],
 };
 
-export function SetView({ setId, regionId, variant }: Readonly<{ setId: string; regionId: string; variant?: string }>) {
+function SceneOf({ setId, regionId, variant }: Readonly<{ setId: string; regionId: string; variant?: string }>) {
   switch (setId) {
     case 'cuoi-nam':
       return <CuoiNam regionId={regionId} variant={variant === 'lop-hoc' ? 'lop-hoc' : 'van-phong'} />;
@@ -560,4 +597,14 @@ export function SetView({ setId, regionId, variant }: Readonly<{ setId: string; 
     default:
       return null;
   }
+}
+
+export function SetView({ setId, regionId, variant }: Readonly<{ setId: string; regionId: string; variant?: string }>) {
+  const zenith = SKY_ZENITH[setId];
+  return (
+    <>
+      {zenith && <SkyDome horizon={envOf(setId, regionId).sky} zenith={zenith} />}
+      <SceneOf setId={setId} regionId={regionId} variant={variant} />
+    </>
+  );
 }
