@@ -132,18 +132,43 @@ export const TALK_CAM_Y = 1.6;
 export const TALK_FRAME = { bottom: 0, top: 2.5 } as const;
 export const TALK_SCREEN = { bottom: -0.4, top: 0.92 } as const;
 
-/**
- * Khoảng lùi tối thiểu/tối đa của camera hội thoại (m). Tối thiểu 4.6 m để đoạn chân → đỉnh bong bóng (2.5 m) lọt vào
- * phần màn hình không bị dock che (~70% chiều cao) với góc nhìn dọc 50°.
- */
-const TALK_MIN_DIST = 4.6;
-const TALK_MAX_DIST = 8;
+/** Góc nhìn dọc mặc định (độ) và giới hạn cho màn hình dọc. */
+export const BASE_FOV = 50;
+const MAX_PORTRAIT_FOV = 76;
 
 /**
- * Camera hội thoại: đứng ở một bên (phía còn chỗ trống hơn) vuông góc đường nối hai người, nhìn vào điểm giữa,
- * lùi đủ xa để cả hai lọt vào chiều ngang màn hình (điện thoại dọc hẹp nên phải lùi nhiều), và căn khung dọc để
- * từ chân tới đỉnh bong bóng thoại nằm trong phần màn hình không bị dock lựa chọn che. `clip` như ở computeCameraPose: tránh camera chui vào tường.
- * `aspect` = rộng/cao của màn hình, `vfov` = góc nhìn dọc (rad). Đầu vào hỏng thì dùng giá trị an toàn, không NaN.
+ * Góc nhìn dọc (độ) theo tỉ lệ màn hình. Màn ngang giữ 50°. Màn dọc (điện thoại) giữ 50° thì góc ngang chỉ còn ~25°
+ * (thấy bề ngang chừng 2 m ở cách 5.6 m): người chơi gần như không thấy gì hai bên, NPC và đồ vật vừa ra khỏi khung là
+ * mất dấu. Nên mở rộng góc dọc khi màn càng hẹp (tối đa 76°, tránh méo hình), góc ngang lên ~41° ở tỉ lệ 0.48.
+ */
+export function fovForAspect(aspect: number): number {
+  if (!Number.isFinite(aspect) || aspect <= 0 || aspect >= 1) return BASE_FOV;
+  return Math.min(MAX_PORTRAIT_FOV, BASE_FOV + (1 - aspect) * 50);
+}
+
+const TALK_MAX_DIST = 8;
+/** Khoảng lùi tối thiểu (m) để đoạn chân -> đỉnh bong bóng (2.5 m, nhân 1.13 chừa lề) lọt vào vùng màn hình không bị dock che. */
+const talkMinDist = (vf: number): number =>
+  Math.max(2.8, (TALK_FRAME.top * 1.13) / ((TALK_SCREEN.top - TALK_SCREEN.bottom) * Math.tan(vf / 2)));
+/** Camera hội thoại không đặt gần hơn mức này (m) trừ khi không còn chỗ nào: gần hơn thì hai người không lọt khung. */
+const TALK_MIN_FREE = 2.2;
+/** Một người coi là nằm trong khung ngang nếu lệch tâm không quá phần này của nửa góc nhìn ngang (tính theo tan). */
+const FRAME_FILL = 0.92;
+/**
+ * Các độ xoay (rad) quanh hướng vuông góc đường nối mà camera được thử, để né vật cản khi chỗ chật. Tối đa ~40°:
+ * xoay nhiều hơn thì camera nằm gần đường nối, hai người xếp thẳng hàng theo chiều sâu (cảnh nhìn từ sau lưng, NPC nhỏ xíu).
+ */
+const TALK_ANGLES = [0, 0.25, -0.25, 0.5, -0.5, 0.7, -0.7];
+
+/**
+ * Camera hội thoại: nhìn vào điểm giữa hai người từ một phía, lùi đủ xa để cả hai lọt vào chiều ngang màn hình
+ * (điện thoại dọc hẹp nên phải lùi nhiều), căn khung dọc để từ chân tới đỉnh bong bóng nằm trên dock lựa chọn.
+ *
+ * Chỗ chật (văn phòng, lớp học đầy bàn ghế) thì một góc cố định hay đưa camera sát tường, nhìn vào khoảng trống giữa
+ * hai người và cả hai ra ngoài khung. Nên THỬ nhiều góc (đổi phía, xoay quanh hướng vuông góc) và chọn góc tốt nhất:
+ * người chơi trong khung > NPC trong khung > không bị vật cản che hai người > gần góc vuông > lùi xa. Nếu cả hai
+ * không thể lọt khung thì ngắm vào người chơi (luôn thấy mình). Không có góc nào đủ chỗ thì dùng cách cũ: sát nhất 1.8 m.
+ * `clip` như ở computeCameraPose. `aspect` = rộng/cao, `vfov` = góc nhìn dọc (rad). Đầu vào hỏng thì dùng giá trị an toàn.
  */
 export function computeTalkPose(
   player: Vec2,
@@ -169,25 +194,89 @@ export function computeTalkPose(
 
   const ar = Number.isFinite(aspect) && aspect > 0 ? Math.max(0.3, aspect) : 1;
   const vf = Number.isFinite(vfov) && vfov > 0.1 && vfov < 3 ? vfov : 0.87;
-  const hfov = 2 * Math.atan(Math.tan(vf / 2) * ar);
-  // Chiều ngang (màn hình dọc hẹp) cần lùi nhiều hơn chiều dọc; lấy cái lớn hơn, nhân 1.15 để chừa lề.
-  const fit = (separation: number): number => (1.15 * (separation / 2 + 0.8)) / Math.tan(hfov / 2);
-  // Hai người xa nhau tới mức không thể lùi đủ xa để cả hai lọt vào chiều ngang (bị bắn từ xa trên màn hình dọc hẹp):
-  // chỉ dựng khung người chơi để họ luôn thấy mình, thay vì đẩy cả hai ra ngoài màn hình.
-  const farApart = fit(sep) > TALK_MAX_DIST;
-  const want = Math.min(TALK_MAX_DIST, Math.max(TALK_MIN_DIST, fit(farApart ? 0 : sep)));
-  if (farApart) {
-    mid.x = px;
-    mid.z = pz;
-  }
+  const tanH = Math.tan(vf / 2) * ar; // tan(nửa góc ngang)
+  const minDist = talkMinDist(vf);
+  // Chiều ngang (màn dọc hẹp) cần lùi nhiều hơn chiều dọc; lấy cái lớn hơn, nhân 1.15 để chừa lề.
+  const fit = (separation: number): number => (1.15 * (separation / 2 + 0.8)) / tanH;
+  const wantFor = (separation: number): number => Math.min(TALK_MAX_DIST, Math.max(minDist, fit(separation)));
+  const wantMid = wantFor(sep);
+  const wantPlayer = wantFor(0);
 
   // Infinity = không có vật cản (như computeCameraPose); NaN hoặc âm = đầu vào hỏng, coi là bị chặn sát.
-  const room1 = (v: number): number => (Number.isNaN(v) || v < 0 ? 0 : Math.min(v, want + CLIP_MARGIN));
-  const a = room1(clip(mid, { x: sx, z: sz }, want + CLIP_MARGIN));
-  const b = room1(clip(mid, { x: -sx, z: -sz }, want + CLIP_MARGIN));
-  const sign = a >= b ? 1 : -1;
-  const room = Math.max(a, b);
-  const dist = Math.min(want, Math.max(1.8, room - CLIP_MARGIN));
+  const room = (aim: Vec2, d: Vec2, want: number): number => {
+    const v = clip(aim, d, want + CLIP_MARGIN);
+    return Number.isNaN(v) || v < 0 ? 0 : Math.min(v, want + CLIP_MARGIN);
+  };
+
+  interface Cand { cx: number; cz: number; aim: Vec2; dist: number; score: number }
+  let best: Cand | null = null;
+
+  const consider = (aim: Vec2, want: number, bx: number, bz: number, angle: number, bonus: number): void => {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    const dir: Vec2 = { x: bx * c - bz * s, z: bx * s + bz * c };
+    const dist = Math.min(want, room(aim, dir, want) - CLIP_MARGIN);
+    if (!(dist >= TALK_MIN_FREE)) return;
+    const cx = aim.x + dir.x * dist;
+    const cz = aim.z + dir.z * dist;
+    const ax = -dir.x;
+    const az = -dir.z; // trục nhìn nằm ngang: từ camera về điểm ngắm
+    let score = bonus + dist * 4 - Math.abs(angle) * 25;
+    let playerOffset = 0; // độ lệch tâm của người chơi (0 = giữa khung, 1 = mép), theo tỉ lệ tan
+    let npcVisible = false;
+    for (const [who, isPlayer, wVisible, wLos] of [[{ x: px, z: pz }, true, 1000, 150], [{ x: nx, z: nz }, false, 500, 80]] as const) {
+      const vx = who.x - cx;
+      const vz = who.z - cz;
+      const fwd = vx * ax + vz * az;
+      const off = fwd > 0.3 ? Math.abs(vx * az - vz * ax) / fwd / tanH : Infinity;
+      if (off <= FRAME_FILL) {
+        score += wVisible;
+        if (isPlayer) playerOffset = off;
+        else npcVisible = true;
+      }
+      const len = Math.hypot(vx, vz);
+      if (len > 1e-6) {
+        const hit = clip({ x: cx, z: cz }, { x: vx / len, z: vz / len }, len);
+        // Chạm vật cản trước khi tới người đó (chừa 0.5 m vì người đứng sát bàn ghế): bị che.
+        if (Number.isFinite(hit) && hit >= len - 0.5) score += wLos;
+      }
+    }
+    // NPC ngoài khung: người chơi nằm sát mép kém hơn nằm giữa, nên ngắm vào người chơi thay vì điểm giữa.
+    // (Khi cả hai cùng lọt khung thì không phạt, giữ khung điểm giữa.)
+    if (!npcVisible) score -= 40 * playerOffset;
+    if (best === null || score > best.score) best = { cx, cz, aim, dist, score };
+  };
+
+  for (const sign of [1, -1]) {
+    for (const a of TALK_ANGLES) {
+      consider(mid, wantMid, sign * sx, sign * sz, a, 0);
+      // Ngắm vào người chơi: dùng khi hai người không thể cùng lọt khung (trừ điểm nhẹ để ưu tiên ngắm điểm giữa khi cả hai cùng lọt khung).
+      if (sep > 1e-6) consider({ x: px, z: pz }, wantPlayer, sign * sx, sign * sz, a, -10);
+    }
+  }
+
+  let aim: Vec2;
+  let camX: number;
+  let camZ: number;
+  let dist: number;
+  if (best !== null) {
+    const b: Cand = best;
+    aim = b.aim;
+    camX = b.cx;
+    camZ = b.cz;
+    dist = b.dist;
+  } else {
+    // Không góc nào đủ chỗ: cách cũ, phía còn trống hơn, sát nhất 1.8 m.
+    const farApart = fit(sep) > TALK_MAX_DIST;
+    aim = farApart ? { x: px, z: pz } : mid;
+    const want = farApart ? wantPlayer : wantMid;
+    const a = room(aim, { x: sx, z: sz }, want);
+    const b = room(aim, { x: -sx, z: -sz }, want);
+    const sign = a >= b ? 1 : -1;
+    dist = Math.min(want, Math.max(1.8, Math.max(a, b) - CLIP_MARGIN));
+    camX = aim.x + sign * sx * dist;
+    camZ = aim.z + sign * sz * dist;
+  }
 
   // Đặt điểm giữa khung dọc (chân → đỉnh bong bóng) vào giữa vùng màn hình còn nhìn thấy (trên dock):
   // góc tới điểm đó trừ đi độ lệch của tâm vùng nhìn thấy so với tâm màn hình.
@@ -196,8 +285,5 @@ export function computeTalkPose(
   const pitch = Math.atan((subjectY - TALK_CAM_Y) / dist) - Math.atan(bandCenter * Math.tan(vf / 2));
   const ty = TALK_CAM_Y + dist * Math.tan(pitch);
 
-  return {
-    pos: [mid.x + sign * sx * dist, TALK_CAM_Y, mid.z + sign * sz * dist],
-    lookAt: [mid.x, ty, mid.z],
-  };
+  return { pos: [camX, TALK_CAM_Y, camZ], lookAt: [aim.x, ty, aim.z] };
 }
