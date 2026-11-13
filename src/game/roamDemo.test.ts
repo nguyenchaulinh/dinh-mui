@@ -80,6 +80,11 @@ describe('thông số tương tác', () => {
   it('NPC đuổi theo dừng trong vùng rất gần để luôn tương tác được dù đứng sau lưng', () => {
     for (const n of map.npcs) {
       if (n.behavior !== 'approach') continue;
+      // NPC cầm ống kính cố ý giữ khoảng cách để quay; bù lại tầm tương tác phải phủ cả biên trễ khi nó đã dừng.
+      if (n.lens) {
+        expect(n.reach ?? 0, n.characterId).toBeGreaterThanOrEqual((n.stopDist ?? 99) + 0.3);
+        continue;
+      }
       expect(n.stopDist ?? 99, n.characterId).toBeLessThanOrEqual(INTERACT_ANY_ANGLE_DIST);
     }
   });

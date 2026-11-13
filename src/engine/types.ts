@@ -204,6 +204,40 @@ export interface Shooter {
   questionsByPersona?: Record<string, string[]>;
   /** Scene hội thoại khi bị trúng (scene đầu tiên hợp persona/vùng). */
   hitSceneIds: string[];
+  /** Hình trên bong bóng: dấu hỏi (mặc định) hoặc mã QR (lừa chuyển khoản). */
+  icon?: 'question' | 'qr';
+}
+
+/** Vật phẩm người chơi cầm trên tay (ví dụ đĩa thức ăn để mời họ hàng). */
+export interface Item {
+  id: string;
+  label: string;
+  /** Tên theo vùng (món ăn khác nhau theo miền). */
+  labelByRegion?: ByRegion;
+}
+
+/** NPC nhận vật phẩm người chơi đang cầm. */
+export interface Serve {
+  /** Id vật phẩm NPC này nhận. */
+  item: string;
+  /** Chữ trên nút khi đang cầm đúng vật phẩm, ví dụ "Mời Cô Hai". */
+  prompt: string;
+  /** Câu thoại của NPC khi nhận. */
+  line: string;
+  effects: Effects;
+}
+
+/** NPC cầm điện thoại quay (livestream): đứng trong nón nhìn của họ đủ lâu thì bị đăng lên nhóm chat. */
+export interface Lens {
+  /** Tầm nhìn (m) và nửa góc nón (độ). */
+  range: number;
+  halfAngleDeg: number;
+  /** Đứng trong nón liên tục chừng này giây thì bị quay (ghi nhận). */
+  holdSec: number;
+  /** Sau khi bị quay, nghỉ chừng này giây trước khi quay lại. */
+  restSec: number;
+  penalty: Effects;
+  penaltyLine: string;
 }
 
 export type NpcBehavior = 'stand' | 'wander' | 'approach';
@@ -224,6 +258,83 @@ export interface MapNpc {
   prompt: string;
   action: NpcAction;
   shoots?: Shooter;
+  /** Nhận vật phẩm người chơi cầm (mời ăn, tặng quà...). */
+  serve?: Serve;
+  /** Cầm điện thoại quay người chơi (cần `turnRate` thấp để né được bằng cách đi vòng). */
+  lens?: Lens;
+  /** Tốc độ xoay mặt (rad/s); thấp thì người chơi đi vòng sau lưng được. Mặc định 8. */
+  turnRate?: number;
+}
+
+/** Hành động ở một trạm tương tác (không phải người). */
+export type StationAction =
+  /** Lấy đồ: đang cầm thứ khác thì đổi sang thứ này. Bật cờ `picked:<id>`. */
+  | { kind: 'pickup'; item: Item; line: string }
+  /** Dùng ngay (ăn, uống...): áp hiệu ứng; `once` thì chỉ một lần. Bật cờ `used:<id>`. */
+  | { kind: 'use'; line: string; effects: Effects; once?: boolean }
+  /** Lên xe / tới nơi: bật cờ `boarded:<id>`. */
+  | { kind: 'board'; line: string };
+
+export interface MapStation {
+  id: string;
+  /** Vị trí = tên spot trong registry của set. */
+  spot: string;
+  /** Tên hiển thị trên nút, ví dụ "bàn bếp". */
+  label: string;
+  /** Chữ trên nút, ví dụ "Lấy đồ ăn". */
+  prompt: string;
+  reach?: number;
+  /** Chỉ hiện và dùng được khi thoả điều kiện (thường theo cờ). */
+  if?: Condition;
+  action: StationAction;
+}
+
+/** Vùng hình chữ nhật: bước vào (khi `if` thoả) thì bật cờ `zone:<id>`. */
+export interface MapZone {
+  id: string;
+  x0: number;
+  z0: number;
+  x1: number;
+  z1: number;
+  if?: Condition;
+}
+
+export interface TrafficLane {
+  /** Vị trí làn theo trục z. */
+  z: number;
+  dir: 1 | -1;
+  speed: number;
+}
+
+/** Xe máy chạy dọc trục x trên các làn; chạm vào người chơi là bị quẹt. */
+export interface Traffic {
+  lanes: TrafficLane[];
+  count: number;
+  /** Chiều dài vòng lặp của dòng xe (m). */
+  length: number;
+  hitEffects: Effects;
+  hitLine: string;
+  /** Bị quẹt thì dịch về vỉa hè gần nhất: bắc (z nhỏ) hoặc nam (z lớn). */
+  safeNorthZ: number;
+  safeSouthZ: number;
+}
+
+/** Một chặng của hành trình: chơi một bản đồ cho tới khi xong các nhiệm vụ trong `finish`. */
+export interface JourneyStep {
+  id: string;
+  title: string;
+  intro: string;
+  mapId: string;
+  /** Id các nhiệm vụ phải xong để sang chặng sau. */
+  finish: string[];
+  /** Câu hiện khi hoàn thành chặng. */
+  outro?: string;
+}
+
+export interface Journey {
+  steps: JourneyStep[];
+  /** Câu cuối trên thẻ kết thúc (bản chưa đủ chặng ghi rõ điểm dừng, những gì sẽ có sau). */
+  epilogue?: string;
 }
 
 /** Một mục tiêu của nhiệm vụ; hoàn thành khi điều kiện `done` thoả (thường theo cờ tự sinh `talked:<npc>`...). */
@@ -252,6 +363,12 @@ export interface RoamMap {
   playerId: string;
   npcs: MapNpc[];
   quests: Quest[];
+  /** Trạm lấy đồ / dùng / lên xe. */
+  stations?: MapStation[];
+  /** Vùng kích hoạt cờ khi bước vào. */
+  zones?: MapZone[];
+  /** Dòng xe máy là mối nguy khi băng đường. */
+  traffic?: Traffic;
 }
 
 export interface Content {
@@ -267,6 +384,8 @@ export interface Content {
   endings: Ending[];
   /** Bản đồ chế độ đi lại (không bắt buộc: dữ liệu cũ không có). */
   maps?: RoamMap[];
+  /** Hành trình nhiều chặng nối các bản đồ (nếu có). */
+  journey?: Journey;
 }
 
 export type Stats = Record<StatKey, number>;

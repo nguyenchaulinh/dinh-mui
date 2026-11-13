@@ -58,7 +58,51 @@
       "parody": true, "fallbackId": "chu-tu",
       "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#7c3aed", "accessory": "spoon" } },
     { "id": "chu-tu", "name": "Chú Tư", "role": "Chuyên mục: Review mâm cỗ (bản trung tính)", "enabled": true,
-      "look": { "kind": "human", "skin": "#e0b088", "hair": "#3b2a20", "hairStyle": "short", "outfit": "#1d4ed8", "accessory": "spoon" } }
+      "look": { "kind": "human", "skin": "#e0b088", "hair": "#3b2a20", "hairStyle": "short", "outfit": "#1d4ed8", "accessory": "spoon" } },
+    {
+      "id": "chu-ba-triet-ly",
+      "name": "Chú Ba Triết Lý",
+      "role": "Livestream khoá học đổi đời",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#e8b98f",
+        "hair": "#4b5563",
+        "hairStyle": "short",
+        "outfit": "#f8fafc",
+        "accessory": "phone"
+      }
+    },
+    {
+      "id": "thai-gara",
+      "name": "Thái Gara 99",
+      "role": "Anh họ bán xe cũ",
+      "enabled": true,
+      "parody": true,
+      "fallbackId": "anh-ho",
+      "look": {
+        "kind": "human",
+        "skin": "#d9a27a",
+        "hair": "#1f1410",
+        "hairStyle": "short",
+        "outfit": "#0e7490",
+        "accessory": "hat"
+      }
+    },
+    {
+      "id": "anh-ho",
+      "name": "Anh Họ",
+      "role": "Anh họ bán xe cũ (bản trung tính)",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#e0b088",
+        "hair": "#3b2a20",
+        "hairStyle": "short",
+        "outfit": "#334155",
+        "accessory": "none"
+      }
+    }
   ],
   "scenes": [
     {
@@ -367,7 +411,7 @@
         { "id": "c", "style": "lay", "text": "Hỏi ông chuyện Tết ngày xưa.", "effects": { "harmony": 8 },
           "reply": "Ông kể chuyện Tết năm ông mười tuổi. Cả mâm quên hết câu hỏi.", "tipId": "T03" },
         { "id": "d", "style": "phan-don", "text": "Hỏi ngược lương các bác.", "effects": { "harmony": -15, "stamina": 10 },
-          "reply": "Bin quay TikTok cảnh này. Video đã có 3 lượt xem, cả 3 là người trong họ." }
+          "reply": "Bin quay clip cảnh này. Video đã có 3 lượt xem, cả 3 là người trong họ." }
       ]
     },
     {
@@ -458,6 +502,238 @@
         { "id": "c", "style": "lay", "text": "Dì giới thiệu giỏi vậy sao dì không mở công ty mai mối?", "effects": { "harmony": 3, "stamina": -3 },
           "reply": "Mở rồi, bà Sáu là khách hàng đầu tiên đó con." }
       ]
+    },
+    {
+      "id": "mc-r-co-hai",
+      "stageId": "mam-com",
+      "roamOnly": true,
+      "characterId": "co-hai",
+      "line": "Giò lụa này cô giã từ sáng đấy. Con nếm thử rồi nói thật cô nghe xem nào.",
+      "lineByRegion": {
+        "da-nang": "Nem chua này cô làm từ hôm qua đó. Con nếm thử rồi nói thật cô nghe coi.",
+        "sai-gon": "Nồi thịt kho hột vịt này cô kho từ sáng nè. Con nếm thử rồi nói thật cô nghe nghen."
+      },
+      "stage3d": {
+        "set": "nha-tren",
+        "actors": [{ "characterId": "ban", "spot": "ghe-0" }, { "characterId": "co-hai", "spot": "ghe-1", "anim": "talk" }]
+      },
+      "next": null,
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Ngon nhất mâm luôn cô ạ, con xin thêm miếng nữa.",
+          "effects": { "harmony": 6, "stamina": -2 },
+          "reply": "Cô vui lắm! Con ngồi gần cô cho cô gắp thêm."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Dạ hơi mặn một chút cô ạ.",
+          "effects": { "harmony": -3, "stamina": 3 },
+          "reply": "Mặn thì ăn thêm cơm. Món của cô không có lỗi."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Cô cho con xin công thức, con mở quán bán Tết.",
+          "effects": { "harmony": 4, "stamina": 2 },
+          "reply": "Mở quán thì cô làm bếp trưởng, con làm rửa chén!"
+        }
+      ]
+    },
+    {
+      "id": "mc-r-ong",
+      "stageId": "mam-com",
+      "roamOnly": true,
+      "characterId": "ong",
+      "line": "Năm nay đông đủ, ông vui. Lại đây, ông kể con nghe chuyện Tết ngày xưa.",
+      "stage3d": {
+        "set": "nha-tren",
+        "actors": [{ "characterId": "ban", "spot": "ghe-0" }, { "characterId": "ong", "spot": "ghe-3", "anim": "talk" }]
+      },
+      "next": null,
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Ông kể con nghe Tết hồi ông mười tuổi đi ạ.",
+          "effects": { "harmony": 8, "stamina": -2 },
+          "reply": "Hồi đó Tết được một bộ quần áo mới, mặc từ mùng một tới hết rằm. Cả mâm ngồi nghe quên cả ăn."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Dạ con vẫn ổn ông ạ, chỉ hơi mệt thôi.",
+          "effects": { "harmony": 2, "stamina": 4 },
+          "reply": "Mệt thì ăn no rồi nghỉ. Việc gì cũng để mai tính."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Ông ơi, bí quyết sống khỏe của ông là gì ạ?",
+          "effects": { "harmony": 5, "stamina": 3 },
+          "reply": "Ăn cơm đúng bữa, ngủ đúng giờ. Còn chuyện lương với chuyện cưới thì nghe cho vui thôi."
+        }
+      ]
+    },
+    {
+      "id": "mc-r-bin",
+      "stageId": "mam-com",
+      "roamOnly": true,
+      "characterId": "bin",
+      "line": "Anh/chị ơi, đứng yên! Em quay clip mâm cơm tất niên đăng lên nhóm chat cho cả họ xem!",
+      "lineByRegion": {
+        "da-nang": "Anh/chị ơi, đứng yên nghe! Em quay clip mâm cơm tất niên đăng lên nhóm chat cho cả họ xem!",
+        "sai-gon": "Anh/chị ơi, đứng yên nghen! Em quay clip mâm cơm tất niên đăng lên nhóm chat cho cả họ xem!"
+      },
+      "stage3d": {
+        "set": "nha-tren",
+        "actors": [{ "characterId": "ban", "spot": "ghe-0" }, { "characterId": "bin", "spot": "ghe-6", "anim": "talk" }]
+      },
+      "next": null,
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Giơ đĩa lên, cười tươi trước ống kính.",
+          "effects": { "harmony": 4, "stamina": -2 },
+          "reply": "Đẹp! Clip này em đặt tên là \"Cháu ngoan quốc dân\"."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Em quay mâm cơm thôi, đừng quay mặt anh/chị.",
+          "effects": { "harmony": 0, "stamina": 3 },
+          "reply": "Dạ! Mặt anh/chị em để dành cho clip sau."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Cho anh/chị xin 10% tiền quảng cáo.",
+          "effects": { "harmony": 3, "stamina": 2 },
+          "reply": "Quảng cáo đâu mà chia? Cả họ xem miễn phí hết!"
+        }
+      ]
+    },
+    {
+      "id": "roam-shipper",
+      "stageId": "ra-ben",
+      "roamOnly": true,
+      "characterId": "anh-shipper",
+      "line": "Em ơi, Tết của anh bắt đầu sau đơn cuối cùng. Mà đơn cuối thì chưa bao giờ tới.",
+      "stage3d": {
+        "set": "pho-tet",
+        "actors": [
+          { "characterId": "ban", "spot": "via-he" },
+          { "characterId": "anh-shipper", "spot": "shipper", "anim": "talk" }
+        ]
+      },
+      "next": null,
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Chúc anh giao hết đơn trước giao thừa nhé.",
+          "effects": { "harmony": 5 },
+          "reply": "Cảm ơn em! Em đứng xa ra chút, hàng trên xe anh hơi... cao."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Anh nghỉ chút đi, em thấy anh mệt lắm.",
+          "effects": { "harmony": 2, "stamina": 3 },
+          "reply": "Nghỉ thì đơn nó không nghỉ em ơi. Nhưng cảm ơn em."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Anh cho em xin một đơn, em giao hộ.",
+          "effects": { "harmony": 3, "stamina": -3 },
+          "reply": "Đơn này nặng bốn chục ký đó em. Thôi anh tự giao."
+        }
+      ]
+    },
+    {
+      "id": "roam-thai-gara",
+      "stageId": "duong-ve",
+      "roamOnly": true,
+      "characterId": "thai-gara",
+      "line": "Lên xem xe anh đi em, anh họ đây! Con xe này anh nói thật, chủ cũ đi rất giữ gìn, chỉ đi chợ ngày Rằm.",
+      "stage3d": { "set": "tram-dung", "actors": [{ "characterId": "thai-gara", "spot": "thai-gara", "anim": "talk" }] },
+      "next": null,
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Xe đẹp anh ơi, nhưng em chưa có nhu cầu ạ.",
+          "effects": { "harmony": 5, "stamina": -5 },
+          "reply": "Chưa có nhu cầu là sắp có nhu cầu."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Anh cho em ngồi nghỉ một lát được không ạ?",
+          "effects": { "harmony": -2, "stamina": 8 },
+          "reply": "Được chứ! Ngồi đây nghe anh giới thiệu xe luôn nhé... Anh mở nhạc to hơn cho đỡ buồn."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Anh bớt cho em 99%, em lấy liền.",
+          "effects": { "harmony": 3, "stamina": 3 },
+          "reply": "Em lấy 1% thôi thì được, cái gương chiếu hậu."
+        },
+        {
+          "id": "d",
+          "style": "lay",
+          "text": "Có chú ở quán mời anh ly bia kìa, anh uống không?",
+          "effects": { "harmony": 4 },
+          "reply": "Anh không uống giọt nào, còn lái cả trăm cây số.",
+          "tipId": "T05"
+        }
+      ]
+    },
+    {
+      "id": "roam-triet-ly",
+      "stageId": "duong-ve",
+      "roamOnly": true,
+      "characterId": "chu-ba-triet-ly",
+      "line": "Tết này đổi đời! Chỉ một khoá học, tiền tự chảy về túi. Chuyển khoản giữ chỗ đi, chỉ còn năm suất!",
+      "stage3d": { "set": "tram-dung", "actors": [{ "characterId": "chu-ba-triet-ly", "spot": "chu-ba", "anim": "talk" }] },
+      "next": null,
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Cười, đi mua bánh mì.",
+          "effects": { "stamina": 3 },
+          "reply": "Chú gọi với theo: \"Chỉ còn bốn suất!\" Nghe cứ như đồng hồ đếm ngược."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Nói nhỏ với người bên cạnh: đừng chuyển khoản cho người lạ.",
+          "effects": { "harmony": 3 },
+          "reply": "Người bên cạnh gật đầu, cất điện thoại vào túi.",
+          "tipId": "T06"
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Chú đổi đời chưa mà còn đứng đây?",
+          "effects": { "stamina": 5 },
+          "reply": "Chú im một nhịp, rồi quay lại màn hình: \"Chỉ còn bốn suất!\""
+        },
+        {
+          "id": "d",
+          "style": "that-tha",
+          "text": "Quét mã giữ chỗ cho chắc.",
+          "effects": { "wallet": -20, "stamina": -5 },
+          "reply": "Điện thoại báo chuyển khoản thành công. Khoá học thì chưa thấy đâu.",
+          "tipId": "T06"
+        }
+      ]
     }
   ],
   "tips": [
@@ -466,7 +742,12 @@
       "source": "Tổng hợp từ VnExpress, Vietcetera" },
     { "id": "T05",
       "text": "Đã uống rượu bia thì không lái xe.",
-      "source": "Nghị định 168/2024/NĐ-CP" }
+      "source": "Nghị định 168/2024/NĐ-CP" },
+    {
+      "id": "T06",
+      "text": "Dịp Tết, kẻ gian dùng link nhận quà, khuyến mãi, \"giải hạn\" để lừa chuyển tiền. Không bấm link lạ, không chuyển khoản cho người lạ.",
+      "source": "Bộ Công an (qua Báo Lào Cai)"
+    }
   ],
   "endings": [
     { "id": "E1", "title": "Bị cả họ unfollow", "description": "Nhóm chat gia đình vẫn còn bạn, chỉ là không ai thả tim nữa.",
@@ -493,8 +774,11 @@
           "action": { "kind": "talk", "sceneIds": ["bvn-1-dl", "bvn-1-dt", "bvn-1-sv"], "after": "Ăn miếng bánh đi con, đứng đó làm gì." } },
         { "characterId": "bac-ca", "spot": "ghe-2", "behavior": "stand", "aware": 0, "prompt": "Nói chuyện",
           "action": { "kind": "talk", "sceneIds": ["bvn-2"], "after": "Hôm nay bác nói vậy thôi, đừng để bụng." } },
-        { "characterId": "ba-tam", "spot": "ghe-3", "behavior": "stand", "aware": 0, "prompt": "Chào",
-          "action": { "kind": "talk", "sceneIds": ["bvn-3"], "after": "Bà đăng rồi nhé, 47 người thả tim đó!" } },
+        { "characterId": "ba-tam", "spot": "goc-ba-tam", "behavior": "approach", "speed": 0.9, "leash": 3, "aware": 9,
+          "stopDist": 2.6, "reach": 3.0, "turnRate": 0.35, "prompt": "Chào",
+          "action": { "kind": "talk", "sceneIds": ["bvn-3"], "after": "Bà đăng rồi nhé, 47 người thả tim đó!" },
+          "lens": { "range": 5.5, "halfAngleDeg": 24, "holdSec": 1.8, "restSec": 6, "penalty": { "harmony": -2 },
+            "penaltyLine": "Bà Tám quay được cận mặt bạn, đăng thẳng lên nhóm chat gia đình." } },
         { "characterId": "vang", "spot": "goc-san", "behavior": "approach", "speed": 1.9, "leash": 3.5, "aware": 6, "stopDist": 1.0, "reach": 1.5,
           "prompt": "Vuốt ve",
           "action": { "kind": "pet", "line": "Vàng dụi đầu vào tay bạn, vẫy đuôi tít mù. Bạn thấy khỏe hẳn ra.",
@@ -526,6 +810,9 @@
         { "id": "ne-cau-hoi", "title": "Né câu hỏi của Dì Út",
           "objectives": [ { "id": "ne-3", "text": "Né được 3 câu hỏi", "done": { "flags": ["dodged:3"] } } ],
           "reward": { "stamina": 10 }, "rewardLine": "Bạn né câu hỏi như một chiến thần." },
+        { "id": "ne-ong-kinh", "title": "Né ống kính của Bà Tám",
+          "objectives": [ { "id": "thoat-1", "text": "Thoát khỏi ống kính của Bà Tám một lần", "done": { "flags": ["lens-escaped:1"] } } ],
+          "reward": { "stamina": 5 }, "rewardLine": "Bà Tám quay hụt, nhóm chat gia đình chẳng có gì để thả tim." },
         { "id": "ban-cua-lu-nho", "title": "Làm bạn với lũ nhỏ",
           "objectives": [
             { "id": "vang", "text": "Vuốt ve chó Vàng", "done": { "flags": ["petted:vang"] } },
@@ -536,10 +823,416 @@
           "objectives": [
             { "id": "q1", "text": "Hoàn thành \"Chào hỏi họ hàng\"", "done": { "flags": ["quest:chao-ho-hang"] } },
             { "id": "q2", "text": "Hoàn thành \"Né câu hỏi của Dì Út\"", "done": { "flags": ["quest:ne-cau-hoi"] } },
-            { "id": "q3", "text": "Hoàn thành \"Làm bạn với lũ nhỏ\"", "done": { "flags": ["quest:ban-cua-lu-nho"] } }
+            { "id": "q3", "text": "Hoàn thành \"Làm bạn với lũ nhỏ\"", "done": { "flags": ["quest:ban-cua-lu-nho"] } },
+            { "id": "q4", "text": "Hoàn thành \"Né ống kính của Bà Tám\"", "done": { "flags": ["quest:ne-ong-kinh"] } }
           ],
           "reward": { "harmony": 5, "stamina": 5 }, "rewardLine": "Bạn sống sót sân nhà. Mâm cơm đang chờ!" }
       ]
+    },
+    {
+      "id": "mam-com",
+      "setId": "nha-tren",
+      "playerId": "ban",
+      "npcs": [
+        {
+          "characterId": "ong",
+          "spot": "ghe-3",
+          "behavior": "stand",
+          "aware": 0,
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["mc-r-ong"], "after": "Ăn đi con, ông ăn từ từ." },
+          "serve": {
+            "item": "mon-an",
+            "prompt": "Gắp mời",
+            "line": "Ông nhón miếng nhỏ nhất rồi đẩy đĩa về phía bạn: \"Con ăn đi, ông ăn từ từ.\"",
+            "effects": { "harmony": 4, "stamina": -3 }
+          }
+        },
+        {
+          "characterId": "co-hai",
+          "spot": "ghe-1",
+          "behavior": "stand",
+          "aware": 0,
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["mc-r-co-hai"], "after": "Ăn thêm đi con, đừng ngại." },
+          "serve": {
+            "item": "mon-an",
+            "prompt": "Gắp mời",
+            "line": "Cô Hai nhận miếng bạn gắp, gật gù: \"Biết gắp mời người lớn, tốt.\" Rồi cô liếc xem bạn còn đủ sức trả lời câu hỏi nữa không.",
+            "effects": { "harmony": 3, "stamina": -3 }
+          }
+        },
+        {
+          "characterId": "bac-ca",
+          "spot": "ghe-2",
+          "behavior": "stand",
+          "aware": 0,
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["mc-2", "mc-2-sv"], "after": "Bác nói vậy thôi, đừng để bụng." },
+          "serve": {
+            "item": "mon-an",
+            "prompt": "Gắp mời",
+            "line": "Bác Cả nhận miếng gắp, hắng giọng: \"Ừ.\" Bác nhai rất chậm, tức là bác hài lòng.",
+            "effects": { "harmony": 3, "stamina": -3 }
+          }
+        },
+        {
+          "characterId": "duy-den-cay",
+          "spot": "ghe-4",
+          "behavior": "stand",
+          "aware": 0,
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["mc-1"], "after": "Thơ chậm còn nhiều lắm, con cứ ăn đã." },
+          "serve": {
+            "item": "mon-an",
+            "prompt": "Gắp mời",
+            "line": "Người review mâm cỗ nhận miếng gắp như nhận giải thưởng, nhắm mắt một nhịp: \"Vị của sự quan tâm... chưa kịp nguội.\"",
+            "effects": { "harmony": 3, "stamina": -3 }
+          }
+        },
+        {
+          "characterId": "chu-ba",
+          "spot": "ghe-5",
+          "behavior": "stand",
+          "aware": 0,
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["mc-3"], "after": "Nước chè thì chú rót thoải mái!" },
+          "serve": {
+            "item": "mon-an",
+            "prompt": "Gắp mời",
+            "line": "Chú Ba đón miếng gắp, nâng ly nước chè: \"Có tâm! Chú mời lại con một ly... nước chè.\"",
+            "effects": { "harmony": 2, "stamina": -3 }
+          }
+        },
+        {
+          "characterId": "bin",
+          "spot": "ghe-6",
+          "behavior": "stand",
+          "aware": 0,
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["mc-r-bin"], "after": "Clip xong rồi, em đăng nhóm chat nhé!" },
+          "serve": {
+            "item": "mon-an",
+            "prompt": "Gắp mời",
+            "line": "Bin ngậm miếng gắp, giơ ngón cái: \"Anh/chị gắp đỉnh! Em quay lại rồi nhé.\"",
+            "effects": { "harmony": 2, "stamina": -2 }
+          }
+        },
+        {
+          "characterId": "be-de",
+          "spot": "be-de",
+          "behavior": "stand",
+          "aware": 5,
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["mc-4"], "after": "Chiến thuật nào cũng có cái giá của nó." }
+        }
+      ],
+      "stations": [
+        {
+          "id": "bep",
+          "spot": "bep",
+          "label": "bàn bếp",
+          "prompt": "Lấy món ăn",
+          "reach": 2.2,
+          "action": {
+            "kind": "pickup",
+            "item": {
+              "id": "mon-an",
+              "label": "Đĩa giò lụa",
+              "labelByRegion": { "da-nang": "Đĩa nem chua", "sai-gon": "Đĩa thịt kho hột vịt" }
+            },
+            "line": "Bạn bưng một đĩa món nóng từ bếp, đi cẩn thận kẻo đổ."
+          }
+        }
+      ],
+      "quests": [
+        {
+          "id": "gap-moi",
+          "title": "Gắp mời họ hàng",
+          "objectives": [
+            { "id": "ong", "text": "Gắp mời Ông (lấy món ở bàn bếp trước)", "done": { "flags": ["served:ong"] } },
+            { "id": "co-hai", "text": "Gắp mời Cô Hai", "done": { "flags": ["served:co-hai"] } },
+            { "id": "bac-ca", "text": "Gắp mời Bác Cả", "done": { "flags": ["served:bac-ca"] } }
+          ],
+          "reward": { "harmony": 8 },
+          "rewardLine": "Cả mâm khen bạn gắp mời có duyên."
+        },
+        {
+          "id": "nghe-review",
+          "title": "Nghe review mâm cỗ",
+          "objectives": [{ "id": "duy", "text": "Nói chuyện với người review mâm cỗ", "done": { "flags": ["talked:duy-den-cay"] } }],
+          "reward": { "harmony": 3 },
+          "rewardLine": "Người review mâm cỗ tặng bạn một câu thơ chậm."
+        },
+        {
+          "id": "chuyen-ngay-xua",
+          "title": "Nghe Ông kể chuyện Tết ngày xưa",
+          "objectives": [{ "id": "ong", "text": "Nói chuyện với Ông", "done": { "flags": ["talked:ong"] } }],
+          "reward": { "harmony": 4 },
+          "rewardLine": "Ông kể, cả mâm quên hết câu hỏi."
+        },
+        {
+          "id": "chien-thuat",
+          "title": "Chọn chiến thuật cuối",
+          "objectives": [{ "id": "be-de", "text": "Hỏi Bé Dê chiến thuật cho cả mâm", "done": { "flags": ["talked:be-de"] } }],
+          "reward": { "stamina": 5 },
+          "rewardLine": "Bạn đã chọn xong chiến thuật cho cả mâm."
+        },
+        {
+          "id": "qua-mam-com",
+          "title": "Qua ải mâm cơm",
+          "objectives": [
+            { "id": "q1", "text": "Hoàn thành \"Gắp mời họ hàng\"", "done": { "flags": ["quest:gap-moi"] } },
+            {
+              "id": "q2",
+              "text": "Hoàn thành \"Nghe review mâm cỗ\"",
+              "done": { "flags": ["quest:nghe-review"] }
+            },
+            { "id": "q3", "text": "Hoàn thành \"Chọn chiến thuật cuối\"", "done": { "flags": ["quest:chien-thuat"] } }
+          ],
+          "reward": { "harmony": 5, "stamina": 5 },
+          "rewardLine": "Bạn vượt qua mâm cơm tất niên!"
+        }
+      ]
+    },
+    {
+      "id": "pho-tet",
+      "setId": "pho-tet",
+      "playerId": "ban",
+      "npcs": [
+        {
+          "characterId": "be-de",
+          "spot": "sap-qua",
+          "behavior": "wander",
+          "speed": 0.6,
+          "leash": 0.8,
+          "reach": 2.2,
+          "prompt": "Mua quà",
+          "action": { "kind": "talk", "sceneIds": ["rb-1"], "after": "Quà chọn rồi, ra bến thôi. Đường đông như hội đấy." }
+        },
+        {
+          "characterId": "anh-shipper",
+          "spot": "shipper",
+          "behavior": "wander",
+          "speed": 0.5,
+          "leash": 1,
+          "reach": 2.2,
+          "prompt": "Hỏi thăm",
+          "action": { "kind": "talk", "sceneIds": ["roam-shipper"], "after": "Đơn cuối chưa tới, nhưng anh vẫn chạy." }
+        }
+      ],
+      "stations": [
+        {
+          "id": "xe-buyt",
+          "spot": "ben",
+          "label": "xe buýt",
+          "prompt": "Lên xe buýt",
+          "reach": 2.2,
+          "if": { "flags": ["quest:mua-qua"] },
+          "action": { "kind": "board", "line": "Bạn chen lên xe buýt, balo ôm trước ngực. Cả thành phố cùng về quê." }
+        }
+      ],
+      "zones": [{ "id": "ben", "x0": 5, "z0": 2.7, "x1": 9, "z1": 4.2 }],
+      "traffic": {
+        "lanes": [
+          { "z": -0.9, "dir": 1, "speed": 3.6 },
+          { "z": -0.2, "dir": -1, "speed": 4.4 },
+          { "z": 0.6, "dir": 1, "speed": 3 },
+          { "z": 1.3, "dir": -1, "speed": 4 }
+        ],
+        "count": 12,
+        "length": 70,
+        "hitEffects": { "stamina": -8 },
+        "hitLine": "Một chiếc xe máy chở cành đào quẹt qua vai. Bạn loạng choạng lùi về vỉa hè.",
+        "safeNorthZ": -2.4,
+        "safeSouthZ": 3.2
+      },
+      "quests": [
+        {
+          "id": "mua-qua",
+          "title": "Mua quà về quê",
+          "objectives": [
+            {
+              "id": "sap",
+              "text": "Chọn quà ở sạp đầu phố (nói chuyện với Bé Dê)",
+              "done": { "flags": ["talked:be-de"] }
+            }
+          ],
+          "reward": { "harmony": 2 },
+          "rewardLine": "Quà đã có. Về quê không thể tay không."
+        },
+        {
+          "id": "hoi-shipper",
+          "title": "Hỏi thăm anh shipper",
+          "objectives": [{ "id": "ship", "text": "Nói chuyện với Anh Shipper Tết", "done": { "flags": ["talked:anh-shipper"] } }],
+          "reward": { "harmony": 3 },
+          "rewardLine": "Anh shipper chúc bạn về quê bình an."
+        },
+        {
+          "id": "sang-duong",
+          "title": "Băng sang bên kia đường",
+          "objectives": [
+            {
+              "id": "ben",
+              "text": "Tới bến xe ở vỉa hè bên kia (nhìn xe rồi hãy bước)",
+              "done": { "flags": ["zone:ben"] }
+            }
+          ],
+          "reward": { "stamina": 3 },
+          "rewardLine": "Qua đường rồi, tim vẫn đập thình thịch."
+        },
+        {
+          "id": "ra-ben-xong",
+          "title": "Ra bến",
+          "objectives": [
+            { "id": "q1", "text": "Hoàn thành \"Mua quà về quê\"", "done": { "flags": ["quest:mua-qua"] } },
+            {
+              "id": "q2",
+              "text": "Hoàn thành \"Băng sang bên kia đường\"",
+              "done": { "flags": ["quest:sang-duong"] }
+            },
+            { "id": "q3", "text": "Lên xe buýt ở bến", "done": { "flags": ["boarded:xe-buyt"] } }
+          ],
+          "reward": { "stamina": 2 },
+          "rewardLine": "Xe buýt chật cứng nhưng đang chạy về phía quê."
+        }
+      ]
+    },
+    {
+      "id": "tram-dung",
+      "setId": "tram-dung",
+      "playerId": "ban",
+      "npcs": [
+        {
+          "characterId": "thai-gara",
+          "spot": "thai-gara",
+          "behavior": "stand",
+          "aware": 4,
+          "reach": 2.2,
+          "prompt": "Nói chuyện",
+          "action": {
+            "kind": "talk",
+            "sceneIds": ["roam-thai-gara"],
+            "after": "Cần xe thì nhớ anh nhé. Không cần thì nhớ anh luôn."
+          }
+        },
+        {
+          "characterId": "chu-ba-triet-ly",
+          "spot": "chu-ba",
+          "behavior": "stand",
+          "aware": 12,
+          "reach": 2.2,
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["roam-triet-ly"], "after": "Còn ba suất thôi! À, thôi, còn năm." },
+          "shoots": {
+            "everySec": 4,
+            "range": 8,
+            "minRange": 2.5,
+            "speed": 2.6,
+            "icon": "qr",
+            "questions": ["Chuyển khoản giữ chỗ nha!", "Chỉ còn năm suất thôi!", "Quét mã đổi đời đi con!"],
+            "hitSceneIds": ["roam-triet-ly"]
+          }
+        }
+      ],
+      "stations": [
+        {
+          "id": "banh-mi",
+          "spot": "quan",
+          "label": "quầy bánh mì",
+          "prompt": "Mua bánh mì",
+          "reach": 2.2,
+          "action": {
+            "kind": "use",
+            "once": true,
+            "effects": { "stamina": 6, "wallet": -2 },
+            "line": "Bạn mua ổ bánh mì nóng giòn, ăn tạm cho đỡ đói. Người bán chúc bạn về quê bình an."
+          }
+        },
+        {
+          "id": "xe-khach",
+          "spot": "xe-khach",
+          "label": "xe khách",
+          "prompt": "Lên xe khách",
+          "reach": 2.2,
+          "if": { "flags": ["used:banh-mi"] },
+          "action": { "kind": "board", "line": "Bạn lên xe khách, chọn ghế cạnh cửa sổ. Xe lăn bánh về làng." }
+        }
+      ],
+      "quests": [
+        {
+          "id": "nghi-chan",
+          "title": "Nghỉ chân ăn bánh mì",
+          "objectives": [{ "id": "mua", "text": "Mua bánh mì ở quầy bên trái sân", "done": { "flags": ["used:banh-mi"] } }]
+        },
+        {
+          "id": "gap-anh-ho",
+          "title": "Chào anh họ bán xe cũ",
+          "objectives": [
+            {
+              "id": "anh",
+              "text": "Nói chuyện với anh họ bán xe cũ",
+              "done": { "flags": ["talked:thai-gara"] }
+            }
+          ],
+          "reward": { "harmony": 3 },
+          "rewardLine": "Anh họ hứa lần sau cho đi nhờ, không kèm bài giới thiệu xe."
+        },
+        {
+          "id": "ne-ma-qr",
+          "title": "Né mã QR \"giữ chỗ\"",
+          "objectives": [{ "id": "ne-3", "text": "Né được 3 mã QR của Chú Ba Triết Lý", "done": { "flags": ["dodged:3"] } }],
+          "reward": { "stamina": 5 },
+          "rewardLine": "Ví vẫn nguyên, mã QR thì bay đầy trời."
+        },
+        {
+          "id": "ve-toi-lang",
+          "title": "Lên xe về làng",
+          "objectives": [
+            { "id": "q1", "text": "Hoàn thành \"Nghỉ chân ăn bánh mì\"", "done": { "flags": ["quest:nghi-chan"] } },
+            { "id": "q2", "text": "Lên xe khách ở phía đông sân", "done": { "flags": ["boarded:xe-khach"] } }
+          ],
+          "reward": { "stamina": 3 },
+          "rewardLine": "Xe lăn bánh. Làng đã ở phía trước."
+        }
+      ]
     }
-  ]
+  ],
+  "journey": {
+    "steps": [
+      {
+        "id": "ra-ben",
+        "title": "Ra bến",
+        "mapId": "pho-tet",
+        "finish": ["ra-ben-xong"],
+        "intro": "28 tháng Chạp. Cả thành phố cùng lúc muốn về quê. Mua quà ở sạp đầu phố, băng qua đường (nhìn xe rồi hãy bước) và lên xe buýt ở bến bên kia.",
+        "outro": "Xe buýt chật cứng, quà vẫn còn nguyên. Về quê thôi!"
+      },
+      {
+        "id": "duong-ve",
+        "title": "Đường về",
+        "mapId": "tram-dung",
+        "finish": ["ve-toi-lang"],
+        "intro": "Trời chạng vạng, xe dừng ở trạm nghỉ chân giữa quốc lộ. Ăn tạm bánh mì, coi chừng mã QR \"giữ chỗ\" rồi lên xe khách về làng.",
+        "outro": "Xe lăn bánh về làng. Sắp tới nhà rồi."
+      },
+      {
+        "id": "buoc-vao-nha",
+        "title": "Bước vào nhà",
+        "mapId": "san-nha",
+        "finish": ["qua-san-nha"],
+        "intro": "Chưa kịp đặt balo xuống thì câu hỏi đầu tiên đã bay tới. Đi giữa sân, chào họ hàng, né câu hỏi của Dì Út và né cả ống kính của Bà Tám.",
+        "outro": "Bạn sống sót sân nhà. Mâm cơm đang chờ!"
+      },
+      {
+        "id": "mam-com",
+        "title": "Mâm cơm tất niên",
+        "mapId": "mam-com",
+        "finish": ["qua-mam-com"],
+        "intro": "29 tháng Chạp. Cả họ đã vào vị trí. Lấy món ở bàn bếp, gắp mời từng người, nói chuyện với từng chuyên mục rồi hỏi Bé Dê chiến thuật cuối.",
+        "outro": "Bạn đã vượt qua mâm cơm tất niên."
+      }
+    ],
+    "epilogue": "Bản thử dừng ở mâm cơm tất niên. Giao thừa, mùng một và đường về phố sẽ có ở bản sau."
+  }
 }

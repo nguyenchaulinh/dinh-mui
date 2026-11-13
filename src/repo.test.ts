@@ -1,14 +1,12 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import lockRaw from '../package-lock.json?raw';
 
 /**
  * Kho mã công khai: lockfile chỉ được trỏ tới registry công khai. `npm install` trên máy dùng registry nội bộ/mirror
  * có thể ghi URL máy chủ riêng vào `resolved`; test này chặn việc đó trước khi đẩy lên.
  */
 describe('package-lock.json', () => {
-  const lock = JSON.parse(readFileSync('package-lock.json', 'utf8')) as {
-    packages: Record<string, { resolved?: string }>;
-  };
+  const lock = JSON.parse(lockRaw) as { packages: Record<string, { resolved?: string }> };
 
   it('mọi gói resolve từ registry.npmjs.org (không lộ registry nội bộ)', () => {
     const bad = Object.entries(lock.packages)

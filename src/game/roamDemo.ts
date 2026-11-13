@@ -24,5 +24,6 @@ export function buildNpcParams(spec: MapNpc, seated: boolean): NpcParams {
     leash: spec.leash ?? DEFAULT_NPC.leash,
     aware: spec.aware ?? DEFAULT_NPC.aware,
     stopDist: spec.stopDist ?? DEFAULT_NPC.stopDist,
+    turnRate: spec.turnRate ?? DEFAULT_NPC.turnRate,
   };
 }

@@ -42,6 +42,8 @@ export interface ShooterRuntime {
   minRange: number;
   speed: number;
   questions: readonly string[];
+  /** Hình trên bong bóng (mặc định dấu hỏi). */
+  icon?: 'question' | 'qr';
 }
 
 export interface Bubble {
@@ -54,6 +56,7 @@ export interface Bubble {
   age: number;
   life: number;
   text: string;
+  icon: 'question' | 'qr';
   /** Đã từng lướt vào trong NEAR (kể cả khi chưa đi qua người chơi). */
   near: boolean;
   /** Đã tính là né (chỉ tính một lần). */
@@ -147,6 +150,7 @@ export function stepBubbles(s: BubbleState, dt: number, a: BubbleArgs): { state:
           age: 0,
           life: (sh.range + OVERSHOOT) / sh.speed,
           text: sh.questions[Math.min(sh.questions.length - 1, Math.floor(r1 * sh.questions.length))] ?? '',
+          icon: sh.icon ?? 'question',
           near: false,
           counted: false,
         });

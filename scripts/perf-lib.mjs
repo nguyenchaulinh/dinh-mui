@@ -12,6 +12,9 @@ export const SCENARIOS = [
   { name: 'mam-combo-nam', query: 'scene=mc-4&region=sai-gon' },
   { name: 'roam-san-bac', query: 'roam=san-nha&region=ha-noi', roam: true },
   { name: 'roam-san-nam', query: 'roam=san-nha&region=sai-gon', roam: true },
+  { name: 'roam-mam-nam', query: 'roam=mam-com&region=sai-gon', roam: true },
+  { name: 'roam-pho-bac', query: 'roam=pho-tet&region=ha-noi', roam: true },
+  { name: 'roam-tram-trung', query: 'roam=tram-dung&region=da-nang', roam: true },
 ];
 
 export const DEFAULTS = {

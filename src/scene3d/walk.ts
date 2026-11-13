@@ -1,5 +1,9 @@
 import type { Bounds, Collider, WalkArea } from '../game/types';
 import type { RegionStyle } from './registry';
+import { BODY_HEIGHT, box, circle } from './walkKit';
+import { buildNhaTren } from './walk-nha-tren';
+import { buildPhoTet } from './walk-pho-tet';
+import { buildTramDung } from './walk-tram-dung';
 
 /**
  * Dữ liệu vùng đi lại (bước 1 trong docs/05-gameplay.md). Thuần: chỉ import type, không đụng three/react,
@@ -13,23 +17,11 @@ import type { RegionStyle } from './registry';
  * (mái hiên, dầm cổng, tán cây, đèn lồng, mái nhà) thì để người đi qua bên dưới.
  */
 
-/** Các bộ cảnh đã có dữ liệu đi lại. Thêm set mới thì thêm cả case trong walkAreaFor. */
-export const ROAM_SETS: readonly string[] = ['san-nha'];
-
-/** Chiều cao người chơi (m), khớp Figure: đầu ở y ~1.42 + bán kính đầu. */
-const BODY_HEIGHT = 1.7;
 /** Bán kính vòng tròn của NPC đứng yên. */
 const ACTOR_RADIUS = 0.42;
 /** Vị trí đặt collider khi toạ độ NPC không hợp lệ: xa mọi bounds nên không chặn gì. */
 const INERT_POS = 1e6;
 
-function circle(id: string, x: number, z: number, r: number, blocksCamera: boolean): Collider {
-  return { kind: 'circle', id, x, z, r, blocksCamera };
-}
-
-function box(id: string, x: number, z: number, hw: number, hd: number, blocksCamera: boolean): Collider {
-  return { kind: 'box', id, x, z, hw, hd, blocksCamera };
-}
 
 // ---------- Hình học dùng chung của sân nhà ----------
 
@@ -159,7 +151,18 @@ function buildSanNha(style: RegionStyle): WalkArea {
   return { bounds, colliders, spawn: { x: 0, z: 3.75, rotY: Math.PI } };
 }
 
-const cache: Record<RegionStyle, WalkArea | undefined> = { bac: undefined, trung: undefined, nam: undefined };
+/** Bộ dựng vùng đi lại theo bộ cảnh. Thêm cảnh mới: viết walk-<cảnh>.ts rồi đăng ký ở đây. */
+const BUILDERS: Readonly<Record<string, (style: RegionStyle) => WalkArea>> = {
+  'san-nha': buildSanNha,
+  'nha-tren': buildNhaTren,
+  'pho-tet': buildPhoTet,
+  'tram-dung': buildTramDung,
+};
+
+/** Các bộ cảnh đã có dữ liệu đi lại. */
+export const ROAM_SETS: readonly string[] = Object.keys(BUILDERS);
+
+const cache = new Map<string, WalkArea>();
 
 /**
  * Vùng đi lại của một bộ cảnh theo phong cách miền, hoặc null nếu bộ cảnh chưa hỗ trợ đi lại.
@@ -167,14 +170,16 @@ const cache: Record<RegionStyle, WalkArea | undefined> = { bac: undefined, trung
  * giống `styleOfRegion`.
  */
 export function walkAreaFor(setId: string, style: RegionStyle): WalkArea | null {
-  switch (setId) {
-    case 'san-nha': {
-      const key: RegionStyle = style === 'trung' || style === 'nam' ? style : 'bac';
-      return (cache[key] ??= buildSanNha(key));
-    }
-    default:
-      return null;
+  // Object.hasOwn: tên như "constructor" hay "__proto__" không được trúng thuộc tính của Object.prototype.
+  if (!Object.hasOwn(BUILDERS, setId)) return null;
+  const key: RegionStyle = style === 'trung' || style === 'nam' ? style : 'bac';
+  const cacheKey = `${setId}:${key}`;
+  let area = cache.get(cacheKey);
+  if (!area) {
+    area = BUILDERS[setId]!(key);
+    cache.set(cacheKey, area);
   }
+  return area;
 }
 
 /**
