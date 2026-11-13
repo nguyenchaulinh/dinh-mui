@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DEBUG } from '../debug';
-import { applyEffects, choose, getView, pickScene, resolveCharacter } from '../engine/engine';
+import { applyEffects, choose, getView, lookFor, pickScene, resolveCharacter } from '../engine/engine';
 import {
   completeQuests,
   dodgeFlags,
@@ -154,7 +154,12 @@ export function RoamScreen({
   const objOf = useCallback((key: string): MapObject | undefined => myObjects.find((o) => OBJ + o.id === key), [myObjects]);
 
   const area = useMemo(() => (map ? walkAreaFor(map.setId, styleOfRegion(regionId)) : null), [map, regionId]);
-  const player = useMemo(() => (map ? resolveCharacter(content, map.playerId) : null), [content, map]);
+  // Người chơi mặc đồ theo vai (sinh viên đeo balo, nhân viên đeo thẻ và túi...): lookByPersona ghi đè look gốc.
+  const player = useMemo(() => {
+    if (!map) return null;
+    const ch = resolveCharacter(content, map.playerId);
+    return { ...ch, look: lookFor(ch, personaId) };
+  }, [content, map, personaId]);
   const region = content.regions.find((r) => r.id === regionId);
   const persona = content.personas.find((p) => p.id === personaId);
   const npcs = useMemo<RoamNpc[]>(

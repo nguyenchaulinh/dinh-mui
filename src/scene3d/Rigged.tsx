@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import { AnimationMixer, LoopOnce, LoopRepeat, Quaternion, Vector3, type AnimationAction, type Bone, type Material, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Look } from '../engine/types';
+import { accessoriesOf, builtinOf, fitOf, propsFor } from './outfit';
+import { attachProps } from './outfitBuild';
 import { BIND_HEIGHT, BONES, HIP_ABOVE_SEAT, POM_BONES, POM_DROP, POM_FUR, SIT_POSE, clipFor, heightFor, sanitizeName, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
 
 const HEX = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
@@ -85,7 +87,7 @@ export function RiggedFigure({
   const gltf = useGLTF(urlOf(model), NO_DRACO, NO_MESHOPT);
   const kind = look.kind;
 
-  const { root, bones, scale } = useMemo(() => {
+  const { root, bones, scale, props } = useMemo(() => {
     const root = cloneSkinned(gltf.scene);
     // 1. Vật liệu chiếm nhiều nhất của mỗi bộ phận (để biết đâu là áo, đâu là quần).
     const count = new Map<string, Map<string, number>>();
@@ -143,9 +145,17 @@ export function RiggedFigure({
     if (kind === 'human' && (bones.thighs.length !== 2 || bones.shins.length !== 2 || !bones.hips)) {
       console.warn(`Model ${model}: không tìm thấy đủ xương chân/hông, tư thế ngồi sẽ không có tác dụng.`);
     }
-    // 5. Chuẩn hoá chiều cao theo chiều cao tư thế gốc đã biết (KHÔNG đo bằng Box3: xem BIND_HEIGHT).
-    return { root, bones, scale: heightFor(kind, look.build) / BIND_HEIGHT[model] };
+    // 5. Phụ kiện (kính, nón, balo, thẻ, cà vạt, ly...) gắn vào xương nên đi theo hoạt ảnh. Chỉ người: chó không có.
+    const props = kind === 'human' ? attachProps(root, propsFor(accessoriesOf(look), fitOf(model), look.accent, builtinOf(model))) : null;
+    // 6. Chuẩn hoá chiều cao theo chiều cao tư thế gốc đã biết (KHÔNG đo bằng Box3: xem BIND_HEIGHT).
+    return { root, bones, scale: heightFor(kind, look.build) / BIND_HEIGHT[model], props };
   }, [gltf.scene, model, kind, look]);
+
+  // Gắn lại phụ kiện mỗi lần effect chạy (StrictMode chạy cleanup rồi chạy lại ngay); gỡ khi root bị thay hoặc nhân vật biến mất.
+  useEffect(() => {
+    props?.mount();
+    return () => props?.unmount();
+  }, [props]);
 
   const mixer = useMemo(() => new AnimationMixer(root), [root]);
   const actions = useMemo(() => new Map(gltf.animations.map((clip) => [clip.name, mixer.clipAction(clip)])), [gltf.animations, mixer]);

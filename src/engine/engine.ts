@@ -10,6 +10,7 @@ import {
   type Effects,
   type Ending,
   type GameState,
+  type Look,
   type Scene,
   type Stats,
   type Tip,
@@ -134,6 +135,13 @@ export function createGame(c: Content, personaId: string, regionId: string, play
 }
 
 /** Áp kill-switch: nhân vật bị tắt thì trả về bản thay thế trung tính. */
+/** Dáng vẻ của nhân vật theo vai người chơi: `lookByPersona[vai]` ghi đè từng trường của `look`. */
+export function lookFor(ch: Character, personaId: string): Look | undefined {
+  const over = ch.lookByPersona?.[personaId];
+  if (!over) return ch.look;
+  return { ...(ch.look ?? { kind: 'human' as const }), ...over };
+}
+
 export function resolveCharacter(c: Content, characterId: string): Character {
   const byId = new Map(c.characters.map((x) => [x.id, x]));
   const ch = byId.get(characterId);

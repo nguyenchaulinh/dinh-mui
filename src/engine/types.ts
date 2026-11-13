@@ -45,16 +45,32 @@ export interface Region {
   tagline: string;
 }
 
-export type Accessory =
-  | 'none'
-  | 'glasses'
-  | 'hat'
-  | 'scarf'
-  | 'bowtie'
-  | 'phone'
-  | 'spoon'
-  | 'cup'
-  | 'headphones';
+/**
+ * Phụ kiện có thể gắn lên nhân vật. Với model có xương, mỗi phụ kiện là vài khối low-poly gắn vào xương
+ * (src/scene3d/outfit.ts): đầu (kính, nón, mũ, tai nghe), cổ và ngực (khăn, nơ, cà vạt, dây đeo thẻ, tạp dề),
+ * lưng và hông (balo, thùng giao hàng, túi), tay (điện thoại, ly, thìa, tập hồ sơ).
+ */
+export const ACCESSORIES = [
+  'none',
+  'glasses',
+  'hat',
+  'cap',
+  'helmet',
+  'headphones',
+  'scarf',
+  'bowtie',
+  'tie',
+  'lanyard',
+  'apron',
+  'backpack',
+  'delivery',
+  'bag',
+  'phone',
+  'cup',
+  'spoon',
+  'folder',
+] as const;
+export type Accessory = (typeof ACCESSORIES)[number];
 
 /** Tạo hình nhân vật 3D low-poly. Nhận diện qua màu và phụ kiện, không dựng mặt người thật. */
 export interface Look {
@@ -66,6 +82,10 @@ export interface Look {
   /** Tầm vóc: trẻ con thấp hơn, người già hơi khom. */
   build?: 'kid' | 'adult' | 'elder';
   accessory?: Accessory;
+  /** Nhiều phụ kiện cùng lúc (cộng với `accessory`); tối đa 4 cái được vẽ. */
+  accessories?: Accessory[];
+  /** Màu nhấn của phụ kiện (balo, dây đeo thẻ, mũ, túi...); thiếu thì mỗi phụ kiện dùng màu mặc định. */
+  accent?: string;
   /**
    * Model có xương trong public/models (xem src/scene3d/rigging.ts, CHARACTER_MODELS). Có thì dùng model đó và đổi màu
    * áo (`outfit`), quần (`pants`), tóc (`hair`), da (`skin`; với chó là lông); không có thì dựng bằng code (Bé Dê).
@@ -82,6 +102,11 @@ export interface Character {
   look?: Look;
   /** Kill-switch: false thì engine thay bằng nhân vật `fallbackId`. */
   enabled: boolean;
+  /**
+   * Trang phục riêng theo vai của người chơi: ghi đè lên `look` khi vai đó đang chơi (ví dụ sinh viên đeo balo, nhân viên
+   * đeo thẻ và cà vạt). Chỉ có nghĩa với nhân vật người chơi.
+   */
+  lookByPersona?: Record<string, Partial<Look>>;
   /** Nhân vật nhại người thật (để rà soát, tắt nhanh khi cần). */
   parody?: boolean;
   /** Bắt buộc khi `enabled === false`: nhân vật trung tính thay thế. */
