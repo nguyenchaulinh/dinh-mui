@@ -27,6 +27,7 @@
   ],
   "stages": [
     { "id": "cuoi-nam", "title": "Cuối năm ở phố", "intro": "Chiều cuối năm ở thành phố. Săn vé, thu dọn đồ, chào mọi người rồi lên đường về quê.", "mapId": "cuoi-nam" },
+    { "id": "ra-ben", "title": "Ra bến", "intro": "28 tháng Chạp. Cả thành phố cùng lúc muốn về quê. Mua quà ở sạp đầu phố, né mấy bác xe ôm chèo kéo rồi ra trạm xe buýt ở cuối phố.", "mapId": "ra-ben" },
     { "id": "buoc-vao-nha", "title": "Bước vào nhà", "intro": "Sau một chuyến xe dài, bạn về tới cổng nhà. Chưa kịp đặt balo xuống thì câu hỏi đầu tiên đã bay tới.", "mapId": "san-nha" }
   ],
   "characters": [
@@ -49,7 +50,7 @@
     { "id": "bin", "name": "Bin", "role": "Em họ Gen Alpha", "enabled": true,
       "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#facc15", "build": "kid", "accessory": "headphones", "model": "nam-hoodie", "pants": "#1e3a8a" } },
     { "id": "di-ut", "name": "Dì Út", "role": "Chuyên mục: Bao giờ cưới", "enabled": true,
-      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#2b1d15", "hairStyle": "bun", "outfit": "#db2777", "accessory": "phone", "model": "nu-hoa-tai" } },
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#2b1d15", "hairStyle": "bun", "outfit": "#db2777", "accessory": "phone", "model": "nu-thuong-ngay" } },
     { "id": "ong", "name": "Ông", "role": "Ông nội", "enabled": true,
       "look": { "kind": "human", "skin": "#e0b088", "hair": "#f3f4f6", "hairStyle": "short", "outfit": "#78350f", "build": "elder", "accessory": "none", "model": "nam-nong-dan", "pants": "#4b3621" } },
     { "id": "duy-den-cay", "name": "Duy Đèn Cầy", "role": "Chuyên mục: Review mâm cỗ", "enabled": true,
@@ -150,6 +151,38 @@
         "accessory": "phone",
         "model": "nu-thuong-ngay",
         "pants": "#3f2a1d"
+      }
+    },
+    {
+      "id": "co-ban-qua",
+      "name": "Cô Bán Quà",
+      "role": "Sạp quà Tết",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#e8b98f",
+        "hair": "#2b1d15",
+        "hairStyle": "bun",
+        "outfit": "#b91c1c",
+        "accessory": "none",
+        "model": "nu-thuong-ngay",
+        "pants": "#374151"
+      }
+    },
+    {
+      "id": "bac-xe-om",
+      "name": "Bác Xe Ôm",
+      "role": "Xe ôm đầu phố",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#d9a27a",
+        "hair": "#6b7280",
+        "hairStyle": "short",
+        "outfit": "#4b5563",
+        "accessory": "hat",
+        "model": "nam-nong-dan",
+        "pants": "#1f2937"
       }
     }
   ],
@@ -669,6 +702,101 @@
           "reply": "Mẹ cười. Bé Dê cũng thở phào."
         }
       ]
+    },
+    {
+      "id": "rb-mua-qua",
+      "characterId": "co-ban-qua",
+      "line": "Mưa phùn thế này mà còn ra phố, mua quà đi cho ấm tay! Về quê mà tay không là cả họ nhìn đấy.",
+      "lineByRegion": {
+        "da-nang": "Gió sông lạnh rứa mà còn ra phố, mua quà đi! Về quê mà tay không là cả họ nhìn đó.",
+        "sai-gon": "Nắng chang chang mà còn ra phố, mua quà đi nghen! Về quê mà tay không là cả họ nhìn đó."
+      },
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Lấy giỏ quà to có nơ đỏ.",
+          "effects": { "wallet": -6, "stamina": -3, "harmony": 2 },
+          "reply": "Giỏ quà to thế này, cả họ phải mở trong ba ngày.",
+          "setFlags": ["da-mua-qua"]
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Vài hộp bánh vừa túi tiền.",
+          "effects": { "wallet": -3 },
+          "reply": "Quà nhỏ mà có lòng là được.",
+          "setFlags": ["da-mua-qua"]
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Con về là món quà lớn nhất rồi.",
+          "effects": { "harmony": -3, "stamina": 3 },
+          "reply": "Câu này nói với mẹ thì được, nói với Cô Hai thì chưa chắc. Thôi cô gói tặng một hộp nhỏ cho đỡ ngại.",
+          "setFlags": ["da-mua-qua"]
+        }
+      ]
+    },
+    {
+      "id": "rb-shipper-hoi",
+      "characterId": "anh-shipper",
+      "line": "Em ơi, Tết của anh bắt đầu sau đơn cuối cùng. Mà đơn cuối thì chưa bao giờ tới.",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Chúc anh giao hết đơn trước giao thừa nhé.",
+          "effects": { "harmony": 1 },
+          "reply": "Cảm ơn em! Em đứng xa ra chút, hàng trên xe anh hơi... cao."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Anh nghỉ chút đi, em thấy anh mệt lắm.",
+          "effects": { "stamina": 3 },
+          "reply": "Nghỉ thì đơn nó không nghỉ em ơi. Nhưng cảm ơn em."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Anh cho em xin một đơn, em giao hộ.",
+          "effects": { "harmony": 1, "stamina": -3 },
+          "reply": "Đơn này nặng bốn chục ký đó em. Thôi anh tự giao."
+        }
+      ]
+    },
+    {
+      "id": "rb-xe-om",
+      "characterId": "bac-xe-om",
+      "line": "Đi xe ôm không em? Ra bến nhanh lắm, tắc đường bác vẫn lách được!",
+      "lineByRegion": {
+        "da-nang": "Đi xe ôm không em? Ra bến nhanh lắm, kẹt xe bác vẫn lách được nghe!",
+        "sai-gon": "Đi xe ôm hông em? Ra bến nhanh lắm, kẹt xe bác vẫn lách được nghen!"
+      },
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ em đi xe buýt cho tiện, cảm ơn bác ạ.",
+          "effects": { "stamina": 1 },
+          "reply": "Ừ, xe buýt cũng được. Cuối phố có trạm đó em."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Em hết tiền rồi bác ơi.",
+          "effects": { "stamina": 2 },
+          "reply": "Hết tiền thì đi bộ cho khỏe!"
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Bác chở em, em trả bằng lời cảm ơn nhé?",
+          "effects": { "harmony": 1, "stamina": -3 },
+          "reply": "Lời cảm ơn thì bác chở tới đầu ngõ thôi!"
+        }
+      ]
     }
   ],
   "tips": [
@@ -955,6 +1083,116 @@
           ],
           "reward": { "harmony": 5, "stamina": 5 }, "rewardLine": "Bạn sống sót sân nhà. Mâm cơm đang chờ!" }
       ]
+    },
+    {
+      "id": "ra-ben",
+      "setId": "pho-tet",
+      "playerId": "ban",
+      "npcs": [
+        {
+          "characterId": "co-ban-qua",
+          "spot": "sap-qua",
+          "behavior": "wander",
+          "speed": 0.4,
+          "leash": 0.6,
+          "reach": 2.4,
+          "prompt": "Mua quà",
+          "action": { "kind": "talk", "sceneIds": ["rb-mua-qua"], "after": "Chọn quà rồi thì nhớ lấy giỏ trên sạp nha!" }
+        },
+        {
+          "characterId": "anh-shipper",
+          "spot": "shipper",
+          "behavior": "wander",
+          "speed": 0.5,
+          "leash": 1,
+          "prompt": "Hỏi thăm",
+          "action": { "kind": "talk", "sceneIds": ["rb-shipper-hoi"], "after": "Đơn cuối chưa tới, nhưng anh vẫn chạy." }
+        },
+        {
+          "characterId": "bac-xe-om",
+          "spot": "xe-om",
+          "behavior": "wander",
+          "speed": 0.7,
+          "leash": 1.8,
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["rb-xe-om"], "after": "Cần xe thì cứ gọi bác nhé." },
+          "ambush": {
+            "everySec": 6,
+            "range": 8,
+            "minRange": 2.5,
+            "questions": ["Đi xe ôm không em?", "Ra bến đi em ơi!", "Lên xe bác chở cho nhanh!"],
+            "hitSceneIds": ["rb-xe-om"]
+          }
+        }
+      ],
+      "objects": [
+        {
+          "id": "gio-qua",
+          "label": "Giỏ quà Tết",
+          "spot": "do-qua",
+          "prompt": "Lấy",
+          "model": "gift",
+          "requires": { "flags": ["da-mua-qua"] },
+          "lockedLine": "Chọn quà với cô bán hàng trước đã.",
+          "action": { "kind": "pickup", "line": "Bạn xách giỏ quà lên, nặng tay nhưng đáng. Về quê không thể tay không." }
+        },
+        {
+          "id": "xe-buyt",
+          "label": "Trạm xe buýt",
+          "spot": "ben",
+          "prompt": "Lên xe buýt",
+          "seat": "len-xe",
+          "requires": { "flags": ["quest:mua-qua"] },
+          "lockedLine": "Chưa lên xe được: mua quà rồi hẵng ra bến.",
+          "action": { "kind": "exit", "line": "Bạn chen lên xe buýt, balo ôm trước ngực. Cả thành phố cùng về quê." }
+        }
+      ],
+      "quests": [
+        {
+          "id": "mua-qua",
+          "title": "Mua quà về quê",
+          "objectives": [
+            {
+              "id": "chon",
+              "text": "Chọn quà ở sạp (nói chuyện với Cô Bán Quà)",
+              "done": { "flags": ["talked:ra-ben:co-ban-qua"] }
+            },
+            { "id": "lay", "text": "Lấy giỏ quà trên sạp", "done": { "flags": ["picked:ra-ben:gio-qua"] } }
+          ],
+          "rewardLine": "Quà đã có. Về quê không thể tay không."
+        },
+        {
+          "id": "hoi-shipper",
+          "title": "Hỏi thăm anh shipper",
+          "objectives": [
+            {
+              "id": "ship",
+              "text": "Nói chuyện với Anh Shipper Tết",
+              "done": { "flags": ["talked:ra-ben:anh-shipper"] }
+            }
+          ],
+          "reward": { "stamina": 2 },
+          "rewardLine": "Anh shipper chúc bạn về quê bình an."
+        },
+        {
+          "id": "ne-xe-om",
+          "title": "Né bác xe ôm chèo kéo",
+          "objectives": [{ "id": "ne-3", "text": "Né được 3 lần chèo kéo", "done": { "flags": ["dodged:ra-ben:3"] } }],
+          "reward": { "stamina": 3 },
+          "rewardLine": "Bác xe ôm chào thua. Bạn né như một tay đua."
+        },
+        {
+          "id": "ra-ben-xong",
+          "title": "Ra bến",
+          "objectives": [
+            { "id": "q1", "text": "Hoàn thành \"Mua quà về quê\"", "done": { "flags": ["quest:mua-qua"] } },
+            { "id": "q2", "text": "Lên xe buýt ở cuối phố", "done": { "flags": ["used:ra-ben:xe-buyt"] } }
+          ],
+          "reward": { "stamina": 2 },
+          "rewardLine": "Xe buýt chật cứng nhưng đang chạy về phía quê."
+        }
+      ],
+      "goalQuestId": "ra-ben-xong"
     }
   ]
 }

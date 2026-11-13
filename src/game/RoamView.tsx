@@ -17,7 +17,7 @@ import { startAction, stepAction, type ActionRun, type ActionStep, type PlayerAc
 import { createAmbushState, stepAmbush, type ActiveAmbush, type AmbushState, type AmbusherRuntime } from './ambush';
 import { findInteractable, type Target } from './interact';
 import { guideArrow, type GuideArrow } from './guide';
-import { bubbleSides, type BubbleSide, type SpeechBubble } from './speech';
+import { bubbleSides, soloSide, type BubbleSide, type SpeechBubble } from './speech';
 import type { InputController } from './input';
 import { DEFAULT_MOVE, PLAYER_RADIUS, stepMover } from './movement';
 import { DEFAULT_NPC, createNpcState, stepNpc, type NpcParams, type NpcState } from './npc';
@@ -69,6 +69,36 @@ function BubbleSideTracker({
     if (!prev.current || s.player !== prev.current.player) {
       prev.current = s;
       onSides(s);
+    }
+  });
+  return null;
+}
+
+/** Một bong bóng đứng một mình: chọn phía bung theo vị trí người nói trên màn hình (speech.ts, soloSide). */
+function SoloSideTracker({
+  world,
+  subject,
+  onSide,
+}: Readonly<{ world: World; subject: string; onSide: (s: BubbleSide) => void }>) {
+  const camera = useThree((s) => s.camera);
+  const prev = useRef<BubbleSide>('center');
+  const v = useMemo(() => new Vector3(), []);
+  useFrame(() => {
+    let x: number;
+    let z: number;
+    if (subject === 'player') {
+      x = world.player.x;
+      z = world.player.z;
+    } else {
+      const t = world.targets.find((k) => k.key === subject);
+      if (!t) return;
+      x = t.x;
+      z = t.z;
+    }
+    const s = soloSide(v.set(x, 1.7, z).project(camera).x, prev.current);
+    if (s !== prev.current) {
+      prev.current = s;
+      onSide(s);
     }
   });
   return null;
@@ -695,6 +725,8 @@ export default function RoamView({
   const npcBubble = bubbles.find((b) => b.key !== 'player');
   const both = playerBubble !== undefined && npcBubble !== undefined;
   const [sides, setSides] = useState<{ player: BubbleSide; npc: BubbleSide }>({ player: 'left', npc: 'right' });
+  const [solo, setSolo] = useState<BubbleSide>('center');
+  const soloSubject = both ? null : (npcBubble?.key ?? (playerBubble ? 'player' : null));
   // Mục tiêu tương tác = NPC (vị trí đổi tại chỗ mỗi khung) + đồ vật còn dùng được (đứng yên).
   const npcTargets = useMemo<Target[]>(() => runtimes.map((r) => r.target), [runtimes]);
   useEffect(() => {
@@ -740,19 +772,20 @@ export default function RoamView({
           index={i}
           talking={talkingKey === rt.npc.key}
           bubble={bubbles.find((b) => b.key === rt.npc.key)}
-          bubbleSide={both ? sides.npc : 'center'}
+          bubbleSide={both ? sides.npc : solo}
         />
       ))}
 
       <AmbushLayer runtimes={runtimes} world={world} controller={controller} cbs={cbs} />
       {both && <BubbleSideTracker world={world} npcKey={npcBubble.key} onSides={setSides} />}
+      {soloSubject && <SoloSideTracker world={world} subject={soloSubject} onSide={setSolo} />}
       {onGuides && <GuideTracker world={world} keys={guideKeys} onGuides={onGuides} />}
 
       <Player
         look={playerLook}
         action={action}
         bubble={playerBubble}
-        bubbleSide={both ? sides.player : 'center'}
+        bubbleSide={both ? sides.player : solo}
         area={area}
         colliders={playerColliders}
         controller={controller}

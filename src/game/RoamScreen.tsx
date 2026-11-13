@@ -572,7 +572,7 @@ export function RoamScreen({
                   {doneCount}/{map.quests.length} {tasksOpen ? '▴' : '▾'}
                 </span>
               </button>
-              {tasksOpen && (
+              {tasksOpen && !talk && (
                 <ul>
                   {todo.slice(0, 5).map(({ q, o }) => (
                     <li key={`${q.id}/${o.id}`} className={q.id === map.goalQuestId ? 'task-goal' : ''}>

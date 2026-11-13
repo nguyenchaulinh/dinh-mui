@@ -18,8 +18,8 @@ Chưa có: âm thanh, chặng 3–8 (ngoài `cuoi-nam` và `san-nha`), lưu ti�
 
 | GĐ | Nội dung | Điều kiện xong |
 |---|---|---|
-| A. Kiểm tra bằng mắt | Chụp ảnh thật: chó mới, tư thế ngồi, bong bóng hai phía, HUD ở 360×640 | Không có lỗi hiển thị nào mở |
-| B. Chặng "Ra bến" | Phố Tết, bến xe: đi bộ, NPC bán vé / người chen lấn, mục tiêu riêng | Có `mapId` mới, validator + mô phỏng xanh |
+| A. Kiểm tra bằng mắt | Chụp ảnh thật: chó mới, tư thế ngồi, bong bóng hai phía, HUD ở 360×640 | Không có lỗi hiển thị nào mở. **Xong 13/11** (chụp ở 360×640): nhãn khoảng cách mũi tên bị xuống dòng (sửa `white-space: nowrap`), bảng "Việc cần làm" che bong bóng thoại (ẩn khi đang hội thoại), bong bóng một mình tràn mép phải (thêm `soloSide`, có test) |
+| B. Chặng "Ra bến" | Phố Tết, bến xe: đi bộ, NPC bán vé / người chen lấn, mục tiêu riêng | Có `mapId` mới, validator + mô phỏng xanh. **Xong 13/11**: bản đồ `ra-ben` (vỉa hè phố Tết, sạp quà, bác xe ôm chèo kéo bấm NÉ, anh shipper, trạm xe buýt); vùng đi lại `PHO_TET` + test hình học; số liệu quà chỉnh để cân bằng kết thúc không lệch; chạy trọn chặng trên Chrome headless. Chưa làm: băng qua dòng xe (xe chỉ để nhìn, vỉa hè tách khỏi lòng đường) |
 | C. Chặng "Đường về" | Cảnh trên xe / tàu, sự kiện gọi video của Mẹ, chỉ số Sức hao dần | Nối đúng sang `san-nha` |
 | D. Chặng "Mâm cơm" | Hội thoại đông người, câu hỏi họ hàng dồn dập | Đủ 9 kết thúc đều đạt được bằng mô phỏng |
 | E. Âm thanh | Nhạc nền theo chặng, tiếng bước chân, tiếng báo NÉ, nút tắt tiếng | Mặc định chỉ phát sau thao tác đầu tiên của người chơi |
