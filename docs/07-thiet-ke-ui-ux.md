@@ -69,6 +69,8 @@ Nói chuyện: bong bóng của NPC trên đầu họ; dock đáy (≤ 42%) ch�
 | Điện thoại | `.phone` | Rộng tối đa 340px, cao tối đa 56%, cuộn bên trong |
 | Cuộc gọi đến | `.callcard` | Thẻ nhỏ trên cùng, nút Nghe xanh |
 | Bấm NÉ | `.banner-warn`, `.qte` | Băng rôn đỏ + vòng thời gian + nút NÉ! tròn đỏ viền vàng |
+| Mũi tên chỉ hướng | `.guides`, `.guide` (`guide.ts`, `GuideArrows.tsx`) | Mục tiêu của việc đang cần làm (NPC / đồ vật còn dở, bỏ qua đồ còn khoá) nằm ngoài khung nhìn thì có mũi tên vàng ở mép kèm khoảng cách (m), tối đa 3 cái, gần nhất trước. Nằm trong vùng giữa màn hình, tránh khung chỉ số (trên) và joystick / nút (dưới). Tắt khi hội thoại, hoạt cảnh, NÉ |
+| Camera điện thoại | `fovForAspect`, `computeTalkPose` (`camera.ts`) | Màn dọc mở góc nhìn dọc từ 50° lên tới 76° (góc ngang ~41° ở tỉ lệ 0.48 thay vì ~25°). Camera hội thoại thử nhiều góc quanh hai người và chọn góc có người chơi (rồi NPC) trong khung, không bị vật cản che; có test trên bố cục thật của cả hai chặng |
 | Hoạt cảnh | `src/game/action.ts` | Không phải thành phần giao diện nhưng quyết định nhịp: dùng máy tính / nhặt đồ thì nhân vật làm động tác thật (ngồi 0.45 s, với tay 0.9 s) rồi mới mở bảng; điều khiển khoá trong lúc đó (chi tiết ở [08](08-thiet-ke-choi-truoc-que.md)) |
 | Chữ nổi | `.flash` | "NÉ ĐƯỢC!" vàng / "SỚM QUÁ!", "BỊ BẮT RỒI!" đỏ, viền mực, tự tắt 1.1s |
 | Nút tương tác | `.prompt`, `.roam-action` | Pill kính tối viền vàng; nút tròn sáng vàng khi có thứ để bấm |
