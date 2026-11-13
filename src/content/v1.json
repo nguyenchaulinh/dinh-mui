@@ -35,13 +35,18 @@
     { "id": "be-de", "name": "Bé Dê", "role": "Dẫn chuyện", "enabled": true,
       "look": { "kind": "goat", "skin": "#f5ead7", "outfit": "#b91c1c", "accessory": "scarf" } },
     { "id": "ban", "name": "Bạn", "role": "Người chơi", "enabled": true,
-      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#d9363e", "accessory": "none", "model": "nam-hoodie", "pants": "#374151" } },
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#d9363e", "accessory": "none", "model": "nam-hoodie", "pants": "#374151" },
+      "lookByPersona": {
+        "sinh-vien": { "outfit": "#1e40af", "pants": "#334155", "accessories": ["backpack", "lanyard"], "accent": "#ea580c" },
+        "moi-di-lam": { "model": "nam-vest", "outfit": "#334155", "pants": "#1f2937", "accessories": ["lanyard", "bag"], "accent": "#0ea5e9" },
+        "doc-than-27": { "outfit": "#3f6212", "pants": "#44403c", "accessories": ["glasses", "bag"], "accent": "#6b7280" }
+      } },
     { "id": "vang", "name": "Vàng", "role": "Chó nhà", "enabled": true,
       "look": { "kind": "dog", "skin": "#f4f2ee", "hair": "#ffffff", "model": "cho-pom" } },
     { "id": "anh-shipper", "name": "Anh Shipper Tết", "role": "Shipper", "enabled": true,
-      "look": { "kind": "human", "skin": "#d9a27a", "hair": "#1f1410", "hairStyle": "short", "outfit": "#16a34a", "accessory": "hat", "model": "nam-tho" } },
+      "look": { "kind": "human", "skin": "#d9a27a", "hair": "#1f1410", "hairStyle": "short", "outfit": "#16a34a", "accessory": "none", "model": "nam-tho", "accessories": ["delivery"] } },
     { "id": "co-hai", "name": "Cô Hai", "role": "Chuyên mục: Thu nhập", "enabled": true,
-      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#2b1d15", "hairStyle": "bun", "outfit": "#d97706", "accessory": "none", "model": "nu-cong-so", "pants": "#3f2a1d" } },
+      "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#2b1d15", "hairStyle": "bun", "outfit": "#d97706", "accessory": "none", "model": "nu-cong-so", "pants": "#3f2a1d", "accessories": ["bag"], "accent": "#b45309" } },
     { "id": "bac-ca", "name": "Bác Cả", "role": "Chuyên mục: Con nhà người ta", "enabled": true,
       "look": { "kind": "human", "skin": "#e8b98f", "hair": "#9ca3af", "hairStyle": "short", "outfit": "#4b5563", "build": "elder", "accessory": "glasses", "model": "nam-nong-dan", "pants": "#3b3b3b" } },
     { "id": "chu-ba", "name": "Chú Ba Ăn Nhậu", "role": "Chuyên mục: Một ly thôi", "enabled": true,
@@ -53,7 +58,7 @@
     { "id": "di-ut", "name": "Dì Út", "role": "Chuyên mục: Bao giờ cưới", "enabled": true,
       "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#2b1d15", "hairStyle": "bun", "outfit": "#db2777", "accessory": "phone", "model": "nu-thuong-ngay" } },
     { "id": "ong", "name": "Ông", "role": "Ông nội", "enabled": true,
-      "look": { "kind": "human", "skin": "#e0b088", "hair": "#f3f4f6", "hairStyle": "short", "outfit": "#78350f", "build": "elder", "accessory": "none", "model": "nam-nong-dan", "pants": "#4b3621" } },
+      "look": { "kind": "human", "skin": "#e0b088", "hair": "#f3f4f6", "hairStyle": "short", "outfit": "#78350f", "build": "elder", "accessory": "cup", "model": "nam-nong-dan", "pants": "#4b3621" } },
     { "id": "duy-den-cay", "name": "Duy Đèn Cầy", "role": "Chuyên mục: Review mâm cỗ", "enabled": true,
       "parody": true, "fallbackId": "chu-tu",
       "look": { "kind": "human", "skin": "#f2c9a0", "hair": "#1f1410", "hairStyle": "short", "outfit": "#7c3aed", "accessory": "spoon", "model": "nam-vest" } },
@@ -72,7 +77,11 @@
         "outfit": "#ea580c",
         "accessory": "cup",
         "model": "nu-thuong-ngay",
-        "pants": "#1f2937"
+        "pants": "#1f2937",
+        "accessories": [
+          "lanyard"
+        ],
+        "accent": "#7c3aed"
       }
     },
     {
@@ -87,7 +96,10 @@
         "hairStyle": "short",
         "outfit": "#1e3a8a",
         "accessory": "glasses",
-        "model": "nam-vest"
+        "model": "nam-vest",
+        "accessories": [
+          "cup"
+        ]
       }
     },
     {
@@ -103,7 +115,12 @@
         "outfit": "#0d9488",
         "accessory": "phone",
         "model": "nu-cong-so",
-        "pants": "#1f2937"
+        "pants": "#1f2937",
+        "accessories": [
+          "lanyard",
+          "glasses"
+        ],
+        "accent": "#16a34a"
       }
     },
     {
@@ -119,7 +136,11 @@
         "outfit": "#7c3aed",
         "accessory": "glasses",
         "model": "nu-cong-so",
-        "pants": "#312e81"
+        "pants": "#312e81",
+        "accessories": [
+          "folder"
+        ],
+        "accent": "#1d4ed8"
       }
     },
     {
@@ -135,7 +156,11 @@
         "outfit": "#0284c7",
         "accessory": "headphones",
         "model": "nam-hoodie",
-        "pants": "#111827"
+        "pants": "#111827",
+        "accessories": [
+          "backpack"
+        ],
+        "accent": "#16a34a"
       }
     },
     {
@@ -167,7 +192,11 @@
         "outfit": "#b91c1c",
         "accessory": "none",
         "model": "nu-thuong-ngay",
-        "pants": "#374151"
+        "pants": "#374151",
+        "accessories": [
+          "apron"
+        ],
+        "accent": "#b45309"
       }
     },
     {
@@ -183,7 +212,11 @@
         "outfit": "#4b5563",
         "accessory": "hat",
         "model": "nam-nong-dan",
-        "pants": "#1f2937"
+        "pants": "#1f2937",
+        "accessories": [
+          "bag"
+        ],
+        "accent": "#78350f"
       }
     },
     {
@@ -199,7 +232,11 @@
         "outfit": "#f8fafc",
         "accessory": "phone",
         "model": "nam-vest",
-        "pants": "#374151"
+        "pants": "#374151",
+        "accessories": [
+          "lanyard"
+        ],
+        "accent": "#f59e0b"
       }
     },
     {
@@ -217,7 +254,12 @@
         "outfit": "#0e7490",
         "accessory": "hat",
         "model": "nam-tho",
-        "pants": "#1f2937"
+        "pants": "#1f2937",
+        "accessories": [
+          "phone",
+          "lanyard"
+        ],
+        "accent": "#0e7490"
       }
     },
     {
@@ -233,7 +275,12 @@
         "outfit": "#334155",
         "accessory": "none",
         "model": "nam-hoodie",
-        "pants": "#1f2937"
+        "pants": "#1f2937",
+        "accessories": [
+          "phone",
+          "lanyard"
+        ],
+        "accent": "#334155"
       }
     }
   ],
