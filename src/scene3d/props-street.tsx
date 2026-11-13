@@ -1,4 +1,5 @@
 import { Lantern, Mat } from './props';
+import { TexMat } from './TexMat';
 
 /** Đạo cụ phố Tết (sạp quà, trạm xe buýt). Hình học khớp vùng đi lại PHO_TET trong walk.ts. */
 
@@ -204,6 +205,37 @@ export function ShopFront({ w, h, variant, shop, position }: Readonly<{ w: numbe
             ))}
           </group>
         ))}
+      {/* mái: tường chắn mái, bồn nước, và anten chảo ở một số nhà */}
+      <mesh position={[0, h + 0.12, 1.88]}>
+        <boxGeometry args={[w + 0.06, 0.24, 0.24]} />
+        <Mat c="#d6d3d1" />
+      </mesh>
+      <group position={[-w * 0.22, h, -0.4]}>
+        <mesh position={[0, 0.5, 0]}>
+          <cylinderGeometry args={[0.32, 0.32, 0.7, 10]} />
+          <Mat c={variant % 2 === 0 ? '#2563eb' : '#e5e7eb'} />
+        </mesh>
+        <mesh position={[0, 0.9, 0]}>
+          <coneGeometry args={[0.34, 0.16, 10]} />
+          <Mat c={variant % 2 === 0 ? '#1d4ed8' : '#cbd5e1'} />
+        </mesh>
+        <mesh position={[0, 0.08, 0]}>
+          <boxGeometry args={[0.6, 0.16, 0.6]} />
+          <Mat c="#78716c" />
+        </mesh>
+      </group>
+      {variant % 3 === 0 && (
+        <group position={[w * 0.3, h, 0.8]} rotation={[0, 0, -0.5]}>
+          <mesh position={[0, 0.35, 0]}>
+            <cylinderGeometry args={[0.015, 0.015, 0.7, 4]} />
+            <Mat c="#9ca3af" />
+          </mesh>
+          <mesh position={[0, 0.72, 0.05]} rotation={[0.9, 0, 0]}>
+            <coneGeometry args={[0.2, 0.1, 10]} />
+            <Mat c="#f1f5f9" />
+          </mesh>
+        </group>
+      )}
       {variant % 2 === 0 ? (
         <mesh position={[w * 0.3, 1.6 + 0.35, 2.14]}>
           <boxGeometry args={[0.5, 0.3, 0.26]} />
@@ -276,11 +308,11 @@ export function FarShop({ w, h, c, sign, position }: Readonly<{ w: number; h: nu
     <group position={position} rotation={[0, Math.PI, 0]}>
       <mesh position={[0, h / 2, 0]}>
         <boxGeometry args={[w, h, 4]} />
-        <Mat c={c} />
+        <TexMat kind="plaster" base={c} rx={Math.max(1, Math.round(w / 2))} ry={Math.max(1, Math.round(h / 2))} />
       </mesh>
       <mesh position={[0, 0.8, 2.01]}>
         <planeGeometry args={[w * 0.8, 1.5]} />
-        <Mat c="#9ca3af" />
+        <TexMat kind="shutter" base="#9ca3af" rx={Math.max(1, Math.round(w * 0.8))} ry={1} />
       </mesh>
       <mesh position={[0, 1.75, 2.08]}>
         <boxGeometry args={[w * 0.9, 0.35, 0.08]} />
