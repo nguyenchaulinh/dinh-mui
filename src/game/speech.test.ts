@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SceneView } from '../engine/engine';
 import type { Character } from '../engine/types';
-import { bubbleSides, speechBubbles } from './speech';
+import { SIDE_HYSTERESIS, SOLO_EDGE, bubbleSides, soloSide, speechBubbles } from './speech';
 import type { Talk } from './TalkDock';
 
 const npc: Character = { id: 'co-hai', name: 'Cô Hai', role: '', enabled: true };
@@ -92,5 +92,27 @@ describe('phím tắt chọn đáp án', () => {
     expect(choiceIndexOf('KeyF', 6)).toBe(5);
     expect(choiceIndexOf('KeyW', 6)).toBe(-1);
     expect(choiceIndexOf('Space', 3)).toBe(-1);
+  });
+});
+
+describe('soloSide: bong bóng đứng một mình không tràn mép', () => {
+  it('người nói ở nửa phải thì bung sang trái, nửa trái thì bung sang phải, gần giữa thì ở giữa', () => {
+    expect(soloSide(0.7)).toBe('left');
+    expect(soloSide(-0.7)).toBe('right');
+    expect(soloSide(0)).toBe('center');
+    expect(soloSide(SOLO_EDGE - 0.01)).toBe('center');
+  });
+
+  it('có độ trễ: đứng sát ngưỡng thì không nhảy qua lại', () => {
+    const edge = SOLO_EDGE;
+    expect(soloSide(edge + SIDE_HYSTERESIS / 2, 'center')).toBe('center');
+    expect(soloSide(edge + SIDE_HYSTERESIS / 2, 'left')).toBe('left');
+    expect(soloSide(-edge - SIDE_HYSTERESIS / 2, 'center')).toBe('center');
+    expect(soloSide(-edge - SIDE_HYSTERESIS / 2, 'right')).toBe('right');
+  });
+
+  it('giá trị hỏng (NaN, vô cực) thì ở giữa', () => {
+    expect(soloSide(NaN)).toBe('center');
+    expect(soloSide(Infinity)).toBe('center');
   });
 });
