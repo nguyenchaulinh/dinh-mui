@@ -115,6 +115,31 @@ export function objectUnlocked(o: MapObject, state: Ctx): boolean {
   return matches(o.requires, state);
 }
 
+/**
+ * Khoá của NPC / đồ vật mà việc còn dở của các nhiệm vụ chưa xong đang cần (để chỉ hướng khi nó ra khỏi khung nhìn).
+ * Ánh xạ ngược từ cờ chưa bật trong điều kiện của mục tiêu sang NPC (khoá = id nhân vật) hoặc đồ vật (khoá =
+ * `objPrefix + id`). Bỏ qua thứ không dành cho vai này và đồ vật còn khoá (cửa ra chưa mở). Thứ tự: theo mục tiêu.
+ */
+export function goalTargetKeys(map: RoamMap, state: Ctx, objPrefix = 'obj:'): string[] {
+  const have = new Set(state.flags);
+  const wanted = new Set<string>();
+  for (const q of map.quests ?? []) {
+    if (have.has(questFlag(q.id))) continue;
+    for (const o of objectivesFor(q, state)) {
+      if (objectiveDone(o, state)) continue;
+      for (const f of o.done?.flags ?? []) if (!have.has(f)) wanted.add(f);
+    }
+  }
+  const keys: string[] = [];
+  for (const n of map.npcs ?? []) {
+    if (forPersona(n, state.personaId) && wanted.has(npcDoneFlag(map.id, n))) keys.push(n.characterId);
+  }
+  for (const o of map.objects ?? []) {
+    if (forPersona(o, state.personaId) && objectUnlocked(o, state) && wanted.has(objectDoneFlag(map.id, o))) keys.push(objPrefix + o.id);
+  }
+  return keys;
+}
+
 /** Sự kiện đầu tiên đến lượt bật: đủ điều kiện, chưa bật lần nào. Null nếu không có. */
 export function dueEvent(map: RoamMap, state: Ctx): MapEvent | null {
   for (const e of map.events ?? []) {

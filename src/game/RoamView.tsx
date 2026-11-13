@@ -11,11 +11,12 @@ import { isCharacterModel } from '../scene3d/rigging';
 import { FpsProbe } from '../scene3d/FpsProbe';
 import { SETS } from '../scene3d/registry';
 import { SetView, envOf } from '../scene3d/sets';
-import { DEFAULT_CAM, applyLook, computeCameraPose, computeTalkPose, smoothPose, yawBehind } from './camera';
+import { DEFAULT_CAM, applyLook, computeCameraPose, computeTalkPose, smoothPose, yawBehind, fovForAspect } from './camera';
 import { clipRay, isBlocked, resolveMove } from './collision';
 import { startAction, stepAction, type ActionRun, type ActionStep, type PlayerAction } from './action';
 import { createAmbushState, stepAmbush, type ActiveAmbush, type AmbushState, type AmbusherRuntime } from './ambush';
 import { findInteractable, type Target } from './interact';
+import { guideArrow, type GuideArrow } from './guide';
 import { bubbleSides, type BubbleSide, type SpeechBubble } from './speech';
 import type { InputController } from './input';
 import { DEFAULT_MOVE, PLAYER_RADIUS, stepMover } from './movement';
@@ -39,6 +40,8 @@ export interface RoamObject {
   /** Chưa đủ điều kiện dùng (cửa chưa mở): dấu màu xám. */
   locked: boolean;
 }
+
+const NO_KEYS: readonly string[] = [];
 
 /** Tầm với đồ vật (m): đồ nằm trên bàn/quầy nên cho với xa hơn NPC một chút. */
 const OBJECT_REACH = 1.7;
@@ -66,6 +69,61 @@ function BubbleSideTracker({
     if (!prev.current || s.player !== prev.current.player) {
       prev.current = s;
       onSides(s);
+    }
+  });
+  return null;
+}
+
+/** Một mũi tên chỉ hướng tới mục tiêu ngoài khung nhìn (xem guide.ts). */
+export interface GuideItem extends GuideArrow {
+  key: string;
+  /** Khoảng cách từ người chơi (m, làm tròn). */
+  dist: number;
+}
+
+/** Số mũi tên tối đa cùng lúc (gần nhất trước): nhiều hơn thì rối. */
+const MAX_GUIDES = 3;
+
+/**
+ * Chiếu mục tiêu của việc đang cần làm lên màn hình mỗi khung; cái nào nằm ngoài khung thì có mũi tên ở mép (guide.ts).
+ * Chỉ báo ra ngoài khi kết quả đổi đáng kể (làm tròn vị trí 1%, góc 3°, khoảng cách 1 m) và tối đa ~12 lần/giây,
+ * nên không render lại mỗi khung.
+ */
+function GuideTracker({
+  world,
+  keys,
+  onGuides,
+}: Readonly<{ world: World; keys: readonly string[]; onGuides: (g: GuideItem[]) => void }>) {
+  const camera = useThree((s) => s.camera);
+  const size = useThree((s) => s.size);
+  const v = useMemo(() => new Vector3(), []);
+  const last = useRef({ sig: '', at: 0 });
+  useEffect(() => {
+    last.current = { sig: '', at: 0 };
+    if (keys.length === 0) onGuides([]);
+  }, [keys, onGuides]);
+  useFrame(() => {
+    if (keys.length === 0) return;
+    const now = performance.now();
+    if (now - last.current.at < 80) return;
+    last.current.at = now;
+    const aspect = size.width / Math.max(1, size.height);
+    const out: GuideItem[] = [];
+    for (const key of keys) {
+      const t = world.targets.find((x) => x.key === key);
+      if (!t) continue;
+      v.set(t.x, 1.2, t.z).applyMatrix4(camera.matrixWorldInverse);
+      const behind = v.z > 0; // camera nhìn theo -z của không gian camera
+      v.set(t.x, 1.2, t.z).project(camera);
+      const a = guideArrow(v.x, v.y, behind, aspect);
+      if (a) out.push({ ...a, key, dist: Math.round(Math.hypot(t.x - world.player.x, t.z - world.player.z)) });
+    }
+    out.sort((p, q) => p.dist - q.dist);
+    const top = out.slice(0, MAX_GUIDES);
+    const sig = top.map((g) => `${g.key}|${g.x.toFixed(2)}|${g.y.toFixed(2)}|${Math.round((g.angle * 180) / Math.PI / 3)}|${g.dist}`).join(';');
+    if (sig !== last.current.sig) {
+      last.current.sig = sig;
+      onGuides(top);
     }
   });
   return null;
@@ -123,6 +181,9 @@ export interface RoamViewProps {
   onHit?: (key: string, early: boolean) => void;
   /** Báo FPS mỗi giây (hiện đồng hồ trên màn hình). */
   onFps?: (fps: number) => void;
+  /** Khoá NPC / đồ vật cần chỉ hướng khi ra khỏi khung nhìn (rỗng thì không có mũi tên). */
+  guideKeys?: readonly string[];
+  onGuides?: (g: GuideItem[]) => void;
 }
 
 type Callbacks = Pick<RoamViewProps, 'onNearby' | 'onInteract' | 'onAmbush' | 'onDodge' | 'onHit' | 'onActionStep'>;
@@ -315,6 +376,12 @@ function Player({
 
     // Đang hội thoại: camera chuyển sang góc dựng khung cả hai người ở nửa trên màn hình (khung thoại che nửa dưới).
     const persp = camera as PerspectiveCamera;
+    // Màn dọc (điện thoại) cần góc nhìn dọc rộng hơn: giữ 50° thì góc ngang chỉ ~25°, gần như không thấy gì hai bên.
+    const fov = fovForAspect(size.width / Math.max(1, size.height));
+    if (Math.abs(persp.fov - fov) > 0.01) {
+      persp.fov = fov;
+      persp.updateProjectionMatrix();
+    }
     let next: CameraPose;
     if (shoulder && act?.kind === 'sit') {
       // Ngồi ở máy tính: camera qua vai, nhìn vào màn hình.
@@ -606,6 +673,8 @@ export default function RoamView({
   onDodge,
   onHit,
   onFps,
+  guideKeys = NO_KEYS,
+  onGuides,
 }: Readonly<RoamViewProps>) {
   const def = SETS[setId];
   const env = envOf(setId, regionId);
@@ -677,6 +746,7 @@ export default function RoamView({
 
       <AmbushLayer runtimes={runtimes} world={world} controller={controller} cbs={cbs} />
       {both && <BubbleSideTracker world={world} npcKey={npcBubble.key} onSides={setSides} />}
+      {onGuides && <GuideTracker world={world} keys={guideKeys} onGuides={onGuides} />}
 
       <Player
         look={playerLook}
