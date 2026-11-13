@@ -21,13 +21,19 @@ export interface PropModel {
   id: string;
   /** Hệ số từ đơn vị gốc ra mét. */
   unit: number;
+  /**
+   * Gốc toạ độ khi đặt: 'bbox' = tâm đáy hộp bao (đồ đạc); 'base' = gốc của file (x = z = 0) ở mặt đất, cho cây và cột
+   * đèn có thân / cột nằm ở gốc file còn tán, tay đèn vươn lệch ra (tâm hộp bao sẽ làm thân bị lệch khỏi chỗ đặt).
+   */
+  anchor: 'bbox' | 'base';
   min: readonly [number, number, number];
   max: readonly [number, number, number];
 }
 
 const f = (v: number): number => Math.round(v * 1000) / 1000;
+const BASE_ANCHORED: ReadonlySet<string> = new Set(['palm', 'banana', 'bamboo', 'bush', 'houseplant', 'street-light']);
 const m = (slug: string, name: string, author: PropAuthor, id: string, min: [number, number, number], max: [number, number, number]): PropModel => ({
-  slug, name, author, id, unit: author === 'Kenney' ? 2 : 1, min: [f(min[0]), f(min[1]), f(min[2])], max: [f(max[0]), f(max[1]), f(max[2])],
+  slug, name, author, id, unit: author === 'Kenney' ? 2 : 1, anchor: BASE_ANCHORED.has(slug) ? 'base' : 'bbox', min: [f(min[0]), f(min[1]), f(min[2])], max: [f(max[0]), f(max[1]), f(max[2])],
 });
 
 export const PROP_MODELS: readonly PropModel[] = [
@@ -93,5 +99,9 @@ export function propScale(p: PropModel, fit: { h?: number; w?: number; d?: numbe
   return ok(fit.s) ? fit.s : 1;
 }
 
-/** Vị trí đặt gốc model để tâm đáy hộp bao nằm ở gốc toạ độ (đơn vị gốc của file, chưa nhân tỉ lệ). */
-export const propOrigin = (p: PropModel): [number, number, number] => [-(p.min[0] + p.max[0]) / 2, -p.min[1], -(p.min[2] + p.max[2]) / 2];
+/**
+ * Vị trí đặt model để chân nằm ở gốc toạ độ cục bộ (đơn vị gốc của file, chưa nhân tỉ lệ): tâm đáy hộp bao, hoặc gốc file
+ * ở mặt đất với model neo theo 'base'.
+ */
+export const propOrigin = (p: PropModel): [number, number, number] =>
+  p.anchor === 'base' ? [0, -p.min[1], 0] : [-(p.min[0] + p.max[0]) / 2, -p.min[1], -(p.min[2] + p.max[2]) / 2];

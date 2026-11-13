@@ -126,4 +126,38 @@ describe('model đồ đạc / cây cối CC0 (public/models/props)', () => {
     expect(o[0] + (p.min[0] + p.max[0]) / 2).toBeCloseTo(0, 9);
     expect(o[1] + p.min[1]).toBeCloseTo(0, 9);
   });
+
+  it("model neo theo 'base': gốc file nằm trong phạm vi chân (thân / cột đứng ở x = z = 0), và đặt gốc file ở mặt đất", () => {
+    const based = PROP_MODELS.filter((p) => p.anchor === 'base');
+    expect(based.map((p) => p.slug).sort()).toEqual(['bamboo', 'banana', 'bush', 'houseplant', 'palm', 'street-light']);
+    for (const p of based) {
+      expect(p.min[0], p.slug).toBeLessThanOrEqual(0);
+      expect(p.max[0], p.slug).toBeGreaterThanOrEqual(0);
+      expect(p.min[2], p.slug).toBeLessThanOrEqual(0);
+      expect(p.max[2], p.slug).toBeGreaterThanOrEqual(0);
+      expect(propOrigin(p)[0]).toBe(0);
+      expect(propOrigin(p)[2]).toBe(0);
+    }
+    for (const p of PROP_MODELS.filter((x) => x.anchor === 'bbox')) expect(p.author, p.slug).toBeTruthy();
+  });
+});
+
+describe('SET_PROPS khớp nguồn các cảnh', () => {
+  it('mọi slug trong SET_PROPS có trong bảng, và mọi `model="..."` trong cảnh đều được liệt kê cho cảnh của nó', async () => {
+    const setsSrc = (await import('./sets.tsx?raw')).default as string;
+    const { SET_PROPS } = await import('./sets');
+    for (const [set, slugs] of Object.entries(SET_PROPS)) for (const s of slugs) expect(propOf(s), `${set}: ${s}`).toBeDefined();
+    const part = (from: string, to: string) => setsSrc.slice(setsSrc.indexOf(from), setsSrc.indexOf(to));
+    const used = (src: string) => new Set([...src.matchAll(/model(?:=\{[^}]*\?\s*'([a-z-]+)'\s*:\s*'([a-z-]+)'[^}]*\}|="([a-z-]+)")/g)].flatMap((m) => [m[1], m[2], m[3]].filter(Boolean) as string[]));
+    const sections: [string, string, string][] = [
+      ['cuoi-nam', 'const DESK_TOP', 'function NhaTren'],
+      ['pho-tet', 'function PhoTet', 'function SanNha'],
+      ['san-nha', 'function SanNha', '<CountryHouse'],
+    ];
+    for (const [set, from, to] of sections) {
+      const want = used(part(from, to));
+      expect(want.size, set).toBeGreaterThan(0);
+      for (const slug of want) expect(SET_PROPS[set], `${set} dùng ${slug} nhưng SET_PROPS không liệt kê`).toContain(slug);
+    }
+  });
 });

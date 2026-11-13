@@ -47,7 +47,7 @@ describe('chi tiết đường phố phố Tết', () => {
   });
 
   it('PhoTet dùng các đạo cụ mới và chỉ đưa vào nhà ở có số hợp lý (không phình số khối)', () => {
-    for (const name of ['ShopFront', 'FarShop', 'Bunting', 'Crosswalk', 'StreetLamp', 'PARKED_BIKES']) expect(setsSrc, name).toContain(name);
+    for (const name of ['ShopFront', 'FarShop', 'Bunting', 'Crosswalk', 'street-light', 'PARKED_BIKES']) expect(setsSrc, name).toContain(name);
     const far = /let x = -24;[\s\S]*?x < 24/.exec(setsSrc);
     expect(far).not.toBeNull();
   });

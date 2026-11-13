@@ -6,6 +6,7 @@ import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js
 import type { Look } from '../engine/types';
 import { accessoriesOf, builtinOf, fitOf, propsFor } from './outfit';
 import { attachProps } from './outfitBuild';
+import { smoothOnce } from './smooth';
 import { BIND_HEIGHT, BONES, HIP_ABOVE_SEAT, POM_BONES, POM_DROP, POM_FUR, SIT_POSE, clipFor, heightFor, sanitizeName, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
 
 const HEX = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
@@ -88,6 +89,7 @@ export function RiggedFigure({
   const kind = look.kind;
 
   const { root, bones, scale, props } = useMemo(() => {
+    smoothOnce(gltf.scene); // một lần cho mỗi model: pháp tuyến mượt thay cho pháp tuyến phẳng góc cạnh
     const root = cloneSkinned(gltf.scene);
     // 1. Vật liệu chiếm nhiều nhất của mỗi bộ phận (để biết đâu là áo, đâu là quần).
     const count = new Map<string, Map<string, number>>();

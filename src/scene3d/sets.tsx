@@ -21,7 +21,7 @@ import {
 import { Prop } from './Prop';
 import { SETS, styleOfRegion } from './registry';
 import { floorTexture, type FloorKind } from './textures';
-import { BusStop, Bunting, Crosswalk, FarShop, GiftStall, PARKED_BIKES, STREET_LAMP_XS, ShopFront, StreetLamp } from './props-street';
+import { BusStop, Bunting, Crosswalk, FarShop, GiftStall, PARKED_BIKES, STREET_LAMP_XS, ShopFront } from './props-street';
 import { TramDung } from './set-tram-dung';
 import { CUOI_NAM, PHO_TET, phoPots } from './walk';
 
@@ -150,8 +150,18 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
       {farHouses.map((h, i) => (
         <FarShop key={`f${i}`} position={[h.x, 0, 7.3]} w={h.w} h={h.h} c={h.c} sign={h.sign} />
       ))}
+      {/* cột đèn (tay đèn vươn ra lòng đường), ghế đá, thùng rác và bụi cây trên vỉa hè bên kia đường */}
       {STREET_LAMP_XS.map((x) => (
-        <StreetLamp key={x} position={[x, PHO_TET.sidewalkTop, 2.7]} />
+        <Prop key={x} model="street-light" position={[x, PHO_TET.sidewalkTop, 2.7]} rotY={Math.PI} fit={{ h: 4.2 }} />
+      ))}
+      {[-1.6, 8.6].map((x) => (
+        <Prop key={`b${x}`} model="bench" position={[x, PHO_TET.sidewalkTop, 3.9]} rotY={Math.PI} fit={{ w: 1.6 }} blob />
+      ))}
+      {[-7.8, 2.2].map((x) => (
+        <Prop key={`t${x}`} model="bin" position={[x, PHO_TET.sidewalkTop, 3.9]} fit={{ h: 0.9 }} blob />
+      ))}
+      {Array.from({ length: 7 }, (_, i) => (
+        <Prop key={`u${i}`} model={i % 3 === 1 ? 'houseplant' : 'bush'} position={[-10.5 + i * 3.6, PHO_TET.sidewalkTop, 4.35]} fit={{ h: i % 3 === 1 ? 0.7 : 0.8 }} />
       ))}
       {skyline.map((b, i) => (
         <mesh key={`s${i}`} position={[b.x, b.h / 2, -13]}>
@@ -209,10 +219,19 @@ function SanNha({ regionId }: Readonly<{ regionId: string }>) {
     <group>
       <Ground c={s === 'trung' ? '#e7d8b0' : s === 'nam' ? '#9fbf6f' : '#86a85a'} />
       {/* sân gạch */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0.5]}>
-        <planeGeometry args={[9, 8]} />
-        <Mat c={s === 'bac' ? '#c2410c' : '#d6d3d1'} />
-      </mesh>
+      <Floor kind="tile" base={s === 'bac' ? '#b8501c' : '#cfcac2'} w={9} d={8} z={0.5} />
+      {/* hàng rào hai bên sân (ngoài vùng đi lại x = ±9 nên không cần vật cản), cây chuối và bụi cây sau hàng rào */}
+      {[-1, 1].map((sx) =>
+        [-5.9, 0, 5.9].map((z) => <Prop key={`${sx}${z}`} model="fence" position={[sx * 9.7, 0, z]} rotY={Math.PI / 2} fit={{ w: 5.9 }} />),
+      )}
+      {[-1, 1].map((sx) => (
+        <group key={`g${sx}`}>
+          <Prop model="banana" position={[sx * 11, 0, -2]} fit={{ h: 2.6 }} />
+          <Prop model="banana" position={[sx * 11.6, 0, -0.6]} rotY={1.2} fit={{ h: 2.2 }} />
+          <Prop model="bush" position={[sx * 10.8, 0, 3.4]} fit={{ h: 1 }} />
+          <Prop model="bush" position={[sx * 11.2, 0, 7.4]} fit={{ h: 1.2 }} />
+        </group>
+      ))}
       <CountryHouse style={s} position={[0, 0, -3.6]} />
       <VillageGate style={s} position={[0, 0, 5.6]} />
       <TeaTable position={[0, 0, -0.4]} />
@@ -518,6 +537,13 @@ function NhaTren({ regionId }: Readonly<{ regionId: string }>) {
     </group>
   );
 }
+
+/** Model đồ đạc / cây cối mỗi cảnh dùng (để tải trước, cảnh không hiện dần từng món). Có test đối chiếu với nguồn cảnh. */
+export const SET_PROPS: Readonly<Record<string, readonly string[]>> = {
+  'cuoi-nam': ['desk', 'desk-chair', 'chair', 'table', 'monitor', 'keyboard', 'books', 'laptop', 'plant-small', 'coffee-machine', 'coat-rack', 'bookcase', 'bookcase-open', 'lamp-floor', 'rug'],
+  'pho-tet': ['street-light', 'bench', 'bin', 'bush', 'houseplant'],
+  'san-nha': ['fence', 'banana', 'bush'],
+};
 
 export function SetView({ setId, regionId, variant }: Readonly<{ setId: string; regionId: string; variant?: string }>) {
   switch (setId) {
