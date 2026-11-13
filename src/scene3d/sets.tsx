@@ -18,7 +18,9 @@ import {
   type Menu,
 } from './props';
 import { SETS, styleOfRegion } from './registry';
-import { CUOI_NAM } from './walk';
+import { GiftStall, BusStop } from './props-street';
+import { TramDung } from './set-tram-dung';
+import { CUOI_NAM, PHO_TET, phoPots } from './walk';
 
 /** Vùng → phong cách miền. Chưa biết vùng thì mặc định miền Bắc (logic dùng chung ở registry.ts). */
 export function styleOf(regionId: string): Menu {
@@ -38,6 +40,7 @@ export interface Env {
 
 export function envOf(setId: string, regionId: string): Env {
   const s = styleOf(regionId);
+  if (setId === 'tram-dung') return { sky: '#cfe3f2', fog: [20, 70], sun: 1.5, ambient: 0.75, sunColor: '#fff1c1' };
   if (setId === 'cuoi-nam') return { sky: '#f2c4a0', fog: [20, 48], sun: 1.0, ambient: 0.95, sunColor: '#fff1dc' };
   if (setId === 'nha-tren') return { sky: '#3b1d12', fog: [12, 30], sun: 1.1, ambient: 0.75, sunColor: '#ffd8a8' };
   if (setId === 'san-nha') {
@@ -108,8 +111,8 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
       ))}
       {/* vỉa hè hai bên */}
       {[-2.9, 3.4].map((z) => (
-        <mesh key={z} position={[0, 0.08, z]}>
-          <boxGeometry args={[80, 0.16, 1.8]} />
+        <mesh key={z} position={[0, PHO_TET.sidewalkTop / 2, z]}>
+          <boxGeometry args={[80, PHO_TET.sidewalkTop, 1.8]} />
           <Mat c="#d6d3d1" />
         </mesh>
       ))}
@@ -117,9 +120,13 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
         <TubeHouse key={i} position={[h.x, 0, -5.8]} w={h.w} h={h.h} c={h.c} sign={h.sign} flag={h.flag} />
       ))}
       {/* cây hoa bày bán trên vỉa hè, đèn lồng */}
-      {Array.from({ length: 9 }, (_, i) => (
-        <BlossomTree key={i} kind={i % 3 === 2 ? 'quat' : blossom} position={[-9 + i * 2.2, 0.16, -3.2]} scale={0.9} />
+      {phoPots().map((p) => (
+        <BlossomTree key={p.x} kind={p.kind === 'quat' ? 'quat' : blossom} position={[p.x, PHO_TET.sidewalkTop, p.z]} scale={0.9} />
       ))}
+      <GiftStall position={[PHO_TET.stall.x, PHO_TET.sidewalkTop, PHO_TET.stall.z]} />
+      <group position={[PHO_TET.bus.x, PHO_TET.sidewalkTop, PHO_TET.bus.z]} rotation={[0, Math.PI, 0]}>
+        <BusStop position={[0, 0, 0]} />
+      </group>
       {Array.from({ length: 8 }, (_, i) => (
         <Lantern key={i} position={[-10 + i * 2.8, 3.3, -3.9]} />
       ))}
@@ -400,6 +407,8 @@ export function SetView({ setId, regionId, variant }: Readonly<{ setId: string; 
       return <SanNha regionId={regionId} />;
     case 'nha-tren':
       return <NhaTren regionId={regionId} />;
+    case 'tram-dung':
+      return <TramDung regionId={regionId} />;
     default:
       return null;
   }

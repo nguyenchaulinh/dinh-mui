@@ -50,6 +50,13 @@ export const SETS: Record<string, SetDef> = {
       'via-he-2': { pos: [1.1, 0, 3.4], rotY: -0.4 },
       'cua-hang': { pos: [-2.2, 0, -2.6], rotY: 0.2 },
       'den-do': { pos: [3.2, 0, 1.0], rotY: -Math.PI / 2 },
+      // Chế độ đi lại (khớp PHO_TET trong walk.ts): vỉa hè bắc, sạp quà ở x = -3, trạm xe buýt ở x = 10.
+      'sap-qua': { pos: [-3.0, 0, -2.5], rotY: 0 },
+      'do-qua': { pos: [-4.5, 0, -2.4] },
+      shipper: { pos: [2.6, 0, -2.5], rotY: Math.PI },
+      'xe-om': { pos: [5.6, 0, -2.4], rotY: Math.PI },
+      ben: { pos: [10, 0, -2.2], rotY: 0 },
+      'len-xe': { pos: [12.2, 0, -2.4], rotY: Math.PI / 2 },
     },
   },
   'cuoi-nam': {
@@ -70,6 +77,23 @@ export const SETS: Record<string, SetDef> = {
       'do-qua': { pos: [5.3, 0, -2.6] },
       'do-ao': { pos: [5.3, 0, 0.4] },
       cua: { pos: [5.75, 0, 2.2] },
+    },
+  },
+  /**
+   * Trạm dừng chân trên quốc lộ (chặng Đường về). Quốc lộ chạy dọc trục x ở z từ -6 tới -2 (chỉ để nhìn); sân trạm ở phía
+   * nam (z từ -1.2 tới 8.5) là nơi đi lại: quán bánh mì có mái, bàn ghế nhựa, xe khách đậu ở phía đông, xe cũ của anh họ ở
+   * phía tây. Vật cản khớp walk-tram-dung.ts.
+   */
+  'tram-dung': {
+    id: 'tram-dung',
+    label: 'Trạm dừng chân trên quốc lộ',
+    spots: {
+      'thai-gara': { pos: [-8.0, 0, 4.2], rotY: 0.9 },
+      'chu-ba': { pos: [1.6, 0, 2.4], rotY: -0.7 },
+      quan: { pos: [-4.2, 0, 2.2], rotY: 0 },
+      'do-banh-mi': { pos: [-4.2, 0, 3.8] },
+      'xe-khach': { pos: [7.8, 0, 3.4], rotY: 0 },
+      'be-de': { pos: [-1.2, 0, 5.8], rotY: 0.5 },
     },
   },
   'san-nha': {

@@ -287,7 +287,7 @@ describe('validate dữ liệu bản đồ', () => {
     const c = clone();
     const e = validateContent(c, { sets: SETS, roamSets: ['set-khac'] });
     expect(e.some((m) => m.includes('chưa có vùng đi lại'))).toBe(true);
-    expect(validateContent(c, { sets: SETS, roamSets: ['san-nha', 'cuoi-nam'] })).toEqual([]);
+    expect(validateContent(c, { sets: SETS, roamSets: ['san-nha', 'cuoi-nam', 'pho-tet'] })).toEqual([]);
   });
 
   it('bắt chặng trỏ bản đồ không tồn tại, bản đồ không chặng nào dùng, hai chặng dùng chung bản đồ', () => {
