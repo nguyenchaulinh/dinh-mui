@@ -74,7 +74,8 @@ export function Motorbike({
   shirt = '#1d4ed8',
   helmet = '#f8fafc',
   cargo,
-}: Readonly<{ body?: string; shirt?: string; helmet?: string; cargo?: Blossom | 'box' }>) {
+  rider = true,
+}: Readonly<{ body?: string; shirt?: string; helmet?: string; cargo?: Blossom | 'box'; /** false: xe đậu, không có người lái. */ rider?: boolean }>) {
   return (
     <group>
       {[-0.45, 0.45].map((z) => (
@@ -96,14 +97,18 @@ export function Motorbike({
         <Mat c="#9ca3af" />
       </mesh>
       {/* người lái */}
-      <mesh position={[0, 0.9, -0.05]}>
-        <cylinderGeometry args={[0.15, 0.19, 0.5, 6]} />
-        <Mat c={shirt} />
-      </mesh>
-      <mesh position={[0, 1.28, -0.02]}>
-        <icosahedronGeometry args={[0.2, 1]} />
-        <Mat c={helmet} />
-      </mesh>
+      {rider && (
+        <>
+          <mesh position={[0, 0.9, -0.05]}>
+            <cylinderGeometry args={[0.15, 0.19, 0.5, 6]} />
+            <Mat c={shirt} />
+          </mesh>
+          <mesh position={[0, 1.28, -0.02]}>
+            <icosahedronGeometry args={[0.2, 1]} />
+            <Mat c={helmet} />
+          </mesh>
+        </>
+      )}
       {cargo === 'box' && (
         <group position={[0, 0.85, -0.55]}>
           {[0, 1, 2].map((i) => (
