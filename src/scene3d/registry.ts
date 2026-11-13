@@ -50,6 +50,13 @@ export const SETS: Record<string, SetDef> = {
       'via-he-2': { pos: [1.1, 0, 3.4], rotY: -0.4 },
       'cua-hang': { pos: [-2.2, 0, -2.6], rotY: 0.2 },
       'den-do': { pos: [3.2, 0, 1.0], rotY: -Math.PI / 2 },
+      // Chế độ đi lại (khớp PHO_TET trong walk.ts): vỉa hè bắc, sạp quà ở x = -3, trạm xe buýt ở x = 10.
+      'sap-qua': { pos: [-3.0, 0, -2.5], rotY: 0 },
+      'do-qua': { pos: [-4.5, 0, -2.4] },
+      shipper: { pos: [2.6, 0, -2.5], rotY: Math.PI },
+      'xe-om': { pos: [5.6, 0, -2.4], rotY: Math.PI },
+      ben: { pos: [10, 0, -2.2], rotY: 0 },
+      'len-xe': { pos: [12.2, 0, -2.4], rotY: Math.PI / 2 },
     },
   },
   'cuoi-nam': {

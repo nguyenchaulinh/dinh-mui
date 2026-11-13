@@ -125,6 +125,7 @@
 /* ---------- Mũi tên chỉ hướng tới việc đang cần làm (guide.ts) ---------- */
 .guides { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
 .guide {
+  white-space: nowrap;
   position: absolute; translate: -50% -50%;
   display: grid; justify-items: center; gap: 1px;
   color: var(--gold);

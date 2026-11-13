@@ -27,7 +27,7 @@ Mở địa chỉ `Network` trong log bằng trình duyệt điện thoại. Gó
 http://localhost:5173/?roam=cuoi-nam&persona=sinh-vien&region=da-nang
 ```
 
-- `roam`: id bản đồ trong [src/content/v1.json](src/content/v1.json), mục `maps`: `cuoi-nam` (văn phòng / lớp học), `san-nha` (sân nhà ở quê).
+- `roam`: id bản đồ trong [src/content/v1.json](src/content/v1.json), mục `maps`: `cuoi-nam` (văn phòng / lớp học), `ra-ben` (phố Tết, trạm xe buýt), `san-nha` (sân nhà ở quê).
 - `persona`: `sinh-vien`, `moi-di-lam`, `doc-than-27`.
 - `region`: `ha-noi`, `da-nang`, `sai-gon`.
 

@@ -14,7 +14,7 @@ import type { RegionStyle } from './registry';
  */
 
 /** Các bộ cảnh đã có dữ liệu đi lại. Thêm set mới thì thêm cả case trong walkAreaFor. */
-export const ROAM_SETS: readonly string[] = ['san-nha', 'cuoi-nam'];
+export const ROAM_SETS: readonly string[] = ['san-nha', 'cuoi-nam', 'pho-tet'];
 
 /** Chiều cao người chơi (m), khớp Figure: đầu ở y ~1.42 + bán kính đầu. */
 const BODY_HEIGHT = 1.7;
@@ -235,6 +235,65 @@ function buildCuoiNam(): WalkArea {
   return { bounds, colliders, spawn: { x: 0.6, z: 3.6, rotY: Math.PI } };
 }
 
+// ---------- Phố Tết ngày 28 tháng Chạp (chặng Ra bến) ----------
+
+/**
+ * Chỉ đi lại trên vỉa hè bắc dọc mặt tiền nhà phố; lòng đường có xe máy chạy (chỉ để nhìn) nằm ngoài vùng đi lại.
+ * NGUỒN DUY NHẤT cho hình dựng (sets.tsx: PhoTet, props-street.tsx) và vật cản bên dưới.
+ * - Mặt tiền nhà phố z = -3.8 (nhà sâu 4, dựng tại z = -5.8). Vùng đi lại z từ -3.7 tới -1.7: làn xe đầu tiên ở z = -0.9
+ *   (xe rộng 0.64 => mép -1.22) nên người chơi (r 0.35) không chạm xe.
+ * - Sạp quà sát nhà phố; hàng chậu hoa/quất dọc mặt tiền, bỏ hai chậu ở chỗ sạp và chỗ trạm xe buýt.
+ * - Trạm xe buýt ở mé đông: ghế chờ + hai trụ (mái ở độ cao 2.55 m nên đi qua bên dưới), cột biển ở đầu đông.
+ */
+export const PHO_TET = {
+  bounds: { minX: -12.5, maxX: 13, minZ: -3.7, maxZ: -1.7 },
+  /** Mặt vỉa hè (m): người đứng ở y = 0 nên vỉa hè dựng thấp, gần như ngang mặt đường. */
+  sidewalkTop: 0.05,
+  /** Nhà phố: tâm (z), nửa sâu; mặt tiền z = -3.8. */
+  houses: { z: -5.8, hd: 2.0, hw: 24 },
+  /** Sạp quà: tâm quầy, nửa rộng, nửa sâu. */
+  stall: { x: -3.0, z: -3.4, hw: 1.3, hd: 0.4 },
+  /** Hàng chậu: vị trí x = x0 + i * step; chậu cách sạp / trạm trong "skip" thì bỏ. */
+  pots: { z: -3.2, x0: -9, step: 2.2, count: 9, skipNearStall: 1.9, skipNearBus: 1.8 },
+  /** Trạm xe buýt: tâm ghế chờ; mái/lưng quay về phía nhà phố (nhóm xoay PI). */
+  bus: { x: 10, z: -2.9, benchHw: 0.7, benchHd: 0.2, postDx: 1.1, postDz: -0.15, postR: 0.1, signDx: 2.0, signDz: 0.9, signR: 0.06 },
+} as const;
+
+export interface PhoPot {
+  x: number;
+  z: number;
+  kind: 'hoa' | 'quat';
+}
+
+/** Hàng chậu trên vỉa hè (cũng dùng để dựng hình trong sets.tsx để hình và va chạm không lệch). */
+export function phoPots(): PhoPot[] {
+  const L = PHO_TET;
+  const out: PhoPot[] = [];
+  for (let i = 0; i < L.pots.count; i++) {
+    const x = L.pots.x0 + i * L.pots.step;
+    if (Math.abs(x - L.stall.x) < L.pots.skipNearStall) continue;
+    if (Math.abs(x - L.bus.x) < L.pots.skipNearBus) continue;
+    out.push({ x, z: L.pots.z, kind: i % 3 === 2 ? 'quat' : 'hoa' });
+  }
+  return out;
+}
+
+function buildPhoTet(): WalkArea {
+  const L = PHO_TET;
+  const colliders: Collider[] = [
+    box('nha-pho', 0, L.houses.z, L.houses.hw, L.houses.hd, true),
+    ...phoPots().map((p, i) => circle(`chau-${i + 1}`, p.x, p.z, p.kind === 'quat' ? 0.4 : 0.2, false)),
+    box('sap-qua', L.stall.x, L.stall.z, L.stall.hw, L.stall.hd, false),
+    box('ghe-ben', L.bus.x, L.bus.z, L.bus.benchHw, L.bus.benchHd, false),
+    circle('tru-ben-1', L.bus.x - L.bus.postDx, L.bus.z + L.bus.postDz, L.bus.postR, false),
+    circle('tru-ben-2', L.bus.x + L.bus.postDx, L.bus.z + L.bus.postDz, L.bus.postR, false),
+    circle('cot-bien-ben', L.bus.x + L.bus.signDx, L.bus.z + L.bus.signDz, L.bus.signR, false),
+  ];
+  // Xuất phát ở đầu tây vỉa hè, quay mặt về phía đông (rotY = PI/2 nhìn về +x).
+  return { bounds: { ...L.bounds }, colliders, spawn: { x: -11, z: -2.7, rotY: Math.PI / 2 } };
+}
+
+let phoTetCache: WalkArea | undefined;
 let cuoiNamCache: WalkArea | undefined;
 
 const cache: Record<RegionStyle, WalkArea | undefined> = { bac: undefined, trung: undefined, nam: undefined };
@@ -253,6 +312,9 @@ export function walkAreaFor(setId: string, style: RegionStyle): WalkArea | null 
     case 'cuoi-nam':
       // Trong nhà: không đổi theo miền.
       return (cuoiNamCache ??= buildCuoiNam());
+    case 'pho-tet':
+      // Vật cản không đổi theo miền (miền chỉ đổi loại hoa trên chậu).
+      return (phoTetCache ??= buildPhoTet());
     default:
       return null;
   }

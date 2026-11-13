@@ -65,6 +65,21 @@ export const SIDE_HYSTERESIS = 0.04;
  * trái, người kia sang phải (kiểu truyện tranh), nên hai bong bóng không chồng lên nhau dù hai người đứng sát.
  * `playerX`, `npcX` là toạ độ ngang trên màn hình (NDC -1..1); `prev` là kết quả lần trước để giữ ổn định.
  */
+/** Người nói đứng lệch quá ngưỡng này (NDC) về một bên thì bong bóng đơn bung về phía giữa màn hình. */
+export const SOLO_EDGE = 0.3;
+
+/**
+ * Phía bung của một bong bóng đứng MỘT mình: người ở nửa phải màn hình thì bong bóng bung sang trái (về giữa màn hình)
+ * và ngược lại, để không tràn mép (bong bóng rộng tới 230 px, màn hình điện thoại 360 px). Gần giữa thì ở giữa.
+ * `x` là toạ độ ngang trên màn hình (NDC -1..1), `prev` giữ ổn định (độ trễ SIDE_HYSTERESIS). Hàm thuần.
+ */
+export function soloSide(x: number, prev: BubbleSide = 'center'): BubbleSide {
+  if (!Number.isFinite(x)) return 'center';
+  if (x > SOLO_EDGE + (prev === 'left' ? -SIDE_HYSTERESIS : SIDE_HYSTERESIS)) return 'left';
+  if (x < -SOLO_EDGE + (prev === 'right' ? SIDE_HYSTERESIS : -SIDE_HYSTERESIS)) return 'right';
+  return 'center';
+}
+
 export function bubbleSides(playerX: number, npcX: number, prev?: { player: BubbleSide; npc: BubbleSide }): { player: BubbleSide; npc: BubbleSide } {
   const d = npcX - playerX;
   if (prev && prev.player !== 'center' && Math.abs(d) < SIDE_HYSTERESIS) return prev;
