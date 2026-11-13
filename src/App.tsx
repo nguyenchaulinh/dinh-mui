@@ -12,13 +12,12 @@ import {
   type SceneView,
 } from './engine/engine';
 import { STAT_KEYS, STAT_MAX, type Content, type GameState } from './engine/types';
-import { STAT_LABEL, STYLE_LABEL } from './labels';
+import { DISCLAIMER, STAT_LABEL, STYLE_LABEL } from './labels';
+import { JourneyScreen } from './game/JourneyScreen';
 import { RoamScreen } from './game/RoamScreen';
 import type { StageActor } from './scene3d/Stage3DView';
 
 const Stage3DView = lazy(() => import('./scene3d/Stage3DView'));
-
-const DISCLAIMER = 'Mọi nhân vật và tình huống là hư cấu, chỉ để giải trí; không nhằm mô tả bất kỳ cá nhân nào.';
 
 /** Hiện đồng hồ FPS khi chạy dev hoặc khi URL có ?fps (để đo trên điện thoại). */
 const SHOW_FPS = DEBUG;
@@ -33,14 +32,16 @@ function Setup({
   selection,
   onSelect,
   onStart,
-  onRoam,
+  onJourney,
 }: Readonly<{
   content: Content;
   /** Lựa chọn nằm ở App để không mất khi vào/ra chế độ đi lại. */
   selection: Selection;
   onSelect: (s: Selection) => void;
+  /** Bản kể chuyện cũ (chỉ chọn đáp, không đi lại). */
   onStart: (personaId: string, regionIds: string[]) => void;
-  onRoam: (regionId: string, personaId: string | null) => void;
+  /** Hành trình đi lại nhiều chặng, bắt đầu từ chặng `startStep`. */
+  onJourney: (personaId: string, regionIds: string[], startStep: number) => void;
 }>) {
   const { personaId, regionIds } = selection;
   const setPersonaId = (id: string | null) => onSelect({ personaId: id, regionIds });
@@ -48,6 +49,8 @@ function Setup({
     onSelect({ personaId, regionIds: typeof update === 'function' ? update(regionIds) : update });
   const allIds = content.regions.map((r) => r.id);
   const allSelected = regionIds.length === allIds.length;
+  const steps = content.journey?.steps ?? [];
+  const ready = !!personaId && regionIds.length > 0;
   const toggle = (id: string) =>
     setRegionIds((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
@@ -75,23 +78,44 @@ function Setup({
       </button>
       <button
         className="choice start"
-        disabled={!personaId || regionIds.length === 0}
-        onClick={() => personaId && onStart(personaId, regionIds)}
+        disabled={!ready}
+        onClick={() => personaId && (steps.length > 0 ? onJourney(personaId, regionIds, 0) : onStart(personaId, regionIds))}
       >
         Lên đường về quê
       </button>
-      <button
-        className="choice"
-        disabled={regionIds.length === 0 || !content.maps?.length}
-        onClick={() => regionIds[0] && onRoam(regionIds[0], personaId)}
-      >
-        <strong>Thử chế độ đi lại (bản thử)</strong>
-        <br />
-        <small>Điều khiển nhân vật đi trong sân nhà ở quê, góc nhìn thứ ba.</small>
-      </button>
+      {steps.length > 0 && (
+        <>
+          <p>
+            <small>Hoặc thử riêng một chặng (chơi tiếp các chặng sau đó):</small>
+          </p>
+          {steps.map((s, i) => (
+            <button
+              key={s.id}
+              className="choice"
+              disabled={!ready}
+              onClick={() => personaId && onJourney(personaId, regionIds, i)}
+            >
+              <strong>
+                Chặng {i + 1}: {s.title}
+              </strong>
+            </button>
+          ))}
+          <button className="choice" disabled={!ready} onClick={() => personaId && onStart(personaId, regionIds)}>
+            <small>Bản kể chuyện (chỉ chọn đáp, không đi lại)</small>
+          </button>
+        </>
+      )}
       <footer>{DISCLAIMER}</footer>
     </main>
   );
+}
+
+/** Hành trình đang chơi. */
+interface JourneyTarget {
+  personaId: string;
+  regionIds: string[];
+  startStep: number;
+  seed: number;
 }
 
 interface RoamTarget {
@@ -152,6 +176,8 @@ export function App() {
   const [state, setState] = useState<GameState | null>(() => devJump(content));
   /** Đang ở chế độ đi lại (bản thử) với vùng và persona này. */
   const [roam, setRoam] = useState<RoamTarget | null>(() => devRoam(content));
+  /** Đang chơi hành trình đi lại nhiều chặng. */
+  const [journey, setJourney] = useState<JourneyTarget | null>(null);
   const [selection, setSelection] = useState<Selection>({ personaId: null, regionIds: [] });
   /** Lựa chọn vừa chọn, chờ người chơi đọc phản ứng rồi bấm Tiếp. Giữ view của scene cũ. */
   const [pending, setPending] = useState<{ result: ChooseResult; view: SceneView } | null>(null);
@@ -175,16 +201,26 @@ export function App() {
     );
   }
 
+  if (journey) {
+    return (
+      <JourneyScreen
+        content={content}
+        personaId={journey.personaId}
+        regionIds={journey.regionIds}
+        startStep={journey.startStep}
+        seed={journey.seed}
+        onExit={() => setJourney(null)}
+      />
+    );
+  }
+
   if (!state) {
     return (
       <Setup
         content={content}
         selection={selection}
         onSelect={setSelection}
-        onRoam={(regionId, personaId) => {
-          const mapId = content.maps?.[0]?.id;
-          if (mapId) setRoam({ mapId, regionId, personaId: personaId ?? content.personas[0]!.id });
-        }}
+        onJourney={(personaId, regionIds, startStep) => setJourney({ personaId, regionIds, startStep, seed: newSeed() })}
         onStart={(p, r) => {
           setState(createGame(content, p, r, newSeed()));
           setSeenStages([]);

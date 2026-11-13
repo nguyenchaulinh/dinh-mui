@@ -76,8 +76,8 @@ Mỗi bước kết thúc bằng một bản chạy được. Ở các **điểm
 | 1 (kế hoạch gốc) | **Bộ điều khiển:** nhân vật đi/chạy, joystick + bàn phím, camera bám, va chạm. Thử trong cảnh sân nhà | 2–3 ngày | **Có**: cảm giác điều khiển + FPS trên điện thoại |
 | 2 | **Tương tác cơ bản:** lại gần thì hiện nút, mở hội thoại sẵn có, bong bóng thoại, chào hỏi; NPC đứng, lang thang, đuổi theo | 2–3 ngày | **Có**: chơi chặng Bước vào nhà bản tương tác |
 | 3 | **Lớp nhiệm vụ + schema bản đồ** trong JSON, validate, test | 2 ngày | |
-| 4 | **Chặng 5 + 6 đầy đủ:** né câu hỏi, chơi với chó, Bà Tám livestream, mâm cơm gắp mời | 3 ngày | **Có**: playtest vòng 1 với vài người |
-| 5 | **Chặng 3 + 4:** đi phố, mua quà, băng qua đường, xe ôm; lái xe máy quốc lộ, trạm dừng chân | 4 ngày | |
+| 4 | **Đã làm 12/11:** chặng 5 + 6 đầy đủ: né câu hỏi, chơi với chó, Bà Tám cầm ống kính (nón nhìn, phải đi ngang để thoát), mâm cơm gắp mời (lấy món ở bếp, mời từng người), Duy Đèn Cầy/Ông/Bin/Bé Dê, hành trình nối chặng. Mô phỏng kiểm số liệu ống kính; chưa thử máy thật | xong code | **Có**: playtest vòng 1 với vài người |
+| 5 | **Đã làm 12/11:** chặng 3 + 4: phố Tết (sạp quà, băng đường qua dòng xe máy, bến xe buýt) và trạm dừng chân (bánh mì, anh họ Thái Gara 99, mã QR giữ chỗ, xe khách). Còn thiếu so với kế hoạch: xe ôm/nhờ bạn chở, lái xe máy trên quốc lộ, nằm trong xe giường nằm | xong code (bản sớm) | |
 | 6 | **Chặng 1 + 2:** văn phòng/KTX đi lại, điện thoại săn vé; tiệc tất niên đi giữa các bàn | 3 ngày | |
 | 7 | **Chặng 7, 8, 9:** giao thừa, xông đất và nhảy cùng Dương Gió Mùa, đi lì xì từng đứa, mẹ gói đồ, twist | 4 ngày | |
 | 8 | **Nâng cấp art:** model có xương, animation, âm thanh CC0 | song song từ bước 4 | |

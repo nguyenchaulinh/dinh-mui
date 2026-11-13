@@ -170,7 +170,7 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
     if (texts.length === 0 || texts.some((q) => typeof q !== 'string' || !q.trim())) err(`${where}: rỗng hoặc có câu trống`);
     for (const t of texts) if (typeof t === 'string' && t.length > MAX_TEXT) err(`${where}: câu dài quá ${MAX_TEXT} ký tự: "${t.slice(0, 20)}..."`);
   };
-  const checkNpc = (at: string, mapSet: string, n: MapNpc, playerId: string) => {
+  const checkNpc = (at: string, mapSet: string, n: MapNpc, playerId: string, itemIds: ReadonlySet<string>) => {
     const w = `${at} NPC ${n.characterId}`;
     checkChar(w, n.characterId);
     if (n.characterId === playerId) err(`${w}: trùng nhân vật người chơi`);
@@ -187,6 +187,24 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
     }
     if (typeof n.speed === 'number' && n.speed > 6) err(`${w}: speed quá lớn (> 6 m/s)`);
     if (!n.prompt.trim()) err(`${w}: thiếu chữ trên nút tương tác (prompt)`);
+    if (typeof n.turnRate === 'number' && !(Number.isFinite(n.turnRate) && n.turnRate >= 0 && n.turnRate <= 20)) {
+      err(`${w}: turnRate phải trong [0, 20] rad/s`);
+    }
+    if (n.serve) {
+      if (!itemIds.has(n.serve.item)) err(`${w} serve: vật phẩm ${n.serve.item} không có trạm nào cho lấy (pickup)`);
+      if (!n.serve.prompt.trim() || !n.serve.line.trim()) err(`${w} serve: thiếu prompt hoặc line`);
+      checkEffects(`${w} serve`, n.serve.effects);
+    }
+    if (n.lens) {
+      const l = n.lens;
+      const inRange = (v: number, lo: number, hi: number) => Number.isFinite(v) && v >= lo && v <= hi;
+      if (!inRange(l.range, 1, 12)) err(`${w} lens: range phải trong [1, 12] m`);
+      if (!inRange(l.halfAngleDeg, 5, 80)) err(`${w} lens: halfAngleDeg phải trong [5, 80] độ`);
+      if (!inRange(l.holdSec, 0.5, 10)) err(`${w} lens: holdSec phải trong [0.5, 10] giây`);
+      if (!inRange(l.restSec, 0, 30)) err(`${w} lens: restSec phải trong [0, 30] giây`);
+      if (!l.penaltyLine.trim()) err(`${w} lens: thiếu penaltyLine`);
+      checkEffects(`${w} lens penalty`, l.penalty);
+    }
     if (!n.action.after.trim()) err(`${w}: thiếu câu nói lại (after)`);
     if (n.action.kind === 'talk') checkSceneList(`${w} talk`, n.action.sceneIds, n.characterId);
     else {
@@ -203,6 +221,7 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
       if (!(Number.isFinite(sh.minRange) && sh.minRange >= 0 && sh.minRange < sh.range)) {
         err(`${w} shoots: minRange phải trong [0, range)`);
       }
+      if (sh.icon !== undefined && sh.icon !== 'question' && sh.icon !== 'qr') err(`${w} shoots: icon lạ ${String(sh.icon)}`);
       checkTexts(`${w} shoots.questions`, sh.questions);
       for (const [pid, qs] of Object.entries(sh.questionsByPersona ?? {})) {
         if (!personaIds.has(pid)) err(`${w} shoots.questionsByPersona: persona ${pid} không tồn tại`);
@@ -246,9 +265,67 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
       checkChar(at, m.playerId);
       dup(`NPC trong ${at}`, m.npcs.map((n) => n.characterId));
       dup(`vị trí xuất phát trong ${at}`, m.npcs.map((n) => n.spot));
-      for (const n of m.npcs) checkNpc(at, m.setId, n, m.playerId);
+      const itemIds = new Set(
+        (m.stations ?? []).flatMap((st) => (st.action?.kind === 'pickup' ? [st.action.item.id] : [])),
+      );
+      for (const n of m.npcs) checkNpc(at, m.setId, n, m.playerId, itemIds);
 
       const mapFlags = new Set(mapAutoFlags(m));
+      const def = opts.sets?.[m.setId];
+      const checkFlagsInMap = (w: string, cond: Condition | undefined) => {
+        checkCond(w, cond);
+        for (const f of [...(cond?.flags ?? []), ...(cond?.notFlags ?? [])]) {
+          if (!mapFlags.has(f)) err(`${w}: cờ ${f} không do bản đồ này sinh ra, không bật được khi đi lại`);
+        }
+      };
+
+      // Trạm
+      dup(`trạm trong ${at}`, (m.stations ?? []).map((s) => s.id));
+      for (const st of m.stations ?? []) {
+        const w = `${at} trạm ${st.id}`;
+        if (def && !(st.spot in def.spots)) err(`${w}: vị trí ${st.spot} không có trong set ${m.setId}`);
+        if (!st.label.trim() || !st.prompt.trim()) err(`${w}: thiếu label hoặc prompt`);
+        if (st.reach !== undefined && !(Number.isFinite(st.reach) && st.reach > 0 && st.reach <= 6)) err(`${w}: reach phải trong (0, 6]`);
+        checkFlagsInMap(w, st.if);
+        const a = st.action;
+        if (a.kind === 'pickup') {
+          if (!a.item.id.trim() || !a.item.label.trim()) err(`${w} pickup: thiếu id/label của vật phẩm`);
+          for (const r of Object.keys(a.item.labelByRegion ?? {})) if (!regionIds.has(r)) err(`${w} pickup: vùng lạ ${r}`);
+        } else if (a.kind === 'use') checkEffects(`${w} use`, a.effects);
+        else if (a.kind !== 'board') err(`${w}: hành động lạ ${String((a as { kind: unknown }).kind)}`);
+        if (!a.line.trim()) err(`${w}: thiếu line`);
+      }
+
+      // Vùng kích hoạt
+      dup(`vùng trong ${at}`, (m.zones ?? []).map((z) => z.id));
+      for (const z of m.zones ?? []) {
+        const w = `${at} vùng ${z.id}`;
+        if (![z.x0, z.z0, z.x1, z.z1].every(Number.isFinite) || z.x0 === z.x1 || z.z0 === z.z1) err(`${w}: toạ độ hỏng hoặc vùng rỗng`);
+        checkFlagsInMap(w, z.if);
+      }
+
+      // Xe máy
+      if (m.traffic) {
+        const t = m.traffic;
+        const w = `${at} traffic`;
+        if (t.lanes.length === 0) err(`${w}: cần ít nhất 1 làn`);
+        for (const [i, l] of t.lanes.entries()) {
+          if (!Number.isFinite(l.z)) err(`${w} làn ${i}: z hỏng`);
+          if (l.dir !== 1 && l.dir !== -1) err(`${w} làn ${i}: dir phải là 1 hoặc -1`);
+          if (!(Number.isFinite(l.speed) && l.speed > 0 && l.speed <= 6)) err(`${w} làn ${i}: speed phải trong (0, 6] m/s`);
+        }
+        if (!(Number.isInteger(t.count) && t.count >= 1 && t.count <= 40)) err(`${w}: count phải là số nguyên trong [1, 40]`);
+        if (!(Number.isFinite(t.length) && t.length >= 10 && t.length <= 200)) err(`${w}: length phải trong [10, 200] m`);
+        if (!(Number.isFinite(t.safeNorthZ) && Number.isFinite(t.safeSouthZ) && t.safeNorthZ < t.safeSouthZ)) {
+          err(`${w}: safeNorthZ phải nhỏ hơn safeSouthZ`);
+        }
+        const zs = t.lanes.map((l) => l.z);
+        if (zs.length > 0 && !(t.safeNorthZ < Math.min(...zs) && t.safeSouthZ > Math.max(...zs))) {
+          err(`${w}: vỉa hè an toàn phải nằm ngoài các làn xe`);
+        }
+        if (!t.hitLine.trim()) err(`${w}: thiếu hitLine`);
+        checkEffects(`${w} hit`, t.hitEffects);
+      }
       dup(`quest trong ${at}`, m.quests.map((q) => q.id));
       for (const q of m.quests) {
         const w = `${at} quest ${q.id}`;
@@ -258,11 +335,8 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
           const ow = `${w}/${o.id}`;
           if (Object.keys(o.done).length === 0) err(`${ow}: điều kiện done rỗng (mục tiêu luôn đúng, nhiệm vụ tự xong ngay)`);
           if (o.done.personas || o.done.regions) err(`${ow}: không được giới hạn persona/vùng (không hoàn thành được với người chơi khác)`);
-          checkCond(ow, o.done);
           // Chỉ cờ do chính bản đồ này sinh ra mới bật được trong chế độ đi lại (không dùng cờ của luồng chính).
-          for (const f of [...(o.done.flags ?? []), ...(o.done.notFlags ?? [])]) {
-            if (!mapFlags.has(f)) err(`${ow}: cờ ${f} không do bản đồ này sinh ra, không bật được khi đi lại`);
-          }
+          checkFlagsInMap(ow, o.done);
         }
         checkEffects(`${w} reward`, q.reward);
       }
@@ -270,6 +344,29 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
       if (cyc) err(`${at}: vòng phụ thuộc giữa các nhiệm vụ (quest:${cyc} chờ chính nó)`);
     } catch (e) {
       err(`${at}: dữ liệu thiếu hoặc sai kiểu (${e instanceof Error ? e.message : 'lỗi lạ'})`);
+    }
+  }
+
+  // Hành trình: mỗi chặng trỏ tới một bản đồ và các nhiệm vụ có thật trong bản đồ đó.
+  if (c.journey) {
+    try {
+      const steps = c.journey.steps;
+      if (steps.length === 0) err('journey: cần ít nhất 1 chặng');
+      if (c.journey.epilogue !== undefined && !c.journey.epilogue.trim()) err('journey: epilogue rỗng');
+      dup('chặng trong journey', steps.map((s) => s.id));
+      for (const st of steps) {
+        const w = `journey chặng ${st.id}`;
+        const map = (c.maps ?? []).find((m) => m.id === st.mapId);
+        if (!map) err(`${w}: bản đồ ${st.mapId} không tồn tại`);
+        if (!st.title.trim() || !st.intro.trim()) err(`${w}: thiếu title hoặc intro`);
+        if (st.outro !== undefined && !st.outro.trim()) err(`${w}: outro rỗng`);
+        if (st.finish.length === 0) err(`${w}: finish rỗng (chặng không bao giờ kết thúc)`);
+        for (const q of st.finish) {
+          if (map && !map.quests.some((x) => x.id === q)) err(`${w}: nhiệm vụ ${q} không có trong bản đồ ${st.mapId}`);
+        }
+      }
+    } catch (e) {
+      err(`journey: dữ liệu thiếu hoặc sai kiểu (${e instanceof Error ? e.message : 'lỗi lạ'})`);
     }
   }
 

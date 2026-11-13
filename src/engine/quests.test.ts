@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import v1 from '../content/v1.json';
 import { SETS } from '../scene3d/registry';
+import { ROAM_SETS } from '../scene3d/walk';
 import { createGame } from './engine';
 import {
   DODGE_MILESTONES,
@@ -279,12 +280,13 @@ describe('validate dữ liệu bản đồ', () => {
     const c = clone();
     const e = validateContent(c, { sets: SETS, roamSets: ['set-khac'] });
     expect(e.some((m) => m.includes('chưa có vùng đi lại'))).toBe(true);
-    expect(validateContent(c, { sets: SETS, roamSets: ['san-nha'] })).toEqual([]);
+    expect(validateContent(c, { sets: SETS, roamSets: ROAM_SETS })).toEqual([]);
   });
 
   it('nội dung không có maps vẫn hợp lệ (dữ liệu cũ)', () => {
     const c = clone();
     delete c.maps;
+    delete c.journey;
     expect(validateContent(c, { sets: SETS })).toEqual([]);
   });
 });

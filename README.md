@@ -29,7 +29,7 @@ http://localhost:5173/?scene=mc-1&persona=moi-di-lam&region=da-nang
 - `persona`: `sinh-vien`, `moi-di-lam`, `doc-than-27`.
 - `region`: `ha-noi`, `da-nang`, `sai-gon`.
 
-**Chế độ đi lại (bước 1, bản thử):** ở màn chọn vai/vùng bấm "Thử chế độ đi lại", hoặc vào thẳng (chỉ khi chạy dev):
+**Hành trình đi lại (bản sớm):** chọn vai và vùng rồi bấm "Lên đường về quê": chơi lần lượt 4 chặng (Ra bến, Đường về, Bước vào nhà, Mâm cơm tất niên), chỉ số và thẻ mẹo mang theo qua các chặng, cuối cùng nhận danh hiệu Tết. Có thể thử riêng từng chặng ở màn chọn. Hoặc vào thẳng một bản đồ (chỉ khi chạy dev; `roam` là id bản đồ: `pho-tet`, `tram-dung`, `san-nha`, `mam-com`):
 
 ```
 http://localhost:5173/?roam=san-nha&region=ha-noi
@@ -37,7 +37,11 @@ http://localhost:5173/?roam=san-nha&region=ha-noi
 
 - Máy tính: **WASD** hoặc phím mũi tên đi, **Shift** chạy, **kéo chuột** xoay camera, **E** tương tác.
 - **Né câu hỏi:** Dì Út (đi lang thang gần cổng) bắn bong bóng "?" về chỗ bạn đang đứng. Bước vuông góc với đường bay thì né được; đứng yên hoặc chạy dọc theo đường bay thì trúng và bị kéo vào hội thoại. Né đủ 3 câu hoàn thành nhiệm vụ.
-- **Nhiệm vụ:** nút "Nhiệm vụ n/4" góc trái, bấm để xem danh sách; hoàn thành thì được thưởng chỉ số.
+- **Né ống kính (sân nhà):** Bà Tám đi theo và giơ điện thoại quay bạn. Đứng yên trong nón sáng khoảng 2 giây thì bị quay, mất Hòa khí; đi ngang hoặc chạy vòng ra khỏi nón thì thoát.
+- **Mâm cơm:** lấy đĩa món ở bàn bếp (tên món theo vùng), rồi lại gần người đang ngồi bấm "Gắp mời". Họ hàng ngồi quanh mâm, bạn đi quanh ngoài; nói chuyện với Duy Đèn Cầy, Ông, Bin và Bé Dê (chiến thuật cuối).
+- **Phố Tết:** mua quà ở sạp, băng qua đường (xe máy chạy liên tục: nhìn xe rồi hãy bước, bị quẹt thì mất Sức), lên xe buýt ở bến bên kia.
+- **Trạm dừng chân:** mua bánh mì ở quầy, nói chuyện với anh họ bán xe, né mã QR "giữ chỗ" của Chú Ba Triết Lý (quét mã thì mất tiền), rồi lên xe khách.
+- **Nhiệm vụ:** nút "Nhiệm vụ n/m" góc trái, bấm để xem danh sách; hoàn thành thì được thưởng chỉ số. Xong các nhiệm vụ bắt buộc của chặng thì hiện thẻ "Hoàn thành chặng".
 - Lại gần Cô Hai, Bác Cả, Bà Tám (ngồi quanh bàn trà), chó Vàng hoặc bé Bin (chạy theo bạn) thì hiện nút "[E] ..."; bấm để nói chuyện hoặc vuốt ve. `?persona=` đổi câu hỏi theo vai.
 - Điện thoại: joystick bên trái, kéo ở bất cứ đâu để xoay camera, nút "Tương tác" bên phải (thêm `&touch` vào URL để thấy joystick trên máy tính).
 
@@ -64,7 +68,7 @@ src/game/roamWorld.ts      dựng vật cản/vị trí NPC (thuần); roamDemo.
 src/game/bubbles.ts        mô phỏng bong bóng câu hỏi (bắn, bay, trúng, né), talkMerge.ts: áp lựa chọn lên state mới nhất
 src/engine/quests.ts       nhiệm vụ dựa trên cờ; bản đồ/NPC/nhiệm vụ nằm trong v1.json mục "maps"
 src/scene3d/walk.ts        vùng đi lại và vật cản của từng cảnh (khớp hình học trong sets.tsx/props.tsx)
-src/content/v1.json        nội dung thật (đang có chặng Ra bến, Đường về (đến làng), Bước vào nhà, Mâm cơm)
+src/content/v1.json        nội dung thật: kể chuyện (4 chặng) và bản đồ đi lại pho-tet, tram-dung, san-nha, mam-com + hành trình `journey`
 src/scene3d/registry.ts    danh mục bộ cảnh: vị trí đứng, góc máy (dữ liệu thuần)
 src/scene3d/sets.tsx       dựng 3 bộ cảnh: phố Tết, sân nhà ở quê, nhà trên + mâm cỗ; biến thể theo miền
 src/scene3d/props.tsx      đạo cụ Việt dựng bằng code: xe máy chở đào/mai/quất, nhà ống, mâm cỗ 3 miền, bàn thờ...

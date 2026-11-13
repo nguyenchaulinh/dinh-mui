@@ -18,6 +18,10 @@ import {
   type Menu,
 } from './props';
 import { SETS, styleOfRegion } from './registry';
+import type { Traffic as TrafficCfg } from '../engine/types';
+import { BusStop, GiftStall, KitchenCounter } from './props-extra';
+import { TramDung } from './set-tram-dung';
+import { phoPots } from './walk-pho-tet';
 
 /** Vùng → phong cách miền. Chưa biết vùng thì mặc định miền Bắc (logic dùng chung ở registry.ts). */
 export function styleOf(regionId: string): Menu {
@@ -38,6 +42,7 @@ export interface Env {
 export function envOf(setId: string, regionId: string): Env {
   const s = styleOf(regionId);
   if (setId === 'nha-tren') return { sky: '#3b1d12', fog: [12, 30], sun: 1.1, ambient: 0.75, sunColor: '#ffd8a8' };
+  if (setId === 'tram-dung') return { sky: '#cfe3f2', fog: [20, 70], sun: 1.5, ambient: 0.75, sunColor: '#fff1c1' };
   if (setId === 'san-nha') {
     // chập tối, ánh hoàng hôn
     return { sky: s === 'nam' ? '#f4a261' : '#c9846b', fog: [14, 40], sun: 1.2, ambient: 0.6, sunColor: '#ffc78a' };
@@ -58,7 +63,7 @@ function Ground({ c, size = 80 }: Readonly<{ c: string; size?: number }>) {
 
 // ---------- Phố ngày 28 tháng Chạp ----------
 
-function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
+function PhoTet({ regionId, traffic }: Readonly<{ regionId: string; traffic?: TrafficCfg }>) {
   const s = styleOf(regionId);
   const blossom = BLOSSOM[s];
   const houses = useMemo(() => {
@@ -79,15 +84,18 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
     }
     return out;
   }, [s]);
+  // Cấu hình xe máy lấy từ bản đồ khi chơi (cùng nguồn với kiểm tra va chạm); cảnh xem thì dùng mặc định.
   const lanes = useMemo(
-    () => [
-      { z: -0.9, dir: 1 as const, speed: 2.6 },
-      { z: -0.2, dir: 1 as const, speed: 2.1 },
-      { z: 0.6, dir: -1 as const, speed: 2.4 },
-      { z: 1.3, dir: -1 as const, speed: 1.8 },
-    ],
-    [],
+    () =>
+      traffic?.lanes ?? [
+        { z: -0.9, dir: 1 as const, speed: 2.6 },
+        { z: -0.2, dir: 1 as const, speed: 2.1 },
+        { z: 0.6, dir: -1 as const, speed: 2.4 },
+        { z: 1.3, dir: -1 as const, speed: 1.8 },
+      ],
+    [traffic],
   );
+  const pots = useMemo(() => phoPots(), []);
   const cargo = useMemo<Blossom[]>(() => [blossom, 'quat'], [blossom]);
 
   return (
@@ -115,9 +123,11 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
         <TubeHouse key={i} position={[h.x, 0, -5.8]} w={h.w} h={h.h} c={h.c} sign={h.sign} flag={h.flag} />
       ))}
       {/* cây hoa bày bán trên vỉa hè, đèn lồng */}
-      {Array.from({ length: 9 }, (_, i) => (
-        <BlossomTree key={i} kind={i % 3 === 2 ? 'quat' : blossom} position={[-9 + i * 2.2, 0.16, -3.2]} scale={0.9} />
+      {pots.map((p, i) => (
+        <BlossomTree key={i} kind={p.kind === 'quat' ? 'quat' : blossom} position={[p.x, 0.16, p.z]} scale={0.9} />
       ))}
+      <GiftStall position={[-3.0, 0, -3.4]} />
+      <BusStop position={[7.0, 0.16, 3.95]} />
       {Array.from({ length: 8 }, (_, i) => (
         <Lantern key={i} position={[-10 + i * 2.8, 3.3, -3.9]} />
       ))}
@@ -137,7 +147,7 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
         </mesh>
       </group>
       {s === 'nam' && <CoconutTree position={[-12, 0, 4.5]} />}
-      <Traffic lanes={lanes} count={22} cargoMix={cargo} />
+      <Traffic lanes={lanes} count={traffic?.count ?? 22} length={traffic?.length ?? 40} cargoMix={cargo} />
     </group>
   );
 }
@@ -231,6 +241,7 @@ function NhaTren({ regionId }: Readonly<{ regionId: string }>) {
         </mesh>
       ))}
       <Altar position={[0, 0, -3.8]} />
+      <KitchenCounter position={[-5.3, 0, 2.0]} menu={s} />
       <BlossomTree kind={BLOSSOM[s]} position={[-4.4, 0, -3.4]} scale={1.5} />
       <BlossomTree kind="quat" position={[4.4, 0, -3.4]} scale={1.3} />
       <Lantern position={[0, 3.6, -1]} />
@@ -253,10 +264,16 @@ function NhaTren({ regionId }: Readonly<{ regionId: string }>) {
   );
 }
 
-export function SetView({ setId, regionId }: Readonly<{ setId: string; regionId: string }>) {
+export function SetView({
+  setId,
+  regionId,
+  traffic,
+}: Readonly<{ setId: string; regionId: string; traffic?: TrafficCfg }>) {
   switch (setId) {
+    case 'tram-dung':
+      return <TramDung regionId={regionId} />;
     case 'pho-tet':
-      return <PhoTet regionId={regionId} />;
+      return <PhoTet regionId={regionId} traffic={traffic} />;
     case 'san-nha':
       return <SanNha regionId={regionId} />;
     case 'nha-tren':

@@ -188,7 +188,7 @@ describe('styleOfRegion', () => {
 
 describe('walkAreaFor', () => {
   it('null cho bộ cảnh chưa hỗ trợ đi lại', () => {
-    for (const id of ['khong-co', 'pho-tet', 'nha-tren', '', 'constructor', '__proto__']) {
+    for (const id of ['khong-co', 'bo-canh-la', '', 'constructor', '__proto__']) {
       expect(walkAreaFor(id, 'bac')).toBeNull();
     }
   });
