@@ -48,6 +48,7 @@ Thiết kế: [docs/07-thiet-ke-ui-ux.md](docs/07-thiet-ke-ui-ux.md) (giao diệ
 Giao diện trong game:
 - **Lời thoại là bong bóng trên đầu người nói.** Câu bạn vừa chọn và lời NPC đáp hiện cùng lúc, bung ra hai phía ngược nhau nên không đè nhau.
 - **Ba chỉ số có mức:** nguy hiểm (≤ 25, đỏ, rung giật + quầng đỏ), trung bình (26–59, vàng cam), tự tin (≥ 60, xanh lá), kèm số điểm còn lại. Tắt rung khi hệ điều hành bật giảm chuyển động.
+- **Mũi tên chỉ hướng** ở mép màn hình tới NPC / đồ vật của việc đang cần làm khi nó ra khỏi khung nhìn (kèm khoảng cách). Màn dọc của điện thoại có góc nhìn rộng hơn màn ngang.
 - **Chó Vàng** là Pomeranian trắng chân ngắn (model Shiba CC0 chỉnh dáng lúc chạy, xem `POM_BONES` trong [src/scene3d/rigging.ts](src/scene3d/rigging.ts)).
 
 **Xem toàn bộ nhân vật:** `http://localhost:5173/gallery.html`.
@@ -76,6 +77,8 @@ src/game/npc.ts, interact.ts   hành vi NPC (đứng, lang thang, đuổi theo) 
 src/game/roamWorld.ts      dựng vật cản/vị trí NPC (thuần); roamDemo.ts: tra cứu bản đồ trong nội dung; TalkDock: lựa chọn/feed/cuộc gọi ở đáy
 src/game/ambush.ts         luật "bấm NÉ đúng lúc" (báo trước, vòng thời gian, né / bị bắt); DodgeQte vẽ vòng + nút NÉ
 src/game/action.ts         hoạt cảnh tương tác (thuần, có test): ngồi vào máy tính, với tay nhặt đồ, đi ra cửa; khoá điều khiển trong lúc chạy
+src/game/guide.ts          mũi tên chỉ hướng tới mục tiêu ngoài khung nhìn (thuần, có test); GuideArrows.tsx vẽ
+src/game/camera.ts         camera bám + camera hội thoại (thử nhiều góc, kiểm tra người chơi / NPC trong khung), fovForAspect
 src/game/speech.ts         bong bóng thoại: tối đa một bong bóng mỗi người, chọn phía bung ra để hai bong bóng không đè nhau
 src/labels.ts              nhãn hiển thị + statLevel (mức nguy hiểm / trung bình / tự tin của chỉ số)
 src/scene3d/Rigged.tsx     nhân vật có xương (model CC0 trong public/models): đổi màu, chuẩn chiều cao, hoạt ảnh, tư thế ngồi, chỉnh dáng Pomeranian; rigging.ts: luật thuần

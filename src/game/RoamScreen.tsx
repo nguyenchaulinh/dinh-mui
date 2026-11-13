@@ -7,6 +7,7 @@ import {
   dueEvent,
   eventFlag,
   forPersona,
+  goalTargetKeys,
   hitFlag,
   mapGoalReached,
   objectDoneFlag,
@@ -30,7 +31,8 @@ import { InputController } from './input';
 import { RoamControls } from './RoamControls';
 import { buildNpcParams, getRoamMap } from './roamDemo';
 import type { ActionStep, PlayerAction } from './action';
-import type { RoamNpc, RoamObject } from './RoamView';
+import { GuideArrows } from './GuideArrows';
+import type { GuideItem, RoamNpc, RoamObject } from './RoamView';
 import { speechBubbles } from './speech';
 import { TalkDock, type Talk } from './TalkDock';
 
@@ -40,6 +42,7 @@ const RoamView = lazy(() => import('./RoamView'));
 const FINISH_DELAY_MS = 1800;
 
 const OBJ = 'obj:';
+const NO_GUIDE_KEYS: readonly string[] = [];
 const EV = 'ev:';
 
 interface Toast {
@@ -222,6 +225,13 @@ export function RoamScreen({
   // Chặng xong: nhiệm vụ đích hoàn thành, hoặc game đã kết thúc (engine đặt `endingId`).
   // Chờ hội thoại đang mở đóng lại, rồi một nhịp ngắn để đọc thông báo, mới chuyển màn.
   const ended = game.endingId !== null || (map !== null && mapGoalReached(map, game));
+
+  // Mũi tên chỉ hướng tới việc đang cần làm khi nó ra khỏi khung nhìn. Tắt lúc hội thoại / hoạt cảnh / NÉ / hết chặng.
+  const guideKeys = useMemo(
+    () => (map && active && talk === null && action === null && qte === null && !ended ? goalTargetKeys(map, game, OBJ) : NO_GUIDE_KEYS),
+    [map, game, active, talk, action, qte, ended],
+  );
+  const [guides, setGuides] = useState<GuideItem[]>([]);
   useEffect(() => {
     if (!ended || talk !== null) return;
     const t = window.setTimeout(() => {
@@ -529,6 +539,8 @@ export function RoamScreen({
               onDodge={onDodge}
               onHit={onHit}
               onFps={DEBUG ? setFps : undefined}
+              guideKeys={guideKeys}
+              onGuides={setGuides}
             />
           </Suspense>
         ) : (
@@ -539,6 +551,7 @@ export function RoamScreen({
 
       {showHud && (
         <>
+          {guideKeys.length > 0 && <GuideArrows items={guides} />}
           {!talk && <RoamControls controller={controller} actionLabel={actionLabel} actionHot={qte !== null || prompt !== null} />}
 
           <div className="hud-stack">

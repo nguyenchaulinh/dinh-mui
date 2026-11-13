@@ -2,6 +2,15 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface State {
   failed: boolean;
+  /** Chi tiết lỗi, chỉ lấy khi chạy dev server để thử trên điện thoại (không có console). Bản build luôn để trống. */
+  detail: string;
+}
+
+/** Tên + thông báo + 4 dòng stack đầu. Chỉ gọi khi `import.meta.env.DEV`. */
+function describe(error: unknown): string {
+  if (!(error instanceof Error)) return String(error).slice(0, 300);
+  const stack = (error.stack ?? '').split('\n').slice(1, 5).map((l) => l.trim());
+  return [`${error.name}: ${error.message}`, ...stack].join('\n').slice(0, 900);
 }
 
 /**
@@ -9,10 +18,10 @@ interface State {
  * thay vì trang trắng. Không hiện chi tiết lỗi ra màn hình (không lộ đường dẫn, tên file); chi tiết chỉ ở console.
  */
 export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
-  state: State = { failed: false };
+  state: State = { failed: false, detail: '' };
 
-  static getDerivedStateFromError(): State {
-    return { failed: true };
+  static getDerivedStateFromError(error: unknown): State {
+    return { failed: true, detail: import.meta.env.DEV ? describe(error) : '' };
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo): void {
@@ -29,6 +38,11 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
           <p className="help">
             Nếu vẫn lỗi, có thể máy hoặc trình duyệt chưa hỗ trợ đồ họa 3D (WebGL). Thử trình duyệt khác hoặc cập nhật trình duyệt.
           </p>
+          {this.state.detail && (
+            <pre className="help" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'left', fontSize: 11 }}>
+              {this.state.detail}
+            </pre>
+          )}
           <button className="btn btn-block" onClick={() => window.location.reload()}>
             Tải lại trang
           </button>

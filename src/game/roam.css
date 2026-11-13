@@ -121,3 +121,21 @@
   .roam-knob { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
   .roam-action { width: 66px; height: 66px; }
 }
+
+/* ---------- Mũi tên chỉ hướng tới việc đang cần làm (guide.ts) ---------- */
+.guides { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
+.guide {
+  position: absolute; translate: -50% -50%;
+  display: grid; justify-items: center; gap: 1px;
+  color: var(--gold);
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / .55));
+  transition: left .12s linear, top .12s linear;
+}
+.guide-chev { display: block; line-height: 0; animation: guide-pulse 1.1s ease-in-out infinite; }
+.guide-dist {
+  padding: 1px 7px; border-radius: 999px;
+  background: var(--glass); border: 1px solid rgb(255 246 229 / .14);
+  color: var(--cream); font-size: var(--fs-xs); font-weight: 700; line-height: 1.4;
+}
+@keyframes guide-pulse { 0%, 100% { scale: 1; } 50% { scale: 1.18; } }
+@media (prefers-reduced-motion: reduce) { .guide-chev { animation: none; } .guide { transition: none; } }
