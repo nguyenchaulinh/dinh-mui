@@ -19,6 +19,7 @@ import {
 } from './props';
 import { SETS, styleOfRegion } from './registry';
 import { GiftStall, BusStop } from './props-street';
+import { TramDung } from './set-tram-dung';
 import { CUOI_NAM, PHO_TET, phoPots } from './walk';
 
 /** Vùng → phong cách miền. Chưa biết vùng thì mặc định miền Bắc (logic dùng chung ở registry.ts). */
@@ -39,6 +40,7 @@ export interface Env {
 
 export function envOf(setId: string, regionId: string): Env {
   const s = styleOf(regionId);
+  if (setId === 'tram-dung') return { sky: '#cfe3f2', fog: [20, 70], sun: 1.5, ambient: 0.75, sunColor: '#fff1c1' };
   if (setId === 'cuoi-nam') return { sky: '#f2c4a0', fog: [20, 48], sun: 1.0, ambient: 0.95, sunColor: '#fff1dc' };
   if (setId === 'nha-tren') return { sky: '#3b1d12', fog: [12, 30], sun: 1.1, ambient: 0.75, sunColor: '#ffd8a8' };
   if (setId === 'san-nha') {
@@ -405,6 +407,8 @@ export function SetView({ setId, regionId, variant }: Readonly<{ setId: string; 
       return <SanNha regionId={regionId} />;
     case 'nha-tren':
       return <NhaTren regionId={regionId} />;
+    case 'tram-dung':
+      return <TramDung regionId={regionId} />;
     default:
       return null;
   }
