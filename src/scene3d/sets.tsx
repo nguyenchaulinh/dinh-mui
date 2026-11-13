@@ -8,6 +8,7 @@ import {
   Feast,
   Lantern,
   Mat,
+  Motorbike,
   Stool,
   TeaTable,
   Traffic,
@@ -18,7 +19,7 @@ import {
   type Menu,
 } from './props';
 import { SETS, styleOfRegion } from './registry';
-import { GiftStall, BusStop } from './props-street';
+import { BusStop, Bunting, Crosswalk, FarShop, GiftStall, PARKED_BIKES, STREET_LAMP_XS, ShopFront, StreetLamp } from './props-street';
 import { TramDung } from './set-tram-dung';
 import { CUOI_NAM, PHO_TET, phoPots } from './walk';
 
@@ -84,6 +85,27 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
     }
     return out;
   }, [s]);
+  const farHouses = useMemo(() => {
+    const palette = ['#fde68a', '#fecaca', '#bbf7d0', '#bfdbfe', '#fed7aa', '#ddd6fe'];
+    const out: { x: number; w: number; h: number; c: string; sign: string }[] = [];
+    let x = -24;
+    for (let i = 0; x < 24; i++) {
+      const w = 2.6 + rnd(i + 70) * 1.8;
+      out.push({ x: x + w / 2, w, h: 3.4 + rnd(i + 90) * 2.8, c: palette[i % palette.length]!, sign: ['#2563eb', '#f59e0b', '#dc2626', '#16a34a'][(i + 1) % 4]! });
+      x += w + 0.05;
+    }
+    return out;
+  }, []);
+  const skyline = useMemo(
+    () =>
+      Array.from({ length: 9 }, (_, i) => ({
+        x: -32 + i * 8 + rnd(i + 110) * 3,
+        w: 4 + rnd(i + 130) * 3,
+        h: 11 + rnd(i + 150) * 9,
+        c: ['#cbd5e1', '#94a3b8', '#b6c2d3'][i % 3]!,
+      })),
+    [],
+  );
   const lanes = useMemo(
     () => [
       { z: -0.9, dir: 1 as const, speed: 2.6 },
@@ -118,6 +140,32 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
       ))}
       {houses.map((h, i) => (
         <TubeHouse key={i} position={[h.x, 0, -5.8]} w={h.w} h={h.h} c={h.c} sign={h.sign} flag={h.flag} />
+      ))}
+      {houses.map((h, i) => (
+        <ShopFront key={`d${i}`} position={[h.x, 0, -5.8]} w={h.w} h={h.h} variant={i} shop={h.sign !== undefined} />
+      ))}
+      {/* bên kia đường: dãy nhà thấp, cột đèn; phía xa: nền nhà cao tầng mờ trong sương */}
+      {farHouses.map((h, i) => (
+        <FarShop key={`f${i}`} position={[h.x, 0, 7.3]} w={h.w} h={h.h} c={h.c} sign={h.sign} />
+      ))}
+      {STREET_LAMP_XS.map((x) => (
+        <StreetLamp key={x} position={[x, PHO_TET.sidewalkTop, 2.7]} />
+      ))}
+      {skyline.map((b, i) => (
+        <mesh key={`s${i}`} position={[b.x, b.h / 2, -13]}>
+          <boxGeometry args={[b.w, b.h, 4]} />
+          <Mat c={b.c} />
+        </mesh>
+      ))}
+      {/* dây cờ Tết căng ngang đường (treo cao), vạch qua đường, xe máy đậu sát lề */}
+      {[-10, -4, 2, 8].map((x) => (
+        <Bunting key={x} x={x} y0={4.9} y1={4.6} z0={-3.9} z1={5.4} />
+      ))}
+      <Crosswalk x={-1.5} />
+      {PARKED_BIKES.map(([x, z], i) => (
+        <group key={`p${i}`} position={[x, 0, z]} rotation={[0, Math.PI / 2, 0]}>
+          <Motorbike rider={false} body={['#dc2626', '#1d4ed8', '#16a34a', '#f59e0b'][i % 4]} />
+        </group>
       ))}
       {/* cây hoa bày bán trên vỉa hè, đèn lồng */}
       {phoPots().map((p) => (
