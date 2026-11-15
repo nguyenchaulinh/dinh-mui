@@ -90,7 +90,8 @@ src/scene3d/registry.ts    danh mục bộ cảnh: vị trí đứng của NPC (
 src/scene3d/sets.tsx       dựng bộ cảnh: văn phòng / lớp học, phố Tết, sân nhà ở quê, nhà trên + mâm cỗ; biến thể theo miền và theo vai
 src/scene3d/props.tsx      đạo cụ Việt dựng bằng code: xe máy chở đào/mai/quất, nhà ống, mâm cỗ 3 miền, bàn thờ...
 src/scene3d/Prop.tsx         đặt model đồ đạc / cây cối CC0 (public/models/props) theo cỡ mét; propModels.ts: bảng hộp bao đo từ file (có test), nguồn trong public/models/CREDITS.md
-src/scene3d/textures.ts      sàn ván gỗ / gạch vẽ bằng canvas lúc chạy; smooth.ts: pháp tuyến mượt cho model nhân vật
+src/scene3d/office-decor.tsx  cảnh nền lớp học / văn phòng: dãy nhà cao tầng nhiều lớp, tường có ô cửa sổ thật (wallPieces.ts), phố ngoài cửa sổ; TextPlane.tsx + decorText.ts: chữ treo tường (băng rôn, câu đối, bảng, lịch)
+src/scene3d/textures.ts      sàn ván gỗ / gạch, tường trát, cửa cuốn, nhựa đường, mặt tiền cao tầng, chữ, bảng ghim: vẽ bằng canvas lúc chạy; smooth.ts: pháp tuyến mượt cho model nhân vật
 src/scene3d/outfit.ts        phụ kiện low-poly mô tả bằng dữ liệu (khối, toạ độ theo số đo thật của model, FIT); outfitBuild.ts dựng và gắn vào xương
 src/scene3d/props-street.tsx đạo cụ phố Tết: sạp quà, trạm xe buýt, mặt tiền cửa hàng (mái hiên, câu đối), dây cờ, vạch qua đường, dãy nhà bên kia đường
 src/scene3d/Figure.tsx     điểm vào vẽ nhân vật: dùng model có xương nếu `look.model` có, không thì dựng low-poly bằng code (Bé Dê)

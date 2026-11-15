@@ -173,8 +173,13 @@ export const CUOI_NAM = {
   wallSideX: 5.95,
   wallThick: 0.3,
   wallHeight: 3,
-  /** Mép trước của sàn (dàn cảnh hở). */
+  /** Mép trước của sàn đi lại được (dàn cảnh hở). */
   frontZ: 4.7,
+  /**
+   * Phần phòng kéo dài thêm về phía camera (m): chỉ để nhìn. Camera đứng sau chỗ xuất phát nên nếu phòng dừng ở frontZ thì
+   * đáy màn hình rơi ra ngoài mép sàn (mặt đất nâu). Tường kéo dài chặn camera (không chặn người chơi: bounds vẫn dừng ở frontZ).
+   */
+  ext: 8,
   /** Khe cửa trên tường phải, theo z. */
   door: { z0: 1.4, z1: 3.0 },
   /** Mặt bàn 1.4 x 0.75; ghế đặt sau bàn 0.55 m (phía +z). Bàn 1-2 hàng sau, bàn 3-4 hàng trước; bàn 4 là bàn của bạn. */
@@ -191,12 +196,16 @@ export const CUOI_NAM = {
   counter: { x: 5.3, z: -2.2, w: 0.9, d: 2.0 },
   /** Móc treo áo cạnh cửa. */
   coatRack: { x: 5.3, z: 0.4, r: 0.3 },
+  /** Cửa sổ trên tường trái: tâm z, bề rộng, mép dưới (sill) và mép trên (head) tính từ sàn. Hình dựng dùng đúng các số này. */
+  windows: { zs: [-2.8, -0.4, 2.0], w: 1.4, sill: 1.2, head: 2.2 },
   /** Hai tủ sách sát tường sau (rộng w dọc trục x, sâu d), và đèn đứng cạnh bảng. */
   shelves: [
     { x: -3.3, z: -4.7, w: 0.9, d: 0.5 },
     { x: -2.4, z: -4.7, w: 0.9, d: 0.5 },
   ],
   lamp: { x: 1.3, z: -4.6, r: 0.15 },
+  /** Tủ TV sát tường phải phía sau quầy (dài w theo trục z, sâu d theo trục x), TV đặt trên mặt tủ, quay về phía -x. */
+  tv: { x: 5.55, z: -4.1, w: 1.6, d: 0.5 },
   /** Chậu quất góc sau trái, chậu đào/mai góc trước trái. */
   plants: [
     { x: -5.3, z: -4.3, r: 0.5 },
@@ -237,6 +246,10 @@ function buildCuoiNam(): WalkArea {
     circle('moc-ao', L.coatRack.x, L.coatRack.z, L.coatRack.r, false),
     ...L.shelves.map((s, i) => box(`tu-sach-${i + 1}`, s.x, s.z, s.w / 2, s.d / 2, false)),
     circle('den-dung', L.lamp.x, L.lamp.z, L.lamp.r, false),
+    box('tu-tv', L.tv.x, L.tv.z, L.tv.d / 2, L.tv.w / 2, false),
+    // Tường kéo dài về phía camera (ngoài bounds): chỉ để camera không chui ra ngoài tường.
+    box('tuong-trai-xa', -L.wallSideX - half, L.frontZ + half + (L.ext - half) / 2, half, (L.ext - half) / 2, true),
+    box('tuong-phai-xa', L.wallSideX + half, L.frontZ + half + (L.ext - half) / 2, half, (L.ext - half) / 2, true),
     ...L.plants.map((p, i) => circle(`chau-${i + 1}`, p.x, p.z, p.r, false)),
   ];
   const bounds: Bounds = { minX: -L.wallSideX, maxX: L.wallSideX, minZ: L.wallBackZ, maxZ: L.frontZ };
