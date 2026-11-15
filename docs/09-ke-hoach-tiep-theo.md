@@ -35,6 +35,7 @@ Thứ tự đề xuất: A trước, sau đó B → C → D theo mạch truyện
 2. Kết thúc E1 còn cần kiểm tra khả năng đạt được bằng mô phỏng; nếu khó đạt thì giữ là kết thúc hiếm hay nới điều kiện?
 3. Nguồn nhạc và âm thanh: tự làm hay dùng bộ CC0?
 4. Mục tiêu thiết bị tối thiểu cho giai đoạn G.
+6. Hai tên nhân vật "Anh Long nghiện" và "Michael Lọ" chủ dự án đề xuất thêm: cần cho biết họ là ai trước khi làm, xem [11](11-review-do-hoa-va-ke-hoach.md) mục 5 câu 0.
 5. `docs/03-cameo.md` đã công khai trên GitHub và ghi họ tên thật gắn với tên nhân vật nhại (xem [10](10-ban-giao-tien-do.md) mục 5): có gỡ và viết lại lịch sử không.
 
 ## 3b. Chi tiết hình ảnh (13/11, nhánh `feature/model-cc0`)

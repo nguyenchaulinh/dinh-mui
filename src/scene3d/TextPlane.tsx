@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { DoubleSide, FrontSide } from 'three';
 import { labelTexture } from './textures';
 import type { DecorLine } from './decorText';
 
@@ -13,12 +14,13 @@ export function TextPlane({
   bg = null,
   position,
   rotation,
-}: Readonly<{ w: number; h: number; lines: readonly DecorLine[]; bg?: string | null; position: [number, number, number]; rotation?: [number, number, number] }>) {
+  double = false,
+}: Readonly<{ w: number; h: number; lines: readonly DecorLine[]; bg?: string | null; position: [number, number, number]; rotation?: [number, number, number]; /** Thấy được từ cả hai mặt (biển vuông góc phố). */ double?: boolean }>) {
   const map = useMemo(() => labelTexture(lines, w, h, bg), [lines, w, h, bg]);
   return (
     <mesh position={position} rotation={rotation}>
       <planeGeometry args={[w, h]} />
-      <meshBasicMaterial map={map} transparent={bg === null} toneMapped={false} />
+      <meshBasicMaterial map={map} transparent={bg === null} toneMapped={false} side={double ? DoubleSide : FrontSide} />
     </mesh>
   );
 }
