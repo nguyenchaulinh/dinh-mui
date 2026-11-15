@@ -298,7 +298,7 @@ function Player({
     heading: area.spawn.rotY,
     speed: 0,
   });
-  const cam = useRef<FollowCam>({ ...DEFAULT_CAM, yaw: yawBehind(area.spawn.rotY) });
+  const cam = useRef<FollowCam>({ ...DEFAULT_CAM, ...area.camera, yaw: yawBehind(area.spawn.rotY) });
   const pose = useRef<CameraPose | null>(null);
   type PAnim = 'idle' | 'walk' | 'run' | 'type' | 'reach';
   const walkingRef = useRef<PAnim>('idle');
