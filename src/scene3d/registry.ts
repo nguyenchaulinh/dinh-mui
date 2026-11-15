@@ -44,7 +44,7 @@ export const SETS: Record<string, SetDef> = {
   },
   'pho-tet': {
     id: 'pho-tet',
-    label: 'Đường phố ngày 28 tháng Chạp',
+    label: 'Phố Hàng Mã, Hà Nội, ngày 28 tháng Chạp',
     spots: {
       'via-he': { pos: [0, 0, 3.2], rotY: 0.3 },
       'via-he-2': { pos: [1.1, 0, 3.4], rotY: -0.4 },
@@ -57,6 +57,10 @@ export const SETS: Record<string, SetDef> = {
       'xe-om': { pos: [5.6, 0, -2.4], rotY: Math.PI },
       ben: { pos: [10, 0, -2.2], rotY: 0 },
       'len-xe': { pos: [12.2, 0, -2.4], rotY: Math.PI / 2 },
+      // Nhân vật phố Hàng Mã: trà đá, bà gánh đào, bác tổ trưởng (đều trên vỉa hè bắc, cách chậu hoa và trạm).
+      'tra-da': { pos: [-7.6, 0, -2.4], rotY: 0 },
+      'hoa-dao': { pos: [0.9, 0, -2.4], rotY: 0 },
+      'to-truong': { pos: [8.0, 0, -2.4], rotY: 0 },
     },
   },
   'cuoi-nam': {

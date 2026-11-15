@@ -77,7 +77,7 @@ Mỗi bước kết thúc bằng một bản chạy được. Ở các **điểm
 | 4c | **Chặng "Cuối năm ở phố" (văn phòng / lớp học)** + giao diện mới theo [07](07-thiet-ke-ui-ux.md): dùng đồ vật, nhặt đồ, cửa ra có điều kiện, sự kiện (cuộc gọi của mẹ), feed săn vé, NPC theo vai, kết thúc E4. Chi tiết ở [08](08-thiet-ke-choi-truoc-que.md) | | | xong 12/11 |
 | 4d | **Nâng cấp theo Một Ngày Làm Chó** ([07](07-thiet-ke-ui-ux.md)): nhân vật model CC0 có xương (Quaternius) đổi màu theo nhân vật, chó Vàng thành Pomeranian; giao diện kính tối gọn, bong bóng thoại trên đầu, việc cần làm hiện sẵn; né câu hỏi đổi sang bấm NÉ đúng lúc | | **Có**: xem lại trên điện thoại | xong code 12/11 |
 | 4e | **Hoạt cảnh thật + giao diện chat:** ngồi vào máy tính đặt vé, với tay nhặt đồ, đi ra cửa; bong bóng của hai người hiện cùng lúc ở hai phía; phím A–D chọn đáp án; chỉ số có mức nguy hiểm / trung bình / tự tin; chó Vàng Pomeranian trắng chân ngắn | | | xong code 12/11, chờ xem bằng mắt |
-| 5 | **Chặng 3 + 4:** đi phố, mua quà, băng qua đường, xe ôm; lái xe máy quốc lộ, trạm dừng chân | 4 ngày | | chưa |
+| 5 | **Chặng 3 + 4:** đi phố, mua quà, băng qua đường, xe ôm; lái xe máy quốc lộ, trạm dừng chân | 4 ngày | | **một phần**: ra bến (`ra-ben`) và trạm dừng chân (`tram-dung`) xong 13/11; còn băng qua dòng xe, lái xe máy |
 | 6 | **Chặng 6 (mâm cơm):** đi quanh nhà trên, gắp mời, boss "cả mâm hỏi cùng lúc" | 3 ngày | | chưa |
 | 7 | **Chặng 1 + 2:** văn phòng/KTX đi lại, điện thoại săn vé (**phần chặng 1 đã xong ở bước 4c**); tiệc tất niên đi giữa các bàn | 3 ngày | | một phần |
 | 8 | **Chặng 7, 8, 9:** giao thừa, xông đất và nhảy cùng Dương Gió Mùa, đi lì xì từng đứa, mẹ gói đồ, twist | 4 ngày | | chưa |

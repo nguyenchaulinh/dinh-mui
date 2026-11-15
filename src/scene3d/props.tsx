@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
 import type { Group } from 'three';
+import { TexMat } from './TexMat';
 
 /** Đạo cụ low-poly dựng bằng code. Toạ độ y hướng lên, đơn vị ~ mét. */
 
@@ -32,6 +33,21 @@ const BLOSSOM_COLOR: Record<Blossom, string> = { dao: '#f472b6', mai: '#facc15',
 
 /** Cụm hoa/quả: đào hồng, mai vàng, quất cam trên tán xanh. */
 export function BlossomTree({ kind, scale = 1, position }: Readonly<{ kind: Blossom; scale?: number; position?: V3 }>) {
+  const branches = useMemo(
+    () => Array.from({ length: 5 }, (_, i) => ({ yaw: (i / 5) * Math.PI * 2 + rnd(i + 5), tilt: 0.55 + rnd(i + 17) * 0.45, len: 0.32 + rnd(i + 31) * 0.2 })),
+    [],
+  );
+  // Quả quất rải trên mặt quả cầu tán (bán kính 0.42, tâm y = 1.0), đẩy ra 0.02 để nằm trên lá.
+  const fruits = useMemo(
+    () =>
+      Array.from({ length: 18 }, (_, i) => {
+        const th = Math.acos(1 - 2 * rnd(i + 200)) * 0.85;
+        const ph = rnd(i + 260) * Math.PI * 2;
+        const r = 0.44;
+        return [Math.sin(th) * Math.cos(ph) * r, 1.0 + Math.cos(th) * r, Math.sin(th) * Math.sin(ph) * r] as V3;
+      }),
+    [],
+  );
   const dots = useMemo(
     () =>
       Array.from({ length: kind === 'quat' ? 14 : 22 }, (_, i) => {
@@ -57,6 +73,48 @@ export function BlossomTree({ kind, scale = 1, position }: Readonly<{ kind: Blos
           <Mat c="#15803d" />
         </mesh>
       )}
+      {/* chi tiết chậu: đất, viền miệng chậu, ruy băng đỏ */}
+      <mesh position={[0, 0.235, 0]}>
+        <cylinderGeometry args={[0.17, 0.17, 0.02, 8]} />
+        <Mat c="#3b2a1d" />
+      </mesh>
+      <mesh position={[0, 0.235, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.178, 0.02, 4, 10]} />
+        <Mat c="#7c2d12" />
+      </mesh>
+      <mesh position={[0, 0.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.165, 0.014, 4, 10]} />
+        <Mat c="#dc2626" e={0.15} />
+      </mesh>
+      {/* đào / mai: các cành mảnh toả ra từ thân để hoa bám vào, thêm lộc non */}
+      {kind !== 'quat' &&
+        branches.map((b, i) => (
+          <group key={i} position={[0, 0.62, 0]} rotation={[0, b.yaw, b.tilt]}>
+            <mesh position={[0, b.len / 2, 0]}>
+              <cylinderGeometry args={[0.008, 0.016, b.len, 4]} />
+              <Mat c="#4a2e1a" />
+            </mesh>
+            <mesh position={[0.012, b.len, 0]} scale={[1, 0.6, 1]}>
+              <icosahedronGeometry args={[0.03, 0]} />
+              <Mat c="#4d9a3d" />
+            </mesh>
+          </group>
+        ))}
+      {/* quất: quả cam bám quanh tán, mảng lá sáng hơn phá hình cầu */}
+      {kind === 'quat' &&
+        fruits.map((p, i) => (
+          <mesh key={`f${i}`} position={p}>
+            <icosahedronGeometry args={[0.045, 0]} />
+            <Mat c="#f97316" e={0.2} />
+          </mesh>
+        ))}
+      {kind === 'quat' &&
+        [[0.26, 1.12, 0.1], [-0.2, 0.88, 0.2], [0.05, 1.28, -0.18], [-0.22, 1.12, -0.18]].map((p, i) => (
+          <mesh key={`l${i}`} position={p as V3}>
+            <icosahedronGeometry args={[0.17, 0]} />
+            <Mat c={i % 2 ? '#2f9e44' : '#22863a'} />
+          </mesh>
+        ))}
       {dots.map((p, i) => (
         <mesh key={i} position={p}>
           <icosahedronGeometry args={[kind === 'quat' ? 0.06 : 0.055, 0]} />
@@ -74,7 +132,8 @@ export function Motorbike({
   shirt = '#1d4ed8',
   helmet = '#f8fafc',
   cargo,
-}: Readonly<{ body?: string; shirt?: string; helmet?: string; cargo?: Blossom | 'box' }>) {
+  rider = true,
+}: Readonly<{ body?: string; shirt?: string; helmet?: string; cargo?: Blossom | 'box'; /** false: xe đậu, không có người lái. */ rider?: boolean }>) {
   return (
     <group>
       {[-0.45, 0.45].map((z) => (
@@ -95,15 +154,53 @@ export function Motorbike({
         <cylinderGeometry args={[0.02, 0.02, 0.5, 4]} />
         <Mat c="#9ca3af" />
       </mesh>
+      {/* chắn bùn trước, đèn pha, đèn hậu, ống xả */}
+      <mesh position={[0, 0.36, 0.5]}>
+        <boxGeometry args={[0.13, 0.04, 0.3]} />
+        <Mat c={body} />
+      </mesh>
+      <mesh position={[0, 0.66, 0.5]}>
+        <sphereGeometry args={[0.065, 6, 4]} />
+        <Mat c="#fde68a" e={0.9} />
+      </mesh>
+      <mesh position={[0, 0.5, -0.47]}>
+        <boxGeometry args={[0.1, 0.05, 0.03]} />
+        <Mat c="#ef4444" e={0.7} />
+      </mesh>
+      <mesh position={[0.13, 0.22, -0.28]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.03, 0.035, 0.4, 5]} />
+        <Mat c="#6b7280" />
+      </mesh>
       {/* người lái */}
-      <mesh position={[0, 0.9, -0.05]}>
-        <cylinderGeometry args={[0.15, 0.19, 0.5, 6]} />
-        <Mat c={shirt} />
-      </mesh>
-      <mesh position={[0, 1.28, -0.02]}>
-        <icosahedronGeometry args={[0.2, 1]} />
-        <Mat c={helmet} />
-      </mesh>
+      {rider && (
+        <>
+          <mesh position={[0, 0.9, -0.05]}>
+            <cylinderGeometry args={[0.15, 0.19, 0.5, 6]} />
+            <Mat c={shirt} />
+          </mesh>
+          <mesh position={[0, 1.28, -0.02]}>
+            <icosahedronGeometry args={[0.2, 1]} />
+            <Mat c={helmet} />
+          </mesh>
+          {/* kính mũ, chân đặt lên bệ để chân, tay nắm ghi đông */}
+          <mesh position={[0, 1.29, 0.17]}>
+            <boxGeometry args={[0.2, 0.07, 0.05]} />
+            <Mat c="#1e293b" />
+          </mesh>
+          {[-1, 1].map((s) => (
+            <group key={s}>
+              <mesh position={[s * 0.11, 0.62, 0.06]} rotation={[-0.35, 0, 0]}>
+                <boxGeometry args={[0.09, 0.42, 0.12]} />
+                <Mat c="#1f2937" />
+              </mesh>
+              <mesh position={[s * 0.19, 0.98, 0.22]} rotation={[-1.05, 0, s * -0.12]}>
+                <boxGeometry args={[0.07, 0.34, 0.07]} />
+                <Mat c={shirt} />
+              </mesh>
+            </group>
+          ))}
+        </>
+      )}
       {cargo === 'box' && (
         <group position={[0, 0.85, -0.55]}>
           {[0, 1, 2].map((i) => (
@@ -188,10 +285,15 @@ export function TubeHouse({
     <group position={position}>
       <mesh position={[0, h / 2, 0]}>
         <boxGeometry args={[w, h, 4]} />
-        <Mat c={c} />
+        <TexMat kind="plaster" base={c} rx={Math.max(1, Math.round(w / 2))} ry={Math.max(1, Math.round(h / 2))} />
       </mesh>
       {Array.from({ length: floors - 1 }, (_, f) => (
         <group key={f} position={[0, 1.6 * (f + 1) + 0.6, 2.01]}>
+          {/* khung cửa sổ: tấm trắng nhô ra quanh ô kính */}
+          <mesh position={[0, 0, -0.006]}>
+            <boxGeometry args={[w * 0.55 + 0.1, 0.9, 0.02]} />
+            <Mat c="#f1f5f9" />
+          </mesh>
           <mesh>
             <planeGeometry args={[w * 0.55, 0.8]} />
             <Mat c="#1e293b" />
@@ -205,7 +307,7 @@ export function TubeHouse({
       {/* tầng trệt: cửa cuốn + biển hiệu */}
       <mesh position={[0, 0.8, 2.01]}>
         <planeGeometry args={[w * 0.8, 1.5]} />
-        <Mat c="#9ca3af" />
+        <TexMat kind="shutter" base="#9ca3af" rx={Math.max(1, Math.round(w * 0.8))} ry={1} />
       </mesh>
       {sign && (
         <mesh position={[0, 1.75, 2.08]}>
