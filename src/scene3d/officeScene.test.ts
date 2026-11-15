@@ -3,6 +3,7 @@ import { ALL_DECOR } from './decorText';
 import { normalizeOpenings, wallPiers } from './wallPieces';
 import { SETS } from './registry';
 import setsSrc from './sets.tsx?raw';
+import roomSrc from './roomShapes.ts?raw';
 import { CUOI_NAM, walkAreaFor } from './walk';
 import { isBlocked } from '../game/collision';
 import { PLAYER_RADIUS } from '../game/movement';
@@ -85,7 +86,7 @@ describe('chữ trên đồ họa tường', () => {
 
 describe('CuoiNam dùng nguồn bố cục chung', () => {
   it('không còn mặt đất nâu cũ và dùng L.ext, L.windows trong hình dựng', () => {
-    const room = setsSrc.slice(setsSrc.indexOf('function CuoiNam'), setsSrc.indexOf('function NhaTren'));
+    const room = setsSrc.slice(setsSrc.indexOf('function CuoiNam'), setsSrc.indexOf('function NhaTren')) + roomSrc;
     expect(room).not.toContain('#6b5b4f');
     expect(room).toContain('L.ext');
     expect(room).toContain('L.windows');
@@ -131,7 +132,7 @@ describe('đồ treo tường sau không đè nhau', () => {
     expect(b <= x0 || a >= x1).toBe(true);
   });
   it('sets.tsx dùng đúng các số trong CUOI_NAM.wall (không tự chép)', () => {
-    const room = setsSrc.slice(setsSrc.indexOf('function CuoiNam'), setsSrc.indexOf('function NhaTren'));
+    const room = setsSrc.slice(setsSrc.indexOf('function CuoiNam'), setsSrc.indexOf('function NhaTren')) + roomSrc;
     for (const k of ['L.wall.coupletL', 'L.wall.coupletR', 'L.wall.plaque', 'L.wall.clock', 'L.wall.calendar', 'L.wall.cork']) expect(room, k).toContain(k);
   });
 });
