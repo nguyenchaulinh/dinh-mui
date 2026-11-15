@@ -37,9 +37,9 @@ Mọi hành động sinh cờ riêng của bản đồ (`talked:<bản đồ>:<a
 
 | # | Chặng | Bản đồ | Trạng thái |
 |---|---|---|---|
-| 1 | **Cuối năm ở phố** (gộp "Săn vé" + "Tất niên" của kịch bản) | Văn phòng (mới đi làm, độc thân 27+) hoặc lớp học (sinh viên), cùng mặt bằng | **làm đợt này** |
-| 2 | Ra bến | Phố Tết 28 tháng Chạp: mua quà, băng qua dòng xe chở đào/mai, gọi xe | kế tiếp (đã có cảnh 3D, cần vùng đi lại) |
-| 3 | Đường về | Bến xe / trạm dừng chân: Chú Ba Triết Lý livestream, Thái Gara 99 | sau |
+| 1 | **Cuối năm ở phố** (gộp "Săn vé" + "Tất niên" của kịch bản) | Văn phòng (mới đi làm, độc thân 27+) hoặc lớp học (sinh viên), cùng mặt bằng | xong |
+| 2 | Ra bến | Phố Tết 28 tháng Chạp: mua quà, băng qua dòng xe chở đào/mai, gọi xe | xong 13/11 (bản đồ `ra-ben`; chưa có băng qua dòng xe, vỉa hè tách khỏi lòng đường) |
+| 3 | Đường về | Bến xe / trạm dừng chân: Chú Ba Triết Lý livestream, Thái Gara 99 | xong 13/11 (bản đồ `tram-dung`) |
 | 4 | Bước vào nhà | Sân nhà quê | đã có |
 | 5 | Mâm cơm tất niên | Nhà trên: gắp mời, "cả mâm hỏi cùng lúc" | sau (đã có cảnh 3D) |
 | 6–8 | Giao thừa, Mùng 1, Quay lại phố | Sân đêm, cổng nhà, twist góc nhìn của mẹ | sau |

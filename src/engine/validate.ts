@@ -1,10 +1,12 @@
 import { dodgedFlag, hitFlag, mapAutoFlags, npcDoneFlag, objectDoneFlag, totalDodgeFlags, DODGE_MILESTONES } from './quests';
 import {
+  ACCESSORIES,
   STAT_KEYS,
   type ByRegion,
   type Condition,
   type Content,
   type Effects,
+  type Look,
   type MapEvent,
   type MapNpc,
   type MapObject,
@@ -96,9 +98,26 @@ export function validateContent(c: Content, opts: ValidateOptions = {}): string[
     if (!chars.has(id)) err(`${where}: nhân vật ${id} không tồn tại`);
   };
 
+  const HEX = /^#[0-9a-fA-F]{6}$/;
+  const checkLook = (where: string, look: Partial<Look> | undefined) => {
+    if (!look) return;
+    const m = look.model;
+    if (m !== undefined && opts.models && !opts.models.includes(m)) err(`${where}: model ${m} không có trong public/models`);
+    for (const a of [look.accessory, ...(look.accessories ?? [])]) {
+      if (a !== undefined && !(ACCESSORIES as readonly string[]).includes(a)) err(`${where}: phụ kiện lạ ${String(a)}`);
+    }
+    if ((look.accessories?.length ?? 0) > 4) err(`${where}: tối đa 4 phụ kiện`);
+    for (const k of ['skin', 'hair', 'outfit', 'pants', 'accent'] as const) {
+      const v = look[k];
+      if (v !== undefined && !HEX.test(v)) err(`${where}: màu ${k} phải dạng #rrggbb, đang là ${v}`);
+    }
+  };
   for (const ch of c.characters) {
-    const m = ch.look?.model;
-    if (m !== undefined && opts.models && !opts.models.includes(m)) err(`character ${ch.id}: model ${m} không có trong public/models`);
+    checkLook(`character ${ch.id}`, ch.look);
+    for (const [pid, over] of Object.entries(ch.lookByPersona ?? {})) {
+      if (!c.personas.some((p) => p.id === pid)) err(`character ${ch.id}: lookByPersona có vai ${pid} không tồn tại`);
+      checkLook(`character ${ch.id} lookByPersona.${pid}`, over);
+    }
   }
 
   for (const ch of c.characters) {
