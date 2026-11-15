@@ -1,20 +1,15 @@
 import {
-  BoxGeometry,
-  BufferGeometry,
-  ConeGeometry,
-  CylinderGeometry,
   Group,
   Material,
   Mesh,
   MeshStandardMaterial,
   Object3D,
   Quaternion,
-  SphereGeometry,
-  TorusGeometry,
   Vector3,
   type Bone,
 } from 'three';
-import { ANCHOR_BONE, type PropPart, type Shape } from './outfit';
+import { ANCHOR_BONE, type PropPart } from './outfit';
+import { geometryOf } from './shapes';
 import { sanitizeName } from './rigging';
 
 /**
@@ -27,22 +22,6 @@ import { sanitizeName } from './rigging';
  * nhóm khối nằm trong một `Group` bọc: tỉ lệ 1/100 để đơn vị trở về của file, và xoay ngược tư thế gốc của xương để
  * trục song song với thế giới. Đo lúc dựng từ ma trận thật nên không phụ thuộc trục riêng của từng model.
  */
-
-function geometryOf(sh: Shape): BufferGeometry {
-  const s = sh.s;
-  switch (sh.g) {
-    case 'box':
-      return new BoxGeometry(s[0], s[1], s[2]);
-    case 'cyl':
-      return new CylinderGeometry(s[0], s[1], s[2], s[3] ?? 8);
-    case 'sphere':
-      return new SphereGeometry(s[0], s[1] ?? 8, s[2] ?? 6, s[3], s[4], s[5], s[6]);
-    case 'cone':
-      return new ConeGeometry(s[0], s[1], s[2] ?? 8);
-    case 'torus':
-      return new TorusGeometry(s[0], s[1], s[2] ?? 6, s[3] ?? 12, s[4]);
-  }
-}
 
 function findBone(root: Object3D, name: string): Bone | undefined {
   const want = sanitizeName(name);

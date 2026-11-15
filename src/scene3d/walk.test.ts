@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Collider, WalkArea } from '../game/types';
+import { BLOSSOM_POT_R, QUAT_BALL } from './blossomShapes';
 import propsSrc from './props.tsx?raw';
+import randSrc from './rand.ts?raw';
 import { styleOfRegion, type RegionStyle } from './registry';
 import setsSrc from './sets.tsx?raw';
 import { actorCollider, ROAM_SETS, walkAreaFor } from './walk';
@@ -165,7 +167,6 @@ const gateFn = between(propsSrc, 'export function VillageGate', 'export function
 const gateBac = between(gateFn, "style === 'bac'", '// Trung, Nam');
 const gateOther = between(gateFn, '// Trung, Nam');
 const tableFn = between(propsSrc, 'export function TeaTable', 'export function Stool');
-const blossomFn = between(propsSrc, 'export function BlossomTree', '// ---------- Xe máy');
 const lanternFn = between(propsSrc, 'export function Lantern', '// ---------- Nhà ở quê');
 
 /** Vị trí (x, y, z) của lần xuất hiện thứ nth của thẻ `open` trong SanNha. */
@@ -400,7 +401,7 @@ describe('khớp hình học dựng trong sets.tsx / props.tsx', () => {
   it('đào/mai: vòng tròn nhỏ quanh chậu, đúng chỗ, không rộng bằng tán', () => {
     const [px, , pz] = sanPos('<BlossomTree kind={BLOSSOM[s]}');
     const scale = at(nums(tag(san, '<BlossomTree kind={BLOSSOM[s]}'), 'scale={'), 0);
-    const potR = at(nums(tag(blossomFn, '<mesh ', 0), 'cylinderGeometry args={['), 0);
+    const potR = BLOSSOM_POT_R;
     for (const style of STYLES) {
       const c = circleOf(areaOf(style), 'cay-hoa');
       expect(c.x).toBeCloseTo(px, 6);
@@ -413,9 +414,8 @@ describe('khớp hình học dựng trong sets.tsx / props.tsx', () => {
   it('quất: vòng tròn phủ quả cầu xanh đặc (chạm độ cao người), đúng chỗ', () => {
     const [px, , pz] = sanPos('<BlossomTree kind="quat"');
     const scale = at(nums(tag(san, '<BlossomTree kind="quat"'), 'scale={'), 0);
-    const ball = tag(blossomFn, "kind === 'quat' && (");
-    const ballY = at(nums(ball, 'position={['), 1);
-    const ballR = at(nums(ball, 'icosahedronGeometry args={['), 0);
+    const ballY = QUAT_BALL.y;
+    const ballR = QUAT_BALL.r;
     // Quả cầu có phần dưới thấp hơn đầu người nên phải chặn.
     expect((ballY - ballR) * scale).toBeLessThan(BODY_H);
     for (const style of STYLES) {
@@ -428,8 +428,8 @@ describe('khớp hình học dựng trong sets.tsx / props.tsx', () => {
   });
 
   it('tre: vòng tròn phủ hết chân và thân (đã nghiêng) của mọi cây trong bụi', () => {
-    const sin = /Math\.sin\(i \* ([\d.]+) \+ ([\d.]+)\) \* ([\d.]+)/.exec(propsSrc);
-    if (!sin) throw new Error('Không thấy công thức rnd trong props.tsx');
+    const sin = /Math\.sin\(i \* ([\d.]+) \+ ([\d.]+)\) \* ([\d.]+)/.exec(randSrc);
+    if (!sin) throw new Error('Không thấy công thức rnd trong rand.ts');
     const [k1, k2, k3] = [Number(sin[1]), Number(sin[2]), Number(sin[3])];
     const rnd = (i: number): number => {
       const v = Math.sin(i * k1 + k2) * k3;

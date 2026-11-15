@@ -13,20 +13,20 @@ import {
   Stool,
   TeaTable,
   Traffic,
-  TubeHouse,
   VillageGate,
-  rnd,
   type Blossom,
   type Menu,
 } from './props';
-import { BANNER, BOARD_TEXT, CALENDAR, COUPLET_LEFT, COUPLET_RIGHT, OFFICE_MOTTO, SCHEDULE_TITLE, SCHOOL_MOTTO, STALL_SIGN, STATION_SIGN } from './decorText';
+import { BANNER, BOARD_TEXT, CALENDAR, COUPLET_LEFT, COUPLET_RIGHT, OFFICE_MOTTO, SALE_POSTER, SCHEDULE_ROWS, SCHEDULE_TITLE, SCHOOL_MOTTO, STALL_SIGN, STATION_SIGN, STREET_BANNERS, shopSign } from './decorText';
 import { OutsideStreet, Skyline, WindowedWall } from './office-decor';
 import { Prop } from './Prop';
 import { TextPlane } from './TextPlane';
 import { TexMat } from './TexMat';
 import { SETS, styleOfRegion } from './registry';
 import { corkboardTexture, floorTexture, skyGradient, type FloorKind } from './textures';
-import { BusStop, Bunting, Crosswalk, FarShop, GiftStall, PARKED_BIKES, STREET_LAMP_XS, ShopFront } from './props-street';
+import { BusStop, Bunting, Crosswalk, GiftStall, PARKED_BIKES, STREET_LAMP_XS } from './props-street';
+import { PHO_TRAFFIC, phoFarHouses, phoHouses, phoSkyline } from './phoLayout';
+import { StreetHouse } from './StreetHouse';
 import { TramDung } from './set-tram-dung';
 import { CUOI_NAM, PHO_TET, phoPots } from './walk';
 
@@ -109,45 +109,9 @@ function Ground({ c, size = 80 }: Readonly<{ c: string; size?: number }>) {
 function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
   const s = styleOf(regionId);
   const blossom = BLOSSOM[s];
-  const houses = useMemo(() => {
-    const palette = ['#fde68a', '#fca5a5', '#a7f3d0', '#bfdbfe', '#fed7aa', '#e9d5ff', '#f5f5f4'];
-    const out: { x: number; w: number; h: number; c: string; sign?: string; flag: boolean }[] = [];
-    let x = -22;
-    for (let i = 0; x < 22; i++) {
-      const w = 2.4 + rnd(i) * 1.6;
-      out.push({
-        x: x + w / 2,
-        w,
-        h: (s === 'nam' ? 6 : 4.5) + rnd(i + 20) * 4,
-        c: palette[i % palette.length]!,
-        sign: rnd(i + 40) > 0.4 ? ['#dc2626', '#2563eb', '#16a34a', '#f59e0b'][i % 4] : undefined,
-        flag: s === 'bac' && i % 2 === 0,
-      });
-      x += w + 0.05;
-    }
-    return out;
-  }, [s]);
-  const farHouses = useMemo(() => {
-    const palette = ['#fde68a', '#fecaca', '#bbf7d0', '#bfdbfe', '#fed7aa', '#ddd6fe'];
-    const out: { x: number; w: number; h: number; c: string; sign: string }[] = [];
-    let x = -24;
-    for (let i = 0; x < 24; i++) {
-      const w = 2.6 + rnd(i + 70) * 1.8;
-      out.push({ x: x + w / 2, w, h: 3.4 + rnd(i + 90) * 2.8, c: palette[i % palette.length]!, sign: ['#2563eb', '#f59e0b', '#dc2626', '#16a34a'][(i + 1) % 4]! });
-      x += w + 0.05;
-    }
-    return out;
-  }, []);
-  const skyline = useMemo(
-    () =>
-      Array.from({ length: 9 }, (_, i) => ({
-        x: -32 + i * 8 + rnd(i + 110) * 3,
-        w: 4 + rnd(i + 130) * 3,
-        h: 11 + rnd(i + 150) * 9,
-        c: ['#cbd5e1', '#94a3b8', '#b6c2d3'][i % 3]!,
-      })),
-    [],
-  );
+  const houses = useMemo(() => phoHouses(s), [s]);
+  const farHouses = useMemo(() => phoFarHouses(), []);
+  const skyline = useMemo(() => phoSkyline(), []);
   const lanes = useMemo(
     () => [
       { z: -0.9, dir: 1 as const, speed: 2.6 },
@@ -180,15 +144,20 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
           <TexMat kind="pavers" base="#cbc5bb" rx={60} ry={2} />
         </mesh>
       ))}
+      {/* nhà phố phía bắc (có mái hiên, câu đối, bồn nước...) và dãy nhà thấp bên kia đường; mỗi nhà 4 draw call (houseShapes.ts) */}
       {houses.map((h, i) => (
-        <TubeHouse key={i} position={[h.x, 0, -5.8]} w={h.w} h={h.h} c={h.c} sign={h.sign} flag={h.flag} />
+        <StreetHouse key={i} position={[h.x, 0, -5.8]} w={h.w} h={h.h} c={h.c} sign={h.sign} signLines={h.sign ? shopSign(i) : undefined} flag={h.flag} variant={i} shop={h.sign !== undefined} />
       ))}
-      {houses.map((h, i) => (
-        <ShopFront key={`d${i}`} position={[h.x, 0, -5.8]} w={h.w} h={h.h} variant={i} shop={h.sign !== undefined} />
-      ))}
-      {/* bên kia đường: dãy nhà thấp, cột đèn; phía xa: nền nhà cao tầng mờ trong sương */}
+      {/* băng rôn Tết treo trên mặt tiền ba căn rộng, giữa hai hàng cửa sổ (cao 2.7 .. 3.3 m, trên đầu người) */}
+      {houses
+        .filter((h) => h.w > 2.8)
+        .filter((_, k) => k % 3 === 0)
+        .slice(0, STREET_BANNERS.length)
+        .map((h, k) => (
+          <TextPlane key={`bn${k}`} w={Math.min(2.4, h.w - 0.3)} h={0.6} lines={STREET_BANNERS[k]!.lines} bg={STREET_BANNERS[k]!.bg} grain position={[h.x, 3.0, -3.76]} />
+        ))}
       {farHouses.map((h, i) => (
-        <FarShop key={`f${i}`} position={[h.x, 0, 7.3]} w={h.w} h={h.h} c={h.c} sign={h.sign} />
+        <StreetHouse key={`f${i}`} position={[h.x, 0, 7.3]} w={h.w} h={h.h} c={h.c} sign={h.sign} variant={i} shop={false} far />
       ))}
       {/* cột đèn (tay đèn vươn ra lòng đường), ghế đá, thùng rác và bụi cây trên vỉa hè bên kia đường */}
       {STREET_LAMP_XS.map((x) => (
@@ -254,7 +223,7 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
         </mesh>
       </group>
       {s === 'nam' && <CoconutTree position={[-12, 0, 4.5]} />}
-      <Traffic lanes={lanes} count={14} cargoMix={cargo} />
+      <Traffic lanes={lanes} count={PHO_TRAFFIC} cargoMix={cargo} />
     </group>
   );
 }
@@ -539,19 +508,20 @@ function CuoiNam({ regionId, variant }: Readonly<{ regionId: string; variant: Ro
       <TextPlane w={3.3} h={0.3} lines={BANNER} position={[-0.4, 2.56, L.wallBackZ + 0.056]} />
       {/* chữ trên bảng, câu đối đỏ hai bên, khẩu hiệu treo trên bàn sếp / giáo viên */}
       <TextPlane w={2.4} h={1.0} lines={BOARD_TEXT[variant]} position={[-0.4, 1.55, L.wallBackZ + 0.056]} />
+      {/* câu đối: khe giữa tủ sách (x tới -2.55) và khung bảng (từ x = -1.76) chỉ rộng 0.8 m nên vế trái nằm giữa khe */}
       {[
-        { x: -2.05, lines: COUPLET_LEFT },
-        { x: 1.25, lines: COUPLET_RIGHT },
+        { x: L.wall.coupletL.x, lines: COUPLET_LEFT },
+        { x: L.wall.coupletR.x, lines: COUPLET_RIGHT },
       ].map((c) => (
         <group key={c.x}>
-          <Box p={[c.x, 1.7, L.wallBackZ + 0.03]} s={[0.5, 1.5, 0.03]} c="#c0262d" />
-          <Box p={[c.x, 1.7, L.wallBackZ + 0.047]} s={[0.44, 1.44, 0.01]} c="#f5b82e" e={0.15} />
-          <Box p={[c.x, 1.7, L.wallBackZ + 0.054]} s={[0.4, 1.4, 0.01]} c="#c0262d" />
-          <TextPlane w={0.4} h={1.4} lines={c.lines} position={[c.x, 1.7, L.wallBackZ + 0.062]} />
+          <Box p={[c.x, 1.7, L.wallBackZ + 0.03]} s={[0.62, 1.56, 0.03]} c="#c0262d" />
+          <Box p={[c.x, 1.7, L.wallBackZ + 0.047]} s={[0.56, 1.5, 0.01]} c="#f5b82e" e={0.15} />
+          <Box p={[c.x, 1.7, L.wallBackZ + 0.054]} s={[0.5, 1.44, 0.01]} c="#c0262d" />
+          <TextPlane w={0.5} h={1.44} lines={c.lines} uniform position={[c.x, 1.7, L.wallBackZ + 0.062]} />
         </group>
       ))}
-      <Box p={[2.6, 2.05, L.wallBackZ + 0.03]} s={[1.75, 0.26, 0.03]} c={variant === 'lop-hoc' ? '#f5deb3' : '#dbeafe'} />
-      <TextPlane w={1.65} h={0.2} lines={variant === 'lop-hoc' ? SCHOOL_MOTTO : OFFICE_MOTTO} position={[2.6, 2.05, L.wallBackZ + 0.05]} />
+      <Box p={[L.wall.plaque.x, 2.05, L.wallBackZ + 0.03]} s={[L.wall.plaque.w, 0.3, 0.03]} c={variant === 'lop-hoc' ? '#f5deb3' : '#dbeafe'} />
+      <TextPlane w={L.wall.plaque.w - 0.1} h={0.24} lines={variant === 'lop-hoc' ? SCHOOL_MOTTO : OFFICE_MOTTO} position={[L.wall.plaque.x, 2.05, L.wallBackZ + 0.05]} />
       {/* khung gỗ quanh bảng, máng đựng phấn / bút, giẻ lau */}
       {[-1, 1].map((s) => (
         <Box key={`bh${s}`} p={[-0.4 + s * 1.33, 1.55, L.wallBackZ + 0.04]} s={[0.07, 1.2, 0.05]} c="#5b3720" />
@@ -563,16 +533,16 @@ function CuoiNam({ regionId, variant }: Readonly<{ regionId: string; variant: Ro
       <Box p={[-1.1, 0.985, L.wallBackZ + 0.1]} s={[0.12, 0.04, 0.05]} c="#f5f5f4" />
       <Box p={[-0.5, 0.985, L.wallBackZ + 0.1]} s={[0.07, 0.05, 0.03]} c={variant === 'lop-hoc' ? '#fde68a' : '#2563eb'} />
       <Box p={[-0.35, 0.985, L.wallBackZ + 0.1]} s={[0.07, 0.05, 0.03]} c="#dc2626" />
-      <WallClock position={[3.9, 2.3, L.wallBackZ + 0.05]} />
+      <WallClock position={[L.wall.clock.x, 2.3, L.wallBackZ + 0.05]} />
       {/* tờ lịch và tranh dán tường */}
-      <Box p={[4.7, 1.9, L.wallBackZ + 0.03]} s={[0.54, 0.74, 0.02]} c="#c0262d" />
-      <TextPlane w={0.5} h={0.7} lines={CALENDAR} bg="#fafaf5" position={[4.7, 1.9, L.wallBackZ + 0.042]} />
-      <CorkBoard position={[-4.45, 1.9, L.wallBackZ + 0.04]} w={1.2} h={0.8} />
+      <Box p={[L.wall.calendar.x, 1.85, L.wallBackZ + 0.03]} s={[L.wall.calendar.w, 0.92, 0.02]} c="#c0262d" />
+      <TextPlane w={0.6} h={0.86} lines={CALENDAR} bg="#fafaf5" position={[L.wall.calendar.x, 1.85, L.wallBackZ + 0.042]} />
+      <CorkBoard position={[L.wall.cork.x, 1.85, L.wallBackZ + 0.04]} w={0.9} h={0.7} />
       {/* tường trái giữa các cửa sổ: thời khóa biểu (lớp học) hoặc tranh khung (văn phòng) */}
       {variant === 'lop-hoc' ? (
         <group position={[-L.wallSideX + 0.03, 1.7, -1.6]} rotation={[0, Math.PI / 2, 0]}>
           <Box p={[0, 0, 0]} s={[0.8, 1.0, 0.03]} c="#7c4a2a" />
-          <TextPlane w={0.74} h={0.94} bg="#fff7ed" lines={[...SCHEDULE_TITLE, { text: '- - - - - -', size: 60, color: '#b45309' }, { text: '- - - - - -', size: 60, color: '#2563eb' }, { text: '- - - - - -', size: 60, color: '#16a34a' }]} position={[0, 0, 0.018]} />
+          <TextPlane w={0.74} h={0.94} bg="#fff7ed" lines={[...SCHEDULE_TITLE, ...SCHEDULE_ROWS]} position={[0, 0, 0.018]} />
         </group>
       ) : (
         <group position={[-L.wallSideX + 0.03, 1.7, -1.6]} rotation={[0, Math.PI / 2, 0]}>
@@ -582,6 +552,9 @@ function CuoiNam({ regionId, variant }: Readonly<{ regionId: string; variant: Ro
           <Box p={[0.18, 0.08, 0.03]} s={[0.12, 0.12, 0.01]} c="#fde68a" e={0.3} />
         </group>
       )}
+      {/* áp phích "ưu đãi" giả trên tường phải, ngay trên tủ TV */}
+      <Box p={[L.wallSideX - 0.03, L.poster.y, L.poster.z]} s={[0.04, L.poster.h + 0.1, L.poster.w + 0.1]} c="#5b3720" />
+      <TextPlane w={L.poster.w} h={L.poster.h} lines={SALE_POSTER[variant]} bg="#b91c1c" grain position={[L.wallSideX - 0.055, L.poster.y, L.poster.z]} rotation={[0, -Math.PI / 2, 0]} />
       {/* tủ TV sát tường phải phía sau quầy, TV chiếu chương trình Tết */}
       <Prop model="tv-cabinet" position={[L.tv.x, 0, L.tv.z]} rotY={Math.PI / 2} fit={{ w: L.tv.w }} blob />
       <Prop model="tv" position={[L.tv.x, 0.62, L.tv.z]} rotY={Math.PI / 2} fit={{ w: 0.95 }} />

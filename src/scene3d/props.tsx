@@ -1,7 +1,10 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
-import type { Group } from 'three';
-import { TexMat } from './TexMat';
+import type { BufferGeometry, Group } from 'three';
+import { blossomShapes, type Blossom } from './blossomShapes';
+import { rnd } from './rand';
+import { motorbikeShapes, type BikeStyle } from './motorbikeShapes';
+import { mergeShapes } from './shapes';
 
 /** Đạo cụ low-poly dựng bằng code. Toạ độ y hướng lên, đơn vị ~ mét. */
 
@@ -19,113 +22,46 @@ export function Mat({ c, e }: Readonly<{ c: string; e?: number }>) {
   );
 }
 
-/** Số giả ngẫu nhiên ổn định theo chỉ số (để cảnh không đổi mỗi lần render). */
-export const rnd = (i: number): number => {
-  const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
-  return x - Math.floor(x);
-};
+export { rnd } from './rand';
 
 // ---------- Hoa Tết ----------
 
-export type Blossom = 'dao' | 'mai' | 'quat';
+export type { Blossom } from './blossomShapes';
 
-const BLOSSOM_COLOR: Record<Blossom, string> = { dao: '#f472b6', mai: '#facc15', quat: '#f97316' };
+/** Hình gộp của mỗi loại cây, dựng một lần dùng chung cho mọi cây cùng loại. */
+const blossomGeo = new Map<Blossom, BufferGeometry>();
+function blossomGeometry(kind: Blossom): BufferGeometry {
+  let g = blossomGeo.get(kind);
+  if (!g) {
+    g = mergeShapes(blossomShapes(kind));
+    blossomGeo.set(kind, g);
+  }
+  return g;
+}
 
-/** Cụm hoa/quả: đào hồng, mai vàng, quất cam trên tán xanh. */
+/** Cụm hoa/quả: đào hồng, mai vàng, quất cam trên tán xanh. Một draw call mỗi cây (xem blossomShapes.ts). */
 export function BlossomTree({ kind, scale = 1, position }: Readonly<{ kind: Blossom; scale?: number; position?: V3 }>) {
-  const branches = useMemo(
-    () => Array.from({ length: 5 }, (_, i) => ({ yaw: (i / 5) * Math.PI * 2 + rnd(i + 5), tilt: 0.55 + rnd(i + 17) * 0.45, len: 0.32 + rnd(i + 31) * 0.2 })),
-    [],
-  );
-  // Quả quất rải trên mặt quả cầu tán (bán kính 0.42, tâm y = 1.0), đẩy ra 0.02 để nằm trên lá.
-  const fruits = useMemo(
-    () =>
-      Array.from({ length: 18 }, (_, i) => {
-        const th = Math.acos(1 - 2 * rnd(i + 200)) * 0.85;
-        const ph = rnd(i + 260) * Math.PI * 2;
-        const r = 0.44;
-        return [Math.sin(th) * Math.cos(ph) * r, 1.0 + Math.cos(th) * r, Math.sin(th) * Math.sin(ph) * r] as V3;
-      }),
-    [],
-  );
-  const dots = useMemo(
-    () =>
-      Array.from({ length: kind === 'quat' ? 14 : 22 }, (_, i) => {
-        const a = rnd(i) * Math.PI * 2;
-        const r = 0.15 + rnd(i + 50) * 0.35;
-        return [Math.cos(a) * r, 0.75 + rnd(i + 99) * 0.55, Math.sin(a) * r] as V3;
-      }),
-    [kind],
-  );
+  const geo = useMemo(() => blossomGeometry(kind), [kind]);
   return (
-    <group position={position} scale={scale}>
-      <mesh position={[0, 0.12, 0]}>
-        <cylinderGeometry args={[0.18, 0.14, 0.24, 8]} />
-        <Mat c="#92400e" />
-      </mesh>
-      <mesh position={[0, 0.5, 0]}>
-        <cylinderGeometry args={[0.025, 0.04, 0.6, 5]} />
-        <Mat c="#57361f" />
-      </mesh>
-      {kind === 'quat' && (
-        <mesh position={[0, 1.0, 0]}>
-          <icosahedronGeometry args={[0.42, 0]} />
-          <Mat c="#15803d" />
-        </mesh>
-      )}
-      {/* chi tiết chậu: đất, viền miệng chậu, ruy băng đỏ */}
-      <mesh position={[0, 0.235, 0]}>
-        <cylinderGeometry args={[0.17, 0.17, 0.02, 8]} />
-        <Mat c="#3b2a1d" />
-      </mesh>
-      <mesh position={[0, 0.235, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.178, 0.02, 4, 10]} />
-        <Mat c="#7c2d12" />
-      </mesh>
-      <mesh position={[0, 0.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.165, 0.014, 4, 10]} />
-        <Mat c="#dc2626" e={0.15} />
-      </mesh>
-      {/* đào / mai: các cành mảnh toả ra từ thân để hoa bám vào, thêm lộc non */}
-      {kind !== 'quat' &&
-        branches.map((b, i) => (
-          <group key={i} position={[0, 0.62, 0]} rotation={[0, b.yaw, b.tilt]}>
-            <mesh position={[0, b.len / 2, 0]}>
-              <cylinderGeometry args={[0.008, 0.016, b.len, 4]} />
-              <Mat c="#4a2e1a" />
-            </mesh>
-            <mesh position={[0.012, b.len, 0]} scale={[1, 0.6, 1]}>
-              <icosahedronGeometry args={[0.03, 0]} />
-              <Mat c="#4d9a3d" />
-            </mesh>
-          </group>
-        ))}
-      {/* quất: quả cam bám quanh tán, mảng lá sáng hơn phá hình cầu */}
-      {kind === 'quat' &&
-        fruits.map((p, i) => (
-          <mesh key={`f${i}`} position={p}>
-            <icosahedronGeometry args={[0.045, 0]} />
-            <Mat c="#f97316" e={0.2} />
-          </mesh>
-        ))}
-      {kind === 'quat' &&
-        [[0.26, 1.12, 0.1], [-0.2, 0.88, 0.2], [0.05, 1.28, -0.18], [-0.22, 1.12, -0.18]].map((p, i) => (
-          <mesh key={`l${i}`} position={p as V3}>
-            <icosahedronGeometry args={[0.17, 0]} />
-            <Mat c={i % 2 ? '#2f9e44' : '#22863a'} />
-          </mesh>
-        ))}
-      {dots.map((p, i) => (
-        <mesh key={i} position={p}>
-          <icosahedronGeometry args={[kind === 'quat' ? 0.06 : 0.055, 0]} />
-          <Mat c={BLOSSOM_COLOR[kind]} e={0.15} />
-        </mesh>
-      ))}
-    </group>
+    <mesh geometry={geo} position={position} scale={scale}>
+      <meshStandardMaterial vertexColors flatShading roughness={0.85} />
+    </mesh>
   );
 }
 
 // ---------- Xe máy ----------
+
+/** Hình gộp của xe máy theo bộ màu: bảng màu của dòng xe nhỏ nên dùng chung được cho nhiều xe. */
+const bikeGeo = new Map<string, BufferGeometry>();
+function bikeGeometry(style: BikeStyle): BufferGeometry {
+  const key = `${style.body}|${style.shirt}|${style.helmet}|${style.rider}|${style.box}`;
+  let g = bikeGeo.get(key);
+  if (!g) {
+    g = mergeShapes(motorbikeShapes(style));
+    bikeGeo.set(key, g);
+  }
+  return g;
+}
 
 export function Motorbike({
   body = '#dc2626',
@@ -134,83 +70,12 @@ export function Motorbike({
   cargo,
   rider = true,
 }: Readonly<{ body?: string; shirt?: string; helmet?: string; cargo?: Blossom | 'box'; /** false: xe đậu, không có người lái. */ rider?: boolean }>) {
+  const geo = useMemo(() => bikeGeometry({ body, shirt, helmet, rider, box: cargo === 'box' }), [body, shirt, helmet, rider, cargo]);
   return (
     <group>
-      {[-0.45, 0.45].map((z) => (
-        <mesh key={z} position={[0, 0.22, z]} rotation={[0, Math.PI / 2, 0]}>
-          <torusGeometry args={[0.18, 0.06, 5, 10]} />
-          <Mat c="#111827" />
-        </mesh>
-      ))}
-      <mesh position={[0, 0.42, 0]}>
-        <boxGeometry args={[0.24, 0.24, 0.9]} />
-        <Mat c={body} />
+      <mesh geometry={geo}>
+        <meshStandardMaterial vertexColors flatShading roughness={0.85} />
       </mesh>
-      <mesh position={[0, 0.58, -0.12]}>
-        <boxGeometry args={[0.26, 0.08, 0.5]} />
-        <Mat c="#1f2937" />
-      </mesh>
-      <mesh position={[0, 0.78, 0.42]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.02, 0.02, 0.5, 4]} />
-        <Mat c="#9ca3af" />
-      </mesh>
-      {/* chắn bùn trước, đèn pha, đèn hậu, ống xả */}
-      <mesh position={[0, 0.36, 0.5]}>
-        <boxGeometry args={[0.13, 0.04, 0.3]} />
-        <Mat c={body} />
-      </mesh>
-      <mesh position={[0, 0.66, 0.5]}>
-        <sphereGeometry args={[0.065, 6, 4]} />
-        <Mat c="#fde68a" e={0.9} />
-      </mesh>
-      <mesh position={[0, 0.5, -0.47]}>
-        <boxGeometry args={[0.1, 0.05, 0.03]} />
-        <Mat c="#ef4444" e={0.7} />
-      </mesh>
-      <mesh position={[0.13, 0.22, -0.28]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.03, 0.035, 0.4, 5]} />
-        <Mat c="#6b7280" />
-      </mesh>
-      {/* người lái */}
-      {rider && (
-        <>
-          <mesh position={[0, 0.9, -0.05]}>
-            <cylinderGeometry args={[0.15, 0.19, 0.5, 6]} />
-            <Mat c={shirt} />
-          </mesh>
-          <mesh position={[0, 1.28, -0.02]}>
-            <icosahedronGeometry args={[0.2, 1]} />
-            <Mat c={helmet} />
-          </mesh>
-          {/* kính mũ, chân đặt lên bệ để chân, tay nắm ghi đông */}
-          <mesh position={[0, 1.29, 0.17]}>
-            <boxGeometry args={[0.2, 0.07, 0.05]} />
-            <Mat c="#1e293b" />
-          </mesh>
-          {[-1, 1].map((s) => (
-            <group key={s}>
-              <mesh position={[s * 0.11, 0.62, 0.06]} rotation={[-0.35, 0, 0]}>
-                <boxGeometry args={[0.09, 0.42, 0.12]} />
-                <Mat c="#1f2937" />
-              </mesh>
-              <mesh position={[s * 0.19, 0.98, 0.22]} rotation={[-1.05, 0, s * -0.12]}>
-                <boxGeometry args={[0.07, 0.34, 0.07]} />
-                <Mat c={shirt} />
-              </mesh>
-            </group>
-          ))}
-        </>
-      )}
-      {cargo === 'box' && (
-        <group position={[0, 0.85, -0.55]}>
-          {[0, 1, 2].map((i) => (
-            <mesh key={i} position={[0, i * 0.3, 0]} rotation={[0, i * 0.2, 0]}>
-              <boxGeometry args={[0.5, 0.28, 0.4]} />
-              <Mat c="#c08457" />
-            </mesh>
-          ))}
-        </group>
-      )}
       {cargo && cargo !== 'box' && <BlossomTree kind={cargo} scale={0.9} position={[0, 0.55, -0.55]} />}
     </group>
   );
@@ -270,70 +135,6 @@ export function Traffic({
 }
 
 // ---------- Phố ----------
-
-/** Nhà ống: hẹp, cao, mặt tiền nhiều màu, ban công, biển hiệu, cờ đỏ. */
-export function TubeHouse({
-  w,
-  h,
-  c,
-  sign,
-  flag,
-  position,
-}: Readonly<{ w: number; h: number; c: string; sign?: string; flag?: boolean; position: V3 }>) {
-  const floors = Math.max(2, Math.round(h / 1.6));
-  return (
-    <group position={position}>
-      <mesh position={[0, h / 2, 0]}>
-        <boxGeometry args={[w, h, 4]} />
-        <TexMat kind="plaster" base={c} rx={Math.max(1, Math.round(w / 2))} ry={Math.max(1, Math.round(h / 2))} />
-      </mesh>
-      {Array.from({ length: floors - 1 }, (_, f) => (
-        <group key={f} position={[0, 1.6 * (f + 1) + 0.6, 2.01]}>
-          {/* khung cửa sổ: tấm trắng nhô ra quanh ô kính */}
-          <mesh position={[0, 0, -0.006]}>
-            <boxGeometry args={[w * 0.55 + 0.1, 0.9, 0.02]} />
-            <Mat c="#f1f5f9" />
-          </mesh>
-          <mesh>
-            <planeGeometry args={[w * 0.55, 0.8]} />
-            <Mat c="#1e293b" />
-          </mesh>
-          <mesh position={[0, -0.45, 0.2]}>
-            <boxGeometry args={[w * 0.8, 0.08, 0.4]} />
-            <Mat c="#e5e7eb" />
-          </mesh>
-        </group>
-      ))}
-      {/* tầng trệt: cửa cuốn + biển hiệu */}
-      <mesh position={[0, 0.8, 2.01]}>
-        <planeGeometry args={[w * 0.8, 1.5]} />
-        <TexMat kind="shutter" base="#9ca3af" rx={Math.max(1, Math.round(w * 0.8))} ry={1} />
-      </mesh>
-      {sign && (
-        <mesh position={[0, 1.75, 2.08]}>
-          <boxGeometry args={[w * 0.9, 0.35, 0.08]} />
-          <Mat c={sign} e={0.25} />
-        </mesh>
-      )}
-      {flag && (
-        <group position={[w * 0.35, 2.6, 2.3]} rotation={[0, 0, -0.4]}>
-          <mesh position={[0, 0.3, 0]}>
-            <cylinderGeometry args={[0.015, 0.015, 0.8, 4]} />
-            <Mat c="#d1d5db" />
-          </mesh>
-          <mesh position={[0.22, 0.55, 0]}>
-            <planeGeometry args={[0.45, 0.3]} />
-            <meshStandardMaterial color="#dc2626" side={2} />
-          </mesh>
-          <mesh position={[0.22, 0.55, 0.005]}>
-            <circleGeometry args={[0.06, 5]} />
-            <meshStandardMaterial color="#facc15" side={2} />
-          </mesh>
-        </group>
-      )}
-    </group>
-  );
-}
 
 export function Lantern({ position, c = '#dc2626' }: Readonly<{ position: V3; c?: string }>) {
   const ref = useRef<Group>(null);

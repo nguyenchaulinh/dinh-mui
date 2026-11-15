@@ -36,19 +36,15 @@ describe('chi tiết đường phố phố Tết', () => {
     );
   });
 
-  it('tĩnh và nhẹ: không Math.random, không useFrame, không tạo vật liệu riêng', () => {
-    // Chỉ phần mới (GiftStall / BusStop cũ có vật liệu riêng, không thuộc đợt này).
-    const code = streetSrc
-      .slice(streetSrc.indexOf('// ---------- Chi tiết đường phố'))
-      .replace(/\/\/.*$/gm, '')
-      .replace(/\/\*[\s\S]*?\*\//g, '');
-    expect(code).not.toMatch(/Math\.random|Date\.now|useFrame/);
-    expect(code).not.toMatch(/meshStandardMaterial/);
+  it('tĩnh và nhẹ: không Math.random, không useFrame, và mọi vật liệu riêng dùng màu theo đỉnh (hình đã gộp)', () => {
+    const code = streetSrc.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+    const part = code.slice(code.indexOf('export function Bunting'));
+    expect(part).not.toMatch(/Math\.random|Date\.now|useFrame/);
+    for (const m of part.matchAll(/<meshStandardMaterial[^>]*>/g)) expect(m[0], m[0]).toContain('vertexColors');
   });
 
-  it('PhoTet dùng các đạo cụ mới và chỉ đưa vào nhà ở có số hợp lý (không phình số khối)', () => {
-    for (const name of ['ShopFront', 'FarShop', 'Bunting', 'Crosswalk', 'street-light', 'PARKED_BIKES']) expect(setsSrc, name).toContain(name);
-    const far = /let x = -24;[\s\S]*?x < 24/.exec(setsSrc);
-    expect(far).not.toBeNull();
+  it('PhoTet dùng nhà phố gộp, dây cờ, vạch qua đường, cột đèn model và xe đậu', () => {
+    for (const name of ['StreetHouse', 'Bunting', 'Crosswalk', 'street-light', 'PARKED_BIKES']) expect(setsSrc, name).toContain(name);
+    expect(setsSrc).not.toMatch(/TubeHouse|ShopFront|FarShop/); // các thành phần cũ (mỗi nhà ~30 mesh) đã bị thay
   });
 });

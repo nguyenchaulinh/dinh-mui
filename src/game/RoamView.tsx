@@ -211,7 +211,7 @@ export interface RoamViewProps {
   /** Người chơi bị bắt (bấm sớm hoặc không bấm): bị kéo vào hội thoại. */
   onHit?: (key: string, early: boolean) => void;
   /** Báo FPS mỗi giây (hiện đồng hồ trên màn hình). */
-  onFps?: (fps: number) => void;
+  onFps?: (fps: number, stats: { calls: number; triangles: number }) => void;
   /** Khoá NPC / đồ vật cần chỉ hướng khi ra khỏi khung nhìn (rỗng thì không có mũi tên). */
   guideKeys?: readonly string[];
   onGuides?: (g: GuideItem[]) => void;
