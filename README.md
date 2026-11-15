@@ -94,6 +94,7 @@ src/scene3d/office-decor.tsx  cảnh nền lớp học / văn phòng: dãy nhà 
 src/scene3d/fonts.ts         phông chữ (public/fonts, OFL, đủ tiếng Việt, nạp lười); decorText.ts: chữ và kiểu chữ trên banner, biển hiệu, áp phích
 src/scene3d/shapes.ts        khối low-poly mô tả bằng dữ liệu + mergeShapes (gộp thành một geometry); houseShapes / motorbikeShapes / blossomShapes / streetShapes dùng nó
 src/scene3d/textures.ts      sàn ván gỗ / gạch, tường trát, cửa cuốn, nhựa đường, mặt tiền cao tầng, chữ, bảng ghim: vẽ bằng canvas lúc chạy; smooth.ts: pháp tuyến mượt cho model nhân vật
+src/scene3d/hair.ts          kiểu tóc theo hairStyle (giữ tóc gốc của model; trọc ẩn tóc, búi thêm một búi gắn xương Head)
 src/scene3d/outfit.ts        phụ kiện low-poly mô tả bằng dữ liệu (khối, toạ độ theo số đo thật của model, FIT); outfitBuild.ts dựng và gắn vào xương
 src/scene3d/props-street.tsx đạo cụ phố Tết: sạp quà, trạm xe buýt, mặt tiền cửa hàng (mái hiên, câu đối), dây cờ, vạch qua đường, dãy nhà bên kia đường
 src/scene3d/Figure.tsx     điểm vào vẽ nhân vật: dùng model có xương nếu `look.model` có, không thì dựng low-poly bằng code (Bé Dê)

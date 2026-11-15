@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { AnimationMixer, LoopOnce, LoopRepeat, Quaternion, Vector3, type AnimationAction, type Bone, type Material, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Look } from '../engine/types';
+import { hairParts, hidesOriginalHair } from './hair';
 import { accessoriesOf, builtinOf, fitOf, propsFor } from './outfit';
 import { attachProps } from './outfitBuild';
 import { smoothOnce } from './smooth';
@@ -91,6 +92,8 @@ export function RiggedFigure({
   const { root, bones, scale, props } = useMemo(() => {
     smoothOnce(gltf.scene); // một lần cho mỗi model: pháp tuyến mượt thay cho pháp tuyến phẳng góc cạnh
     const root = cloneSkinned(gltf.scene);
+    // Kiểu tóc theo `hairStyle`: tóc gốc của model đổi màu; trọc thì ẩn; búi thì thêm khối (hair.ts). Model đã có mũ (thợ, nông dân) giữ nguyên đầu.
+    const customHair = kind === 'human' && look.hairStyle !== undefined && !builtinOf(model).has('hat');
     // 1. Vật liệu chiếm nhiều nhất của mỗi bộ phận (để biết đâu là áo, đâu là quần).
     const count = new Map<string, Map<string, number>>();
     root.traverse((o) => {
@@ -117,7 +120,9 @@ export function RiggedFigure({
       const src = m.material as MeshStandardMaterial;
       const mat = src.clone();
       const part = partName(m);
-      const c = colorFor(roleOf(src.name, part, dominant.get(part ?? '') === src.name), look);
+      const role = roleOf(src.name, part, dominant.get(part ?? '') === src.name);
+      if (customHair && hidesOriginalHair(look.hairStyle) && role === 'hair') m.visible = false;
+      const c = colorFor(role, look);
       if (c) mat.color.set(c);
       mat.roughness = 0.75;
       mat.metalness = 0;
@@ -148,7 +153,7 @@ export function RiggedFigure({
       console.warn(`Model ${model}: không tìm thấy đủ xương chân/hông, tư thế ngồi sẽ không có tác dụng.`);
     }
     // 5. Phụ kiện (kính, nón, balo, thẻ, cà vạt, ly...) gắn vào xương nên đi theo hoạt ảnh. Chỉ người: chó không có.
-    const props = kind === 'human' ? attachProps(root, propsFor(accessoriesOf(look), fitOf(model), look.accent, builtinOf(model))) : null;
+    const props = kind === 'human' ? attachProps(root, [...(customHair ? hairParts(look.hairStyle!, fitOf(model), look.hair) : []), ...propsFor(accessoriesOf(look), fitOf(model), look.accent, builtinOf(model))]) : null;
     // 6. Chuẩn hoá chiều cao theo chiều cao tư thế gốc đã biết (KHÔNG đo bằng Box3: xem BIND_HEIGHT).
     return { root, bones, scale: heightFor(kind, look.build) / BIND_HEIGHT[model], props };
   }, [gltf.scene, model, kind, look]);
