@@ -92,3 +92,61 @@ describe('CuoiNam dùng nguồn bố cục chung', () => {
     expect(room).toContain('<PaverGround');
   });
 });
+
+describe('đồ treo tường sau không đè nhau', () => {
+  const W = CUOI_NAM.wall;
+  const span = (x: number, w: number): [number, number] => [x - w / 2, x + w / 2];
+  const items: [string, [number, number]][] = [
+    ['bảng', span(W.board.x, W.board.w)],
+    ['câu đối trái', span(W.coupletL.x, W.coupletL.w)],
+    ['câu đối phải', span(W.coupletR.x, W.coupletR.w)],
+    ['khẩu hiệu', span(W.plaque.x, W.plaque.w)],
+    ['đồng hồ', span(W.clock.x, W.clock.w)],
+    ['lịch', span(W.calendar.x, W.calendar.w)],
+    ['bảng ghim', span(W.cork.x, W.cork.w)],
+  ];
+  it('khoảng ngang của các món không chồng nhau (cách nhau ít nhất 1 cm)', () => {
+    const sorted = [...items].sort((a, b) => a[1][0] - b[1][0]);
+    for (let i = 1; i < sorted.length; i++) {
+      expect(sorted[i]![1][0] - sorted[i - 1]![1][1], `${sorted[i - 1]![0]} và ${sorted[i]![0]}`).toBeGreaterThan(0.01);
+    }
+  });
+  it('mọi món nằm trọn trong tường sau', () => {
+    for (const [name, [a, b]] of items) {
+      expect(a, name).toBeGreaterThan(-CUOI_NAM.wallSideX);
+      expect(b, name).toBeLessThan(CUOI_NAM.wallSideX);
+    }
+  });
+  it('tủ sách (cao 1.9 m) không che câu đối trái, bảng ghim hay bảng: tủ nằm ngoài khoảng ngang của chúng', () => {
+    for (const s of CUOI_NAM.shelves) {
+      const [a, b] = span(s.x, s.w);
+      for (const [name, [x0, x1]] of items.filter(([n]) => ['bảng', 'câu đối trái', 'bảng ghim'].includes(n))) {
+        expect(b <= x0 + 1e-9 || a >= x1 - 1e-9, `tủ [${a.toFixed(2)}, ${b.toFixed(2)}] che ${name} [${x0.toFixed(2)}, ${x1.toFixed(2)}]`).toBe(true);
+      }
+    }
+  });
+  it('đèn đứng không đè câu đối phải', () => {
+    const [a, b] = span(CUOI_NAM.lamp.x, CUOI_NAM.lamp.r * 2);
+    const [x0, x1] = span(W.coupletR.x, W.coupletR.w);
+    expect(b <= x0 || a >= x1).toBe(true);
+  });
+  it('sets.tsx dùng đúng các số trong CUOI_NAM.wall (không tự chép)', () => {
+    const room = setsSrc.slice(setsSrc.indexOf('function CuoiNam'), setsSrc.indexOf('function NhaTren'));
+    for (const k of ['L.wall.coupletL', 'L.wall.coupletR', 'L.wall.plaque', 'L.wall.clock', 'L.wall.calendar', 'L.wall.cork']) expect(room, k).toContain(k);
+  });
+});
+
+describe('áp phích ưu đãi trên tường phải', () => {
+  const P = CUOI_NAM.poster;
+  it('nằm trọn trong đoạn tường đặc phía sau (không chạm khe cửa), cao hơn tủ TV, dưới đỉnh tường', () => {
+    expect(P.z - P.w / 2).toBeGreaterThan(CUOI_NAM.wallBackZ);
+    expect(P.z + P.w / 2).toBeLessThan(CUOI_NAM.door.z0);
+    expect(P.y - P.h / 2, 'cạnh dưới áp phích').toBeGreaterThan(1.4); // TV đặt trên tủ cao ~1.25 m
+    expect(P.y + P.h / 2).toBeLessThan(CUOI_NAM.wallHeight);
+  });
+  it('sets.tsx dùng đúng số trong CUOI_NAM.poster', () => {
+    const room = setsSrc.slice(setsSrc.indexOf('function CuoiNam'), setsSrc.indexOf('function NhaTren'));
+    expect(room).toContain('L.poster.z');
+    expect(room).toContain('SALE_POSTER');
+  });
+});

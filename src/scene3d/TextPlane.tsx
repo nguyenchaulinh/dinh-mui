@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DoubleSide, FrontSide } from 'three';
+import { fontsReady, loadFonts } from './fonts';
 import { labelTexture } from './textures';
 import type { DecorLine } from './decorText';
 
@@ -15,8 +16,15 @@ export function TextPlane({
   position,
   rotation,
   double = false,
-}: Readonly<{ w: number; h: number; lines: readonly DecorLine[]; bg?: string | null; position: [number, number, number]; rotation?: [number, number, number]; /** Thấy được từ cả hai mặt (biển vuông góc phố). */ double?: boolean }>) {
-  const map = useMemo(() => labelTexture(lines, w, h, bg), [lines, w, h, bg]);
+  uniform = false,
+  grain = false,
+}: Readonly<{ w: number; h: number; lines: readonly DecorLine[]; bg?: string | null; position: [number, number, number]; rotation?: [number, number, number]; /** Thấy được từ cả hai mặt (biển vuông góc phố). */ double?: boolean; /** Mọi dòng cùng một cỡ chữ (câu đối dọc). */ uniform?: boolean; /** Rắc hạt nhám lên nền (cần `bg`). */ grain?: boolean }>) {
+  // Phông nạp lười: vẽ lần đầu bằng phông dự phòng, nạp xong thì vẽ lại bằng phông thật.
+  const [fontsOk, setFontsOk] = useState(fontsReady());
+  useEffect(() => {
+    if (!fontsOk) void loadFonts().then(() => setFontsOk(true));
+  }, [fontsOk]);
+  const map = useMemo(() => labelTexture(lines, w, h, bg, undefined, { uniform, grain }), [lines, w, h, bg, uniform, grain, fontsOk]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <mesh position={position} rotation={rotation}>
       <planeGeometry args={[w, h]} />

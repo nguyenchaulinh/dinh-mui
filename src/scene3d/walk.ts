@@ -198,12 +198,27 @@ export const CUOI_NAM = {
   coatRack: { x: 5.3, z: 0.4, r: 0.3 },
   /** Cửa sổ trên tường trái: tâm z, bề rộng, mép dưới (sill) và mép trên (head) tính từ sàn. Hình dựng dùng đúng các số này. */
   windows: { zs: [-2.8, -0.4, 2.0], w: 1.4, sill: 1.2, head: 2.2 },
+  /**
+   * Đồ treo trên tường sau: tâm x và bề rộng (m). Hình dựng và test (officeScene.test.ts) dùng đúng các số này; các khoảng
+   * ngang không được chồng nhau, và tủ sách (cao 1.9 m) che phần tường bên dưới nên chỉ đồ treo cao hơn mới được nằm sau tủ.
+   */
+  wall: {
+    board: { x: -0.4, w: 2.72 },
+    coupletL: { x: -2.15, w: 0.62 },
+    coupletR: { x: 1.35, w: 0.62 },
+    plaque: { x: 2.75, w: 1.7 },
+    clock: { x: 3.9, w: 0.5 },
+    calendar: { x: 4.8, w: 0.66 },
+    cork: { x: -5.15, w: 1.0 },
+  },
+  /** Áp phích ưu đãi trên tường phải phía trên tủ TV: tâm z, rộng (dọc trục z), cao, độ cao tâm. */
+  poster: { z: -4.1, w: 1.5, h: 0.9, y: 2.05 },
   /** Hai tủ sách sát tường sau (rộng w dọc trục x, sâu d), và đèn đứng cạnh bảng. */
   shelves: [
-    { x: -3.3, z: -4.7, w: 0.9, d: 0.5 },
-    { x: -2.4, z: -4.7, w: 0.9, d: 0.5 },
+    { x: -3.9, z: -4.7, w: 0.9, d: 0.5 },
+    { x: -3.0, z: -4.7, w: 0.9, d: 0.5 },
   ],
-  lamp: { x: 1.3, z: -4.6, r: 0.15 },
+  lamp: { x: 1.95, z: -4.6, r: 0.15 },
   /** Tủ TV sát tường phải phía sau quầy (dài w theo trục z, sâu d theo trục x), TV đặt trên mặt tủ, quay về phía -x. */
   tv: { x: 5.55, z: -4.1, w: 1.6, d: 0.5 },
   /** Chậu quất góc sau trái, chậu đào/mai góc trước trái. */
