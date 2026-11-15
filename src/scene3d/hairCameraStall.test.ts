@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Box3 } from 'three';
-import { HAIR_STYLES, hairParts, hairShapes } from './hair';
+import { HAIR_STYLES, hairParts, hairShapes, hidesOriginalHair } from './hair';
 import { FIT, fitOf, propsFor } from './outfit';
 import { builtinOf } from './outfit';
 import { CHARACTER_MODELS, roleOf } from './rigging';
@@ -16,49 +16,41 @@ const bbox = (shapes: Parameters<typeof mergeShapes>[0]) => {
 };
 const HUMANS = CHARACTER_MODELS.filter((m) => m !== 'cho-pom');
 
-describe('bộ tóc riêng', () => {
-  it('trọc không có khối nào; ngắn có mũ trùm và mái; búi thêm một khối; dài thêm tấm sau và hai lọn bên', () => {
+describe('kiểu tóc', () => {
+  it('chỉ kiểu búi thêm khối (một búi tròn); ngắn, dài dùng tóc gốc; chỉ trọc ẩn tóc gốc', () => {
     const f = fitOf('nam-hoodie');
     expect(hairShapes('bald', f)).toEqual([]);
-    expect(hairParts('bald', f)).toEqual([]);
-    const short = hairShapes('short', f).length;
-    expect(short).toBe(2);
-    expect(hairShapes('bun', f).length).toBe(short + 1);
-    expect(hairShapes('long', f).length).toBe(short + 3);
+    expect(hairShapes('short', f)).toEqual([]);
+    expect(hairShapes('long', f)).toEqual([]);
+    expect(hairShapes('bun', f)).toHaveLength(1);
+    expect(hairParts('short', f)).toEqual([]);
+    expect(HAIR_STYLES.filter(hidesOriginalHair)).toEqual(['bald']);
+    expect(hidesOriginalHair(undefined)).toBe(false);
   });
 
-  it.each(Object.keys(FIT))('%s: tóc phủ đỉnh đầu và không phình ra quá 8 cm so với đầu', (model) => {
+  it.each(Object.keys(FIT))('%s: búi nằm sau đỉnh đầu, chạm tóc gốc và không che mặt', (model) => {
     const f = fitOf(model);
-    for (const style of HAIR_STYLES.filter((s) => s !== 'bald')) {
-      const b = bbox(hairShapes(style, f));
-      const top = Math.min(f.hy1, f.sTop + 0.04);
-      expect(b.max.y, `${style} phủ đỉnh`).toBeGreaterThanOrEqual(top - 0.005);
-      expect(b.max.y, `${style} không quá cao`).toBeLessThanOrEqual(top + (style === 'bun' ? 0.08 : 0.005));
-      expect(Math.abs(b.max.x), style).toBeLessThanOrEqual(f.hhw + 0.08);
-      expect(b.min.z, style).toBeGreaterThanOrEqual(f.hzb - 0.12);
-      expect(b.max.z, `${style} không che mặt`).toBeLessThanOrEqual(f.hzf + 0.01);
-    }
+    const b = bbox(hairShapes('bun', f));
+    expect(b.min.z, 'búi không ra quá xa phía sau').toBeGreaterThanOrEqual(f.hzb - 0.1);
+    expect(b.max.z, 'búi không che mặt').toBeLessThan((f.sZb + f.sZf) / 2);
+    expect(b.max.y, 'búi không cao quá đỉnh tóc gốc quá 10 cm').toBeLessThanOrEqual(f.hy1 + 0.1);
+    expect(b.min.y, 'búi chồng lên tóc gốc').toBeLessThan(f.hy1);
   });
 
-  it('tóc dài rủ xuống thấp hơn tóc ngắn', () => {
-    const f = fitOf('nu-cong-so');
-    expect(bbox(hairShapes('long', f)).min.y).toBeLessThan(bbox(hairShapes('short', f)).min.y - 0.15);
-  });
-
-  it('màu tóc đi vào hình; màu hỏng dùng màu mặc định', () => {
+  it('màu tóc đi vào búi; màu hỏng dùng màu mặc định', () => {
     const f = fitOf('nam-vest');
-    expect(hairShapes('short', f, '#e5e7eb').every((s) => s.c === '#e5e7eb')).toBe(true);
-    expect(hairShapes('short', f, 'bạc').every((s) => /^#[0-9a-f]{6}$/i.test(s.c))).toBe(true);
-    expect(hairShapes('short', f, undefined)[0]!.c).toBe('#2b1d15');
+    expect(hairShapes('bun', f, '#e5e7eb').every((s) => s.c === '#e5e7eb')).toBe(true);
+    expect(hairShapes('bun', f, 'bạc').every((s) => /^#[0-9a-f]{6}$/i.test(s.c))).toBe(true);
+    expect(hairShapes('bun', f, undefined)[0]!.c).toBe('#2b1d15');
   });
 
-  it('gắn vào xương Head, khung bind (cùng cách với phụ kiện)', () => {
+  it('búi gắn vào xương Head, khung bind (cùng cách với phụ kiện)', () => {
     const p = hairParts('bun', fitOf('nam-vest'))[0]!;
     expect(p.anchor).toBe('head');
     expect(p.frame).toBe('bind');
   });
 
-  it('tóc gốc của model (vật liệu "Hair") được nhận là vai trò tóc nên ẩn được; model có mũ giữ đầu gốc', () => {
+  it('tóc gốc của model (vật liệu "Hair") được nhận là vai trò tóc nên ẩn / đổi màu được; model có mũ giữ đầu gốc', () => {
     for (const mat of ['Hair', 'hair']) expect(roleOf(mat, 'head', false)).toBe('hair');
     for (const m of ['nam-tho', 'nam-nong-dan']) expect(builtinOf(m).has('hat')).toBe(true);
     for (const m of HUMANS.filter((x) => !['nam-tho', 'nam-nong-dan'].includes(x))) expect(builtinOf(m).has('hat'), m).toBe(false);

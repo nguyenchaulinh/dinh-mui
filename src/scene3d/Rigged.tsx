@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { AnimationMixer, LoopOnce, LoopRepeat, Quaternion, Vector3, type AnimationAction, type Bone, type Material, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Look } from '../engine/types';
-import { hairParts } from './hair';
+import { hairParts, hidesOriginalHair } from './hair';
 import { accessoriesOf, builtinOf, fitOf, propsFor } from './outfit';
 import { attachProps } from './outfitBuild';
 import { smoothOnce } from './smooth';
@@ -92,7 +92,7 @@ export function RiggedFigure({
   const { root, bones, scale, props } = useMemo(() => {
     smoothOnce(gltf.scene); // một lần cho mỗi model: pháp tuyến mượt thay cho pháp tuyến phẳng góc cạnh
     const root = cloneSkinned(gltf.scene);
-    // Tóc riêng theo `hairStyle` (ẩn tóc gốc của model); model đã có mũ (thợ, nông dân) giữ nguyên đầu của nó.
+    // Kiểu tóc theo `hairStyle`: tóc gốc của model đổi màu; trọc thì ẩn; búi thì thêm khối (hair.ts). Model đã có mũ (thợ, nông dân) giữ nguyên đầu.
     const customHair = kind === 'human' && look.hairStyle !== undefined && !builtinOf(model).has('hat');
     // 1. Vật liệu chiếm nhiều nhất của mỗi bộ phận (để biết đâu là áo, đâu là quần).
     const count = new Map<string, Map<string, number>>();
@@ -121,7 +121,7 @@ export function RiggedFigure({
       const mat = src.clone();
       const part = partName(m);
       const role = roleOf(src.name, part, dominant.get(part ?? '') === src.name);
-      if (customHair && role === 'hair') m.visible = false;
+      if (customHair && hidesOriginalHair(look.hairStyle) && role === 'hair') m.visible = false;
       const c = colorFor(role, look);
       if (c) mat.color.set(c);
       mat.roughness = 0.75;
