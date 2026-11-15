@@ -57,10 +57,10 @@ export const SETS: Record<string, SetDef> = {
       'xe-om': { pos: [5.6, 0, -2.4], rotY: Math.PI },
       ben: { pos: [10, 0, -2.2], rotY: 0 },
       'len-xe': { pos: [12.2, 0, -2.4], rotY: Math.PI / 2 },
-      // Nhân vật phố Hàng Mã: trà đá, bà gánh đào, bác tổ trưởng (đều trên vỉa hè bắc, cách chậu hoa và trạm).
-      'tra-da': { pos: [-7.6, 0, -2.4], rotY: 0 },
-      'hoa-dao': { pos: [0.9, 0, -2.4], rotY: 0 },
-      'to-truong': { pos: [8.0, 0, -2.4], rotY: 0 },
+      // Nhân vật phố Hàng Mã: trà đá, bà gánh đào, bác tổ trưởng (đều đứng sát mặt tiền nhà, chừa lối đi phía lề đường; chậu hoa gần đó bị bỏ, xem PHO_TET.standNpc).
+      'tra-da': { pos: [-7.6, 0, -3.25], rotY: 0 },
+      'hoa-dao': { pos: [0.9, 0, -3.25], rotY: 0 },
+      'to-truong': { pos: [8.0, 0, -3.25], rotY: 0 },
     },
   },
   'cuoi-nam': {

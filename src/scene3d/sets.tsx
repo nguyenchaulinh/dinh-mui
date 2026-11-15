@@ -141,9 +141,12 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
       </mesh>
       <MergedShapes solid={roadShapes} />
       {/* vỉa hè hai bên */}
-      {[-2.9, 3.4].map((z) => (
+      {[
+        { z: -2.6, d: 2.4 }, // vỉa hè bắc: mặt tiền z -3.8 tới lề z -1.4 (rộng bằng vùng đi lại)
+        { z: 3.4, d: 1.8 },
+      ].map(({ z, d }) => (
         <mesh key={z} position={[0, PHO_TET.sidewalkTop / 2, z]}>
-          <boxGeometry args={[80, PHO_TET.sidewalkTop, 1.8]} />
+          <boxGeometry args={[80, PHO_TET.sidewalkTop, d]} />
           <TexMat kind="pavers" base="#cbc5bb" rx={60} ry={2} />
         </mesh>
       ))}
