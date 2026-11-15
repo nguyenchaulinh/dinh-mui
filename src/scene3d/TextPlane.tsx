@@ -15,8 +15,9 @@ export function TextPlane({
   position,
   rotation,
   double = false,
-}: Readonly<{ w: number; h: number; lines: readonly DecorLine[]; bg?: string | null; position: [number, number, number]; rotation?: [number, number, number]; /** Thấy được từ cả hai mặt (biển vuông góc phố). */ double?: boolean }>) {
-  const map = useMemo(() => labelTexture(lines, w, h, bg), [lines, w, h, bg]);
+  uniform = false,
+}: Readonly<{ w: number; h: number; lines: readonly DecorLine[]; bg?: string | null; position: [number, number, number]; rotation?: [number, number, number]; /** Thấy được từ cả hai mặt (biển vuông góc phố). */ double?: boolean; /** Mọi dòng cùng một cỡ chữ (câu đối dọc). */ uniform?: boolean }>) {
+  const map = useMemo(() => labelTexture(lines, w, h, bg, undefined, { uniform }), [lines, w, h, bg, uniform]);
   return (
     <mesh position={position} rotation={rotation}>
       <planeGeometry args={[w, h]} />

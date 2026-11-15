@@ -5,6 +5,7 @@
 
 export interface DecorLine {
   text: string;
+  /** Độ lớn TƯƠNG ĐỐI của dòng (xem `LabelLine.size`), không phải pixel: chữ tự chia chiều cao và thu nhỏ cho vừa khung. */
   size: number;
   color: string;
   weight?: 'normal' | 'bold';
@@ -40,12 +41,12 @@ export const BOARD_TEXT: Readonly<Record<'van-phong' | 'lop-hoc', readonly Decor
 };
 
 export const SCHOOL_MOTTO: readonly DecorLine[] = [{ text: 'TIÊN HỌC LỄ, HẬU HỌC VĂN', size: 110, color: '#7c2d12' }];
-export const OFFICE_MOTTO: readonly DecorLine[] = [{ text: 'LÀM VIỆC HẾT MÌNH · NGHỈ TẾT HẾT CỠ', size: 100, color: '#1e3a8a' }];
+export const OFFICE_MOTTO: readonly DecorLine[] = [{ text: 'LÀM HẾT MÌNH · NGHỈ HẾT CỠ', size: 100, color: '#1e3a8a' }];
 
 export const CALENDAR: readonly DecorLine[] = [
-  { text: 'TẾT ĐINH MÙI', size: 40, color: '#b91c1c' },
+  { text: 'TẾT ĐINH MÙI', size: 70, color: '#b91c1c' },
   { text: '28', size: 150, color: '#b91c1c' },
-  { text: 'tháng Chạp', size: 46, color: '#44403c', weight: 'normal' },
+  { text: 'tháng Chạp', size: 60, color: '#44403c', weight: 'normal' },
 ];
 
 export const SCHEDULE_TITLE: readonly DecorLine[] = [{ text: 'THỜI KHÓA BIỂU', size: 90, color: '#7c2d12' }];

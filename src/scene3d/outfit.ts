@@ -18,24 +18,8 @@ export type Anchor = 'head' | 'chest' | 'handR';
 /** Tên xương gắn vào (đã chuẩn hoá theo three.js, xem `sanitizeName`). */
 export const ANCHOR_BONE: Readonly<Record<Anchor, string>> = { head: 'Head', chest: 'Chest', handR: 'WristR' };
 
-export type ShapeKind = 'box' | 'cyl' | 'sphere' | 'cone' | 'torus';
-
-/**
- * Một khối. Tham số `s` theo loại:
- * box [rộng, cao, sâu]; cyl [bán kính trên, bán kính dưới, cao, số cạnh]; sphere [bán kính, số cạnh ngang, số cạnh dọc,
- * phiStart, phiLength, thetaStart, thetaLength] (từ bán kính trở đi có thể bỏ); cone [bán kính, cao, số cạnh];
- * torus [bán kính vòng, bán kính ống, số cạnh ống, số đoạn, cung].
- */
-export interface Shape {
-  g: ShapeKind;
-  s: readonly number[];
-  p: readonly [number, number, number];
-  /** Góc xoay Euler XYZ (rad). */
-  r?: readonly [number, number, number];
-  /** Co giãn theo từng trục (ví dụ bầu thìa). */
-  k?: readonly [number, number, number];
-  c: string;
-}
+export type { Shape, ShapeKind } from './shapes';
+import type { Shape } from './shapes';
 
 export interface PropPart {
   anchor: Anchor;
