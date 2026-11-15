@@ -36,3 +36,30 @@ export function wallPiers(z0: number, z1: number, openings: readonly WallOpening
   if (z1 - cur > 0.01) piers.push([cur, z1]);
   return piers;
 }
+
+export interface WindowedWallSpec {
+  x: number;
+  thick: number;
+  z0: number;
+  z1: number;
+  h: number;
+  sill: number;
+  head: number;
+  openings: readonly WallOpening[];
+}
+
+/**
+ * Các khối của tường có ô cửa sổ thật: dải dưới (dưới bậu), dải trên (trên đầu cửa) và các trụ giữa ô. Hàm thuần để test
+ * và để gộp hình (roomShapes.ts). Vật cản của tường không đổi: vẫn là một khối liền trong walk.ts.
+ */
+export function windowedWallBoxes(w: WindowedWallSpec): { p: [number, number, number]; s: [number, number, number] }[] {
+  const mid = (w.z0 + w.z1) / 2;
+  const out: { p: [number, number, number]; s: [number, number, number] }[] = [
+    { p: [w.x, w.sill / 2, mid], s: [w.thick, w.sill, w.z1 - w.z0] },
+    { p: [w.x, w.head + (w.h - w.head) / 2, mid], s: [w.thick, w.h - w.head, w.z1 - w.z0] },
+  ];
+  for (const [a, b] of wallPiers(w.z0, w.z1, w.openings)) {
+    out.push({ p: [w.x, w.sill + (w.head - w.sill) / 2, (a + b) / 2], s: [w.thick, w.head - w.sill, b - a] });
+  }
+  return out;
+}
