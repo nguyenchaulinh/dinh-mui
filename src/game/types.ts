@@ -57,6 +57,11 @@ export interface WalkArea {
   colliders: Collider[];
   /** Điểm xuất phát của người chơi. */
   spawn: { x: number; z: number; rotY: number };
+  /**
+   * Góc máy bám riêng của bản đồ (pitch rad, dist m), thay DEFAULT_CAM. Dùng cho bản đồ có dải đi lại hẹp sát tường: camera
+   * thấp và gần làm mặt tiền nhà thành mảng phẳng che màn hình, nên nâng góc nhìn xuống.
+   */
+  camera?: { pitch: number; dist: number };
 }
 
 /** Đầu vào di chuyển đã chuẩn hoá: x = sang phải, y = tiến lên (theo màn hình), độ lớn 0..1. */

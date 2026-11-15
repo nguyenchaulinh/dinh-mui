@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { BoxGeometry, BufferGeometry, BufferAttribute } from 'three';
 import { STREET_BANNERS } from './decorText';
 import { PARKED_BIKES, STREET_LAMP_XS } from './props-street';
-import streetSrc from './props-street.tsx?raw';
 import { PHO_TRAFFIC, phoFarHouses, phoHouses, phoSkyline } from './phoLayout';
 import { SET_PROPS } from './sets';
 import { phoPots } from './walk';
@@ -12,7 +11,6 @@ import { bakeHeightAO } from './shapes';
  * Ngân sách draw call của phố Tết, TÍNH TỪ bố cục thật và cấu trúc dựng (không phải số đo trên máy). Mục tiêu docs/11: dưới
  * 400 draw call mỗi cảnh. Số đo thật xem bộ đếm "dc" trên màn hình (FpsProbe); test này giữ cho cấu trúc không phình lên.
  */
-const meshTags = (src: string, from: string, to: string): number => (src.slice(src.indexOf(from), src.indexOf(to)).match(/<mesh[\s>]/g) ?? []).length;
 
 describe('ngân sách draw call phố Tết (tính từ cấu trúc)', () => {
   const houses = phoHouses('bac');
@@ -31,9 +29,9 @@ describe('ngân sách draw call phố Tết (tính từ cấu trúc)', () => {
     'mặt đường, vỉa hè, nền': 1 + 1 + 2,
     // Đồ model: mỗi model ~2-3 mesh (nhiều vật liệu).
     'cột đèn, ghế, thùng rác, bụi cây (model)': STREET_LAMP_XS.length * 3 + 2 * 2 + 2 * 2 + 7 * 2,
-    // Đồ dựng tay còn lại: đếm thẻ <mesh> trong nguồn.
-    'sạp quà': meshTags(streetSrc, 'export function GiftStall', 'export function BusStop'),
-    'trạm xe buýt, biển Ga Hà Nội': meshTags(streetSrc, 'export function BusStop', 'export function Bunting') + 3,
+    // Sạp và trạm đã gộp: sạp 2 mesh (đặc, phát sáng); trạm 2 mesh + tấm kính trong suốt + biển chữ Ga Hà Nội.
+    'sạp quà': 2,
+    'trạm chờ, biển Ga Hà Nội': 3 + 1,
     'đèn lồng (mỗi cái 2 mesh)': 8 * 2 + 4,
     'nhân vật (người chơi + 5 NPC, ~12 mesh gồm phụ kiện)': 6 * 12,
   };
