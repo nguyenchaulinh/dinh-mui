@@ -25,8 +25,9 @@ describe('ngân sách draw call phố Tết (tính từ cấu trúc)', () => {
     'xe máy đậu': PARKED_BIKES.length,
     'chậu hoa Tết': phoPots().length,
     'dây cờ, vạch qua đường': 4 + 1,
+    'cột điện, dây điện (một mesh)': 1,
     'nhà cao tầng xa, bầu trời': phoSkyline().length + 1,
-    'mặt đường, vỉa hè, nền': 1 + 1 + 2,
+    'mặt đường, vạch kẻ (gộp), vỉa hè, nền': 1 + 1 + 2,
     // Đồ model: mỗi model ~2-3 mesh (nhiều vật liệu).
     'cột đèn, ghế, thùng rác, bụi cây (model)': STREET_LAMP_XS.length * 3 + 2 * 2 + 2 * 2 + 7 * 2,
     // Sạp và trạm đã gộp: sạp 2 mesh (đặc, phát sáng); trạm 2 mesh + tấm kính trong suốt + biển chữ Ga Hà Nội.

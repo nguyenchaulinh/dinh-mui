@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { BackSide, BufferAttribute, Color, SphereGeometry } from 'three';
 import {
   Altar,
@@ -26,7 +26,8 @@ import { TextPlane } from './TextPlane';
 import { TexMat } from './TexMat';
 import { SETS, styleOfRegion } from './registry';
 import { corkboardTexture, floorTexture, skyGradient, type FloorKind } from './textures';
-import { BusStop, Bunting, Crosswalk, GiftStall, PARKED_BIKES, STREET_LAMP_XS } from './props-street';
+import { BusStop, Bunting, Crosswalk, GiftStall, PARKED_BIKES, PowerLines, STREET_LAMP_XS } from './props-street';
+import type { Shape } from './shapes';
 import { PHO_TRAFFIC, phoFarHouses, phoHouses, phoSkyline } from './phoLayout';
 import { StreetHouse } from './StreetHouse';
 import { TramDung } from './set-tram-dung';
@@ -124,6 +125,11 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
     [],
   );
   const cargo = useMemo<Blossom[]>(() => [blossom, 'quat'], [blossom]);
+  // 20 vạch kẻ giữa đường và 9 toà nhà xa: gộp, mỗi nhóm một mesh.
+  const roadShapes = useMemo(() => Array.from({ length: 20 }, (_, i): Shape => ({ g: 'plane', s: [1.6, 0.08], p: [-38 + i * 4, 0.02, 0.2], r: [-Math.PI / 2, 0, 0], c: '#f8fafc' })), []);
+  const skylineShapes = useMemo(() => skyline.map((b): Shape => ({ g: 'box', s: [b.w, b.h, 4], p: [b.x, b.h / 2, -13], c: b.c })), [skyline]);
+  // Độ cao đỉnh nhà phố phía bắc tại x (dây điện neo vào mặt tiền không lơ lửng trên nhà thấp).
+  const houseTop = useCallback((x: number) => (houses.find((h) => Math.abs(x - h.x) <= h.w / 2)?.h ?? 4.5) + 0.24, [houses]);
 
   return (
     <group>
@@ -133,12 +139,7 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
         <planeGeometry args={[80, 4]} />
         <TexMat kind="asphalt" base="#3b4252" rx={20} ry={1} rough={0.95} />
       </mesh>
-      {Array.from({ length: 20 }, (_, i) => (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[-38 + i * 4, 0.02, 0.2]}>
-          <planeGeometry args={[1.6, 0.08]} />
-          <Mat c="#f8fafc" />
-        </mesh>
-      ))}
+      <MergedShapes solid={roadShapes} />
       {/* vỉa hè hai bên */}
       {[-2.9, 3.4].map((z) => (
         <mesh key={z} position={[0, PHO_TET.sidewalkTop / 2, z]}>
@@ -174,12 +175,9 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
       {Array.from({ length: 7 }, (_, i) => (
         <Prop key={`u${i}`} model={i % 3 === 1 ? 'houseplant' : 'bush'} position={[-10.5 + i * 3.6, PHO_TET.sidewalkTop, 4.35]} fit={{ h: i % 3 === 1 ? 0.7 : 0.8 }} />
       ))}
-      {skyline.map((b, i) => (
-        <mesh key={`s${i}`} position={[b.x, b.h / 2, -13]}>
-          <boxGeometry args={[b.w, b.h, 4]} />
-          <Mat c={b.c} />
-        </mesh>
-      ))}
+      {/* nhà cao tầng xa phía sau dãy nhà bắc, vạch kẻ giữa đường (đã gộp) */}
+      <MergedShapes solid={skylineShapes} />
+      <PowerLines houseTop={houseTop} />
       {/* dây cờ Tết căng ngang đường (treo cao), vạch qua đường, xe máy đậu sát lề */}
       {[-10, -4, 2, 8].map((x) => (
         <Bunting key={x} x={x} y0={4.9} y1={4.6} z0={-3.9} z1={5.4} />
