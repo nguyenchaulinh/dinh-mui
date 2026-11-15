@@ -1,3 +1,4 @@
+import { Euler, Quaternion, Vector3 } from 'three';
 import type { Shape } from './shapes';
 
 /** Hình khối đồ phố gộp một mesh (hàm thuần): dây cờ Tết căng ngang đường và vạch qua đường. */
@@ -66,4 +67,55 @@ export function busStopShapes(): LitShapes {
   for (const x of [-1.1, 1.1]) solid.push({ g: 'cyl', s: [0.07, 0.07, 2.5, 6], p: [x, 1.25, 0.15], c: '#475569' });
   for (const x of [-0.6, 0.6]) solid.push({ g: 'box', s: [0.08, 0.44, 0.36], p: [x, 0.22, 0], c: '#57361f' });
   return { solid, lit: [{ g: 'box', s: [0.9, 0.5, 0.06], p: [-2.0, 2.6, -0.9], c: '#2563eb' }] };
+}
+
+// ---------- Cột điện và dây điện chằng chịt ----------
+
+type V3 = readonly [number, number, number];
+
+/** Một đoạn dây (hình trụ mảnh) từ a tới b, toạ độ thế giới. */
+export function wireSegment(a: V3, b: V3, c = '#1f2937', r = 0.012): Shape {
+  const d = new Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+  const len = d.length();
+  const q = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), len > 1e-9 ? d.clone().divideScalar(len) : new Vector3(0, 1, 0));
+  const e = new Euler().setFromQuaternion(q, 'XYZ');
+  return { g: 'cyl', s: [r, r, len, 3], p: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2], r: [e.x, e.y, e.z], c };
+}
+
+/** Dây võng giữa a và b (đường cong parabol, độ võng `sag` ở giữa), chia `n` đoạn. */
+export function sagWire(a: V3, b: V3, sag: number, n = 6, c = '#1f2937', r = 0.012): Shape[] {
+  const at = (t: number): V3 => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - sag * 4 * t * (1 - t), a[2] + (b[2] - a[2]) * t];
+  return Array.from({ length: n }, (_, i) => wireSegment(at(i / n), at((i + 1) / n), c, r));
+}
+
+/** Cột điện trên vỉa hè xa (người chơi không tới): vị trí x, z, độ cao đỉnh cột và độ cao hai xà ngang. */
+export const UTILITY_POLES = { xs: [-15, -5.1, 5.7, 15], z: 4.7, top: 6.4, arms: [6.1, 5.6] } as const;
+/** Mặt nhà phố phía bắc nơi dây neo vào: z của mặt tiền và độ cao các sợi (trên đầu camera ~4.4 m). */
+export const WIRE_FACADE = { z: -3.7, ys: [5.5, 5.75, 6.0] } as const;
+
+/**
+ * Cột điện bê tông có hai xà ngang, hộp biến áp, và các bó dây: dây dọc phố nối cột này sang cột khác (ba sợi, võng nhẹ),
+ * dây ngang đường neo vào mặt tiền nhà phía bắc (thấp hơn nếu nhà thấp, `houseTop` cho độ cao đỉnh nhà tại x). Dây ngang đường cao hơn 5.3 m nên nằm trên tầm camera phố (mắt ~4.4 m) và đầu người.
+ */
+export function powerLineShapes(houseTop: (x: number) => number = () => Infinity): Shape[] {
+  const P = UTILITY_POLES;
+  const out: Shape[] = [];
+  P.xs.forEach((x, i) => {
+    out.push({ g: 'cyl', s: [0.08, 0.12, P.top, 6], p: [x, P.top / 2, P.z], c: '#a8a29e' });
+    for (const y of P.arms) out.push({ g: 'box', s: [0.06, 0.06, 1.5], p: [x, y, P.z], c: '#57534e' });
+    if (i % 2 === 1) out.push({ g: 'cyl', s: [0.22, 0.22, 0.6, 8], p: [x, P.arms[1] - 0.55, P.z - 0.28], c: '#6b7280' }); // biến áp
+    // dây ngang đường: ba sợi từ đầu xà ngang sang ba độ cao trên mặt tiền
+    [-0.7, 0, 0.7].forEach((dz, k) => {
+      const a: V3 = [x, P.arms[k % 2]!, P.z + dz];
+      const bx = x + (k - 1) * 0.5;
+      const b: V3 = [bx, Math.min(WIRE_FACADE.ys[k]!, houseTop(bx) - 0.15), WIRE_FACADE.z]; // không neo lơ lửng trên nhà thấp
+      out.push(...sagWire(a, b, 0.45 + k * 0.1, 8));
+    });
+    // dây dọc phố tới cột kế tiếp
+    const next = P.xs[i + 1];
+    if (next !== undefined) {
+      for (const [k, dz] of [-0.7, 0, 0.7].entries()) out.push(...sagWire([x, P.arms[k % 2]!, P.z + dz], [next, P.arms[k % 2]!, P.z + dz], 0.4 + k * 0.08, 8));
+    }
+  });
+  return out;
 }
