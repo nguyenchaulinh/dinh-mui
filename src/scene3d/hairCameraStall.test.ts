@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Box3 } from 'three';
 import { HAIR_STYLES, hairParts, hairShapes } from './hair';
-import { FIT, fitOf } from './outfit';
+import { FIT, fitOf, propsFor } from './outfit';
 import { builtinOf } from './outfit';
 import { CHARACTER_MODELS, roleOf } from './rigging';
 import { mergeShapes } from './shapes';
@@ -31,8 +31,9 @@ describe('bộ tóc riêng', () => {
     const f = fitOf(model);
     for (const style of HAIR_STYLES.filter((s) => s !== 'bald')) {
       const b = bbox(hairShapes(style, f));
-      expect(b.max.y, `${style} phủ đỉnh`).toBeGreaterThanOrEqual(f.hy1 - 0.02);
-      expect(b.max.y, `${style} không quá cao`).toBeLessThanOrEqual(f.hy1 + (style === 'bun' ? 0.1 : 0.04));
+      const top = Math.min(f.hy1, f.sTop + 0.04);
+      expect(b.max.y, `${style} phủ đỉnh`).toBeGreaterThanOrEqual(top - 0.005);
+      expect(b.max.y, `${style} không quá cao`).toBeLessThanOrEqual(top + (style === 'bun' ? 0.08 : 0.005));
       expect(Math.abs(b.max.x), style).toBeLessThanOrEqual(f.hhw + 0.08);
       expect(b.min.z, style).toBeGreaterThanOrEqual(f.hzb - 0.12);
       expect(b.max.z, `${style} không che mặt`).toBeLessThanOrEqual(f.hzf + 0.01);
@@ -110,5 +111,15 @@ describe('sạp quà và trạm chờ gộp', () => {
       expect(b.min.y).toBeGreaterThanOrEqual(-0.01);
       expect(b.max.y).toBeLessThan(3.2);
     }
+  });
+});
+
+describe('kính đặt đúng độ cao mắt thật', () => {
+  it.each(Object.keys(FIT))('%s: tròng kính ngang mắt (eyeY đo từ mesh), không ở trên trán', (model) => {
+    const f = fitOf(model);
+    const rims = propsFor(['glasses'], f).flatMap((p) => p.shapes).filter((s) => s.g === 'torus');
+    expect(rims).toHaveLength(2);
+    for (const r of rims) expect(r.p[1], model).toBeCloseTo(f.eyeY, 6);
+    expect(f.eyeY).toBeLessThan(f.browTop); // mắt thấp hơn đỉnh lông mày
   });
 });

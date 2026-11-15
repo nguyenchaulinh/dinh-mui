@@ -29,7 +29,18 @@ export interface PropPart {
 
 /** Số đo đầu và thân của model trong tư thế gốc. */
 export interface Fit {
-  /** Đáy và đỉnh đầu (y), nửa bề ngang, mặt sau và mặt trước (z). */
+  /**
+   * Số đo SỌ và mắt, lấy từ phần da, lông mày, mắt của mesh (không tính tóc gốc): `sTop` đỉnh sọ, `sHW` nửa bề ngang sọ,
+   * `sZb` / `sZf` mặt sau và mặt trước của sọ (z), `eyeY` độ cao mắt, `browTop` đỉnh lông mày. Tóc riêng và kính dựa vào
+   * đây; `hy1` (dưới) tính cả tóc gốc nên chỉ dùng cho nón, mũ đặt lên trên tóc.
+   */
+  sTop: number;
+  sHW: number;
+  sZb: number;
+  sZf: number;
+  eyeY: number;
+  browTop: number;
+  /** Đáy và đỉnh đầu (y) tính cả tóc gốc, nửa bề ngang, mặt sau và mặt trước (z). */
   hy0: number;
   hy1: number;
   hhw: number;
@@ -43,8 +54,8 @@ export interface Fit {
   tzf: number;
 }
 
-const MALE: Fit = { hy0: 1.57, hy1: 1.86, hhw: 0.12, hzb: -0.09, hzf: 0.18, ty0: 1.0, ty1: 1.56, thw: 0.145, tzb: -0.08, tzf: 0.18 };
-const FEMALE: Fit = { hy0: 1.52, hy1: 1.84, hhw: 0.12, hzb: -0.1, hzf: 0.19, ty0: 1.12, ty1: 1.53, thw: 0.11, tzb: -0.02, tzf: 0.18 };
+const MALE: Fit = { sTop: 1.826, sHW: 0.107, sZb: -0.062, sZf: 0.175, eyeY: 1.697, browTop: 1.717, hy0: 1.57, hy1: 1.86, hhw: 0.12, hzb: -0.09, hzf: 0.18, ty0: 1.0, ty1: 1.56, thw: 0.145, tzb: -0.08, tzf: 0.18 };
+const FEMALE: Fit = { sTop: 1.789, sHW: 0.1, sZb: -0.046, sZf: 0.177, eyeY: 1.695, browTop: 1.714, hy0: 1.52, hy1: 1.84, hhw: 0.12, hzb: -0.1, hzf: 0.19, ty0: 1.12, ty1: 1.53, thw: 0.11, tzb: -0.02, tzf: 0.18 };
 
 /** Đo từ file GLB (trọng số xương Head / Torso+Chest+Abdomen); nu-hoa-tai có thân như nam. */
 export const FIT: Readonly<Record<string, Fit>> = {
@@ -53,8 +64,9 @@ export const FIT: Readonly<Record<string, Fit>> = {
   'nam-nong-dan': MALE,
   'nam-hoodie': MALE,
   'nu-hoa-tai': { ...MALE, hy1: 1.88, tzb: -0.05 },
-  'nu-thuong-ngay': FEMALE,
-  'nu-cong-so': FEMALE,
+  // Hai model nữ có đầu rộng khác nhau (da: x +-0.093 và +-0.109).
+  'nu-thuong-ngay': { ...FEMALE, sHW: 0.093 },
+  'nu-cong-so': { ...FEMALE, sHW: 0.109 },
 };
 
 export const fitOf = (model: string): Fit => FIT[model] ?? MALE;
@@ -89,9 +101,8 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 export function propsFor(list: readonly Accessory[], fit: Fit, accent?: string, skip?: ReadonlySet<Accessory>): PropPart[] {
   const parts: PropPart[] = [];
   const a = (def: string): string => (accent !== undefined && HEX.test(accent) ? accent : def);
-  const { hy0, hy1, hhw, hzb, hzf, ty0, ty1, thw, tzb, tzf } = fit;
+  const { hy1, hhw, hzb, hzf, ty0, ty1, thw, tzb, tzf, eyeY } = fit;
   const hcz = (hzb + hzf) / 2;
-  const eyeY = hy0 + 0.66 * (hy1 - hy0);
   const neckZ = (tzb + tzf) / 2 + 0.01;
   const head = (shapes: Shape[]) => parts.push({ anchor: 'head', frame: 'bind', shapes });
   const chest = (shapes: Shape[]) => parts.push({ anchor: 'chest', frame: 'bind', shapes });

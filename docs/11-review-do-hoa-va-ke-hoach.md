@@ -90,7 +90,7 @@ Tổng ước lượng **25-35 ngày làm việc** (chưa tính thời gian bạ
 | 1. Hiệu năng | `shapes.ts` gộp khối thành một geometry có màu theo đỉnh; **nhà phố** (4 draw call mỗi nhà), **xe máy** (1 mesh), **hoa Tết** (1 mesh mỗi cây), **dây cờ, vạch qua đường, sạp quà (2 mesh), trạm chờ (3 mesh)** đều đã gộp. Ngân sách phố Tết tính từ cấu trúc: **~321** (cùng công thức cho ra ~1.377 trước khi gộp) | Đo thật; áp dụng gộp hình cho sân nhà và lớp học (lớp học còn nhiều khối `Box` riêng lẻ) |
 | 2. Ánh sáng | AO nướng sẵn theo độ cao vào thân và chi tiết nhà (chân nhà tối 70%, sáng dần tới 2.4 m) | Bóng đổ thật, màu theo giờ, tuỳ chọn bloom |
 | 3. Phố | **Camera phố** có góc riêng (nâng lên ~29°, lùi 6.6 m: mắt camera cao ~4.4 m, trên mái hiên) để mặt tiền không còn là mảng phẳng sát mặt; biển hiệu có tên cửa hàng, băng rôn, địa điểm (mục 4 và 6) | Dây điện, biển vuông góc phố, ban công; so ảnh với bản chụp cũ |
-| 4. Nhân vật | **Bộ tóc riêng** (ngắn, búi, dài, trọc) gắn xương Head, ẩn tóc gốc của model; kiểm trên đỉnh mesh thật: tóc nằm sau mặt phẳng khuôn mặt ở độ cao mắt | Hơn 12 thân khác nhau (cần thêm model CC0 hoặc biến thể tỉ lệ), lớp trang phục (áo dài Tết, áo phao), tỉ lệ đầu |
+| 4. Nhân vật | **Bộ tóc riêng** (ngắn, búi, dài, trọc) gắn xương Head, ẩn tóc gốc của model. Tóc ôm theo SỌ thật (số đo lấy từ phần da, lông mày, mắt của mesh, không tính tóc gốc; bản đầu dùng số đo gồm tóc gốc nên mũ tóc nổi như cái bát), dày tối đa 4 cm. Sửa luôn độ cao kính (trước đây cao hơn mắt thật 6 cm) | Hơn 12 thân khác nhau (cần thêm model CC0 hoặc biến thể tỉ lệ), lớp trang phục (áo dài Tết, áo phao), tỉ lệ đầu |
 | 5-8 | Chưa (riêng biển hiệu, băng rôn, địa điểm: xem mục 4 và 6) | |
 
 ### Việc làm nhanh trong 1-2 ngày (nếu muốn thấy khác biệt sớm)
