@@ -3,7 +3,7 @@ import { loadContent } from '../content';
 import { isBlocked } from '../game/collision';
 import { PLAYER_RADIUS } from '../game/movement';
 import { SETS } from './registry';
-import { PHO_TET, phoPots, walkAreaFor } from './walk';
+import { PHO_TET, actorCollider, phoPots, walkAreaFor } from './walk';
 
 /**
  * Phố Tết (chặng Ra bến): vỉa hè bắc dài 25 m, rộng 2 m. Không xem được hình thì phải chứng minh bằng hình học rằng chơi
@@ -81,7 +81,47 @@ describe.each(['bac', 'trung', 'nam'] as const)('bản đồ ra-ben (%s)', (styl
     }
   });
 
-  it('người chơi (r 0.35) không đi vào được làn xe máy đầu tiên (z -0.9, xe rộng 0.64)', () => {
-    expect(area.bounds.maxZ + PLAYER_RADIUS).toBeLessThan(-0.9 - 0.32);
+  it('mép vùng đi lại (mép thân người) không chạm làn xe máy đầu tiên (z -0.9, xe rộng 0.64)', () => {
+    expect(area.bounds.maxZ).toBeLessThan(-0.9 - 0.32);
+  });
+
+  it('NPC đứng cố định không chặn lối: vẫn đi hết vỉa hè từ đầu tây tới đầu đông với dư 0.1 m mỗi bên', () => {
+    const standing = map.npcs.filter((n) => n.behavior === 'stand').map((n) => {
+      const s = set.spots[n.spot]!;
+      return actorCollider(s.pos[0], s.pos[2]);
+    });
+    expect(standing.length).toBeGreaterThanOrEqual(3);
+    const colliders = [...area.colliders, ...standing];
+    const r = PLAYER_RADIUS + 0.1;
+    const { minX, maxX, minZ, maxZ } = area.bounds;
+    const nx = Math.round((maxX - minX) / STEP);
+    const nz = Math.round((maxZ - minZ) / STEP);
+    const seen = new Uint8Array((nx + 1) * (nz + 1));
+    const si = Math.round((area.spawn.x - minX) / STEP);
+    const sj = Math.round((area.spawn.z - minZ) / STEP);
+    const stack: [number, number][] = [[si, sj]];
+    seen[sj * (nx + 1) + si] = 1;
+    let farEast = -Infinity;
+    while (stack.length > 0) {
+      const [i, j] = stack.pop()!;
+      farEast = Math.max(farEast, minX + i * STEP);
+      for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const a = i + di;
+        const b = j + dj;
+        if (a < 0 || b < 0 || a > nx || b > nz || seen[b * (nx + 1) + a]) continue;
+        seen[b * (nx + 1) + a] = 1;
+        if (!isBlocked({ x: minX + a * STEP, z: minZ + b * STEP }, r, colliders, area.bounds)) stack.push([a, b]);
+      }
+    }
+    expect(farEast, 'đi tới đầu đông vỉa hè').toBeGreaterThan(maxX - 0.6);
+  });
+
+  it('NPC đứng sát mặt tiền và hàng chậu né họ (PHO_TET.standNpc khớp registry)', () => {
+    for (const n of map.npcs.filter((m) => m.behavior === 'stand' && m.spot !== 'ben')) {
+      const s = set.spots[n.spot]!;
+      expect(PHO_TET.standNpc.xs, n.characterId).toContain(s.pos[0]);
+      expect(s.pos[2], n.characterId).toBe(PHO_TET.standNpc.z);
+    }
+    for (const p of phoPots()) for (const x of PHO_TET.standNpc.xs) expect(Math.abs(p.x - x), `chậu ${p.x}`).toBeGreaterThanOrEqual(PHO_TET.pots.skipNearNpc);
   });
 });

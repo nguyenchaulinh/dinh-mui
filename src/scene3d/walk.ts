@@ -283,7 +283,11 @@ function buildCuoiNam(): WalkArea {
  * - Trạm xe buýt ở mé đông: ghế chờ + hai trụ (mái ở độ cao 2.55 m nên đi qua bên dưới), cột biển ở đầu đông.
  */
 export const PHO_TET = {
-  bounds: { minX: -12.5, maxX: 13, minZ: -3.7, maxZ: -1.7 },
+  /**
+   * Vùng đi lại (mép thân người, tâm cách mép bán kính 0.35): vỉa hè bắc rộng 2.3 m (z -3.7 .. -1.4); mép ngoài ngay sát lề
+   * đường, còn cách làn xe đầu tiên (z -0.9, xe rộng 0.64) 0.18 m. Trước đây rộng 2.0 m nên NPC đứng giữa vỉa hè chặn lối.
+   */
+  bounds: { minX: -12.5, maxX: 13, minZ: -3.7, maxZ: -1.4 },
   /** Mặt vỉa hè (m): người đứng ở y = 0 nên vỉa hè dựng thấp, gần như ngang mặt đường. */
   sidewalkTop: 0.05,
   /** Nhà phố: tâm (z), nửa sâu; mặt tiền z = -3.8. */
@@ -291,7 +295,12 @@ export const PHO_TET = {
   /** Sạp quà: tâm quầy, nửa rộng, nửa sâu. */
   stall: { x: -3.0, z: -3.4, hw: 1.3, hd: 0.4 },
   /** Hàng chậu: vị trí x = x0 + i * step; chậu cách sạp / trạm trong "skip" thì bỏ. */
-  pots: { z: -3.2, x0: -9, step: 2.2, count: 9, skipNearStall: 1.9, skipNearBus: 1.8 },
+  pots: { z: -3.2, x0: -9, step: 2.2, count: 9, skipNearStall: 1.9, skipNearBus: 1.8, skipNearNpc: 1.0 },
+  /**
+   * Nhân vật đứng cố định (trà đá, gánh đào, tổ trưởng) đứng sát mặt tiền nhà (z -3.25) để chừa lối đi ở phía lề đường: vòng
+   * chặn của một NPC đứng rộng 0.77 m quanh tâm, chiếm gần hết vỉa hè nếu đứng giữa. Khớp spot trong registry.ts.
+   */
+  standNpc: { z: -3.25, xs: [-7.6, 0.9, 8.0] },
   /** Trạm xe buýt: tâm ghế chờ; mái/lưng quay về phía nhà phố (nhóm xoay PI). */
   /**
    * Góc máy bám trên phố: dải đi lại rộng 2 m sát mặt tiền nên góc mặc định (thấp 15°, cách 5.6 m) đặt camera ngay sát tường
@@ -316,6 +325,7 @@ export function phoPots(): PhoPot[] {
     const x = L.pots.x0 + i * L.pots.step;
     if (Math.abs(x - L.stall.x) < L.pots.skipNearStall) continue;
     if (Math.abs(x - L.bus.x) < L.pots.skipNearBus) continue;
+    if (L.standNpc.xs.some((nx) => Math.abs(x - nx) < L.pots.skipNearNpc)) continue;
     out.push({ x, z: L.pots.z, kind: i % 3 === 2 ? 'quat' : 'hoa' });
   }
   return out;
