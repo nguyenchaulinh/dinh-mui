@@ -77,7 +77,7 @@ export function RoamScreen({
   const { personaId, regionId } = initialGame;
   const map = useMemo(() => getRoamMap(content, stage.mapId), [content, stage.mapId]);
   const controller = useMemo(() => new InputController(), []);
-  const [fps, setFps] = useState<number | null>(null);
+  const [fps, setFps] = useState<{ fps: number; calls: number; triangles: number } | null>(null);
   /** Chỉ số, cờ, thẻ mẹo, lịch sử của lượt chơi. `gameRef` là bản đồng bộ: mọi cập nhật qua `commit`. */
   const [game, setGameState] = useState<GameState>(initialGame);
   const gameRef = useRef(game);
@@ -543,7 +543,7 @@ export function RoamScreen({
               onAmbush={onAmbush}
               onDodge={onDodge}
               onHit={onHit}
-              onFps={DEBUG ? setFps : undefined}
+              onFps={DEBUG ? (f, st) => setFps({ fps: f, ...st }) : undefined}
               guideKeys={guideKeys}
               onGuides={setGuides}
             />
@@ -592,7 +592,7 @@ export function RoamScreen({
           </div>
 
           <div className="top-actions">
-            {DEBUG && fps !== null && <span className="fps">{fps} FPS</span>}
+            {DEBUG && fps !== null && <span className="fps">{fps.fps} FPS · {fps.calls} dc · {Math.round(fps.triangles / 1000)}k tam giác</span>}
             <button className="icon-btn" aria-label="Tạm dừng" onClick={onPause}>
               <PauseIcon />
             </button>

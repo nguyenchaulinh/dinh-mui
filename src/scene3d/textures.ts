@@ -228,37 +228,78 @@ export function skyGradient(horizon: string, zenith = '#6f9bd6', amount = 0.5): 
 
 export interface LabelLine {
   text: string;
-  /** Cỡ chữ (px trên canvas). */
+  /**
+   * Độ lớn TƯƠNG ĐỐI của dòng (không phải pixel): mỗi dòng nhận phần chiều cao tỉ lệ với số này, rồi chữ tự thu nhỏ cho
+   * vừa bề ngang khung (không ép méo). Dòng một mình thì số này không có tác dụng.
+   */
   size: number;
   color: string;
   weight?: 'normal' | 'bold';
-  /** Ngôi sao / dấu gạch đầu dòng được viết ngay trong `text`; `x` là vị trí ngang (0..1), mặc định giữa. */
-  x?: number;
+}
+
+export interface LabelOptions {
+  /** Mọi dòng dùng cùng một cỡ chữ (lấy cỡ nhỏ nhất vừa khung), ví dụ câu đối dọc. */
+  uniform?: boolean;
 }
 
 const FONT = '"Helvetica Neue", "Segoe UI", Arial, sans-serif';
+/** Chữ chiếm tối đa phần này của chiều cao dòng / chiều rộng khung (còn lại là lề). */
+const LINE_FILL = 0.8;
+const WIDTH_FILL = 0.92;
+const HEIGHT_FILL = 0.88;
 
-/** Texture chữ: nền `bg` (null = trong suốt), các dòng chữ chia đều theo chiều dọc. Cache theo nội dung. */
-export function labelTexture(lines: readonly LabelLine[], w: number, h: number, bg: string | null, px = 4): CanvasTexture {
-  const key = `l|${w}|${h}|${bg}|${px}|${JSON.stringify(lines)}`;
+/**
+ * Cỡ chữ (px) cho từng dòng: mỗi dòng nhận phần chiều cao `H * HEIGHT_FILL * size / tổng size`, chữ cao LINE_FILL phần đó,
+ * rồi thu nhỏ nếu bề ngang đo được vượt WIDTH_FILL * `W`. `measure(text, weight)` trả bề ngang tại cỡ 1 px. Hàm thuần để test.
+ */
+export function fitLabelFonts(
+  lines: readonly LabelLine[],
+  W: number,
+  H: number,
+  measure: (text: string, weight: 'normal' | 'bold') => number,
+  uniform = false,
+): { fonts: number[]; bands: number[] } {
+  const total = lines.reduce((s, l) => s + Math.max(1, l.size), 0);
+  const bands = lines.map((l) => (H * HEIGHT_FILL * Math.max(1, l.size)) / total);
+  const fonts = lines.map((l, i) => {
+    let f = bands[i]! * LINE_FILL;
+    const w = measure(l.text, l.weight ?? 'bold') * f;
+    if (w > W * WIDTH_FILL && w > 0) f *= (W * WIDTH_FILL) / w;
+    return f;
+  });
+  if (uniform && fonts.length > 0) {
+    const m = Math.min(...fonts);
+    fonts.fill(m);
+  }
+  return { fonts, bands };
+}
+
+/** Texture chữ: nền `bg` (null = trong suốt), các dòng xếp từ trên xuống theo tỉ lệ. `px` = số px cho mỗi mét. Cache theo nội dung. */
+export function labelTexture(lines: readonly LabelLine[], w: number, h: number, bg: string | null, px = 384, opts: LabelOptions = {}): CanvasTexture {
+  const key = `l|${w}|${h}|${bg}|${px}|${opts.uniform ?? false}|${JSON.stringify(lines)}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const cv = document.createElement('canvas');
-  cv.width = Math.round(w * px * 64);
-  cv.height = Math.round(h * px * 64);
+  cv.width = Math.max(32, Math.round(w * px));
+  cv.height = Math.max(32, Math.round(h * px));
   const g = cv.getContext('2d')!;
   if (bg) {
     g.fillStyle = bg;
     g.fillRect(0, 0, cv.width, cv.height);
   }
-  const k = cv.height / 256; // các cỡ chữ tính theo canvas cao 256
-  const step = cv.height / (lines.length + 1);
+  const measure = (text: string, weight: 'normal' | 'bold'): number => {
+    g.font = `${weight} 100px ${FONT}`;
+    return g.measureText(text).width / 100;
+  };
+  const { fonts, bands } = fitLabelFonts(lines, cv.width, cv.height, measure, opts.uniform);
+  let y = (cv.height * (1 - HEIGHT_FILL)) / 2;
   lines.forEach((ln, i) => {
-    g.font = `${ln.weight ?? 'bold'} ${Math.round(ln.size * k)}px ${FONT}`;
+    g.font = `${ln.weight ?? 'bold'} ${Math.round(fonts[i]!)}px ${FONT}`;
     g.fillStyle = ln.color;
-    g.textAlign = ln.x === undefined ? 'center' : 'left';
+    g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.fillText(ln.text, ln.x === undefined ? cv.width / 2 : ln.x * cv.width, step * (i + 1), cv.width * 0.94);
+    g.fillText(ln.text, cv.width / 2, y + bands[i]! / 2);
+    y += bands[i]!;
   });
   const t = new CanvasTexture(cv);
   t.colorSpace = SRGBColorSpace;
