@@ -211,6 +211,8 @@ export const CUOI_NAM = {
     calendar: { x: 4.8, w: 0.66 },
     cork: { x: -5.15, w: 1.0 },
   },
+  /** Áp phích ưu đãi trên tường phải phía trên tủ TV: tâm z, rộng (dọc trục z), cao, độ cao tâm. */
+  poster: { z: -4.1, w: 1.5, h: 0.9, y: 2.05 },
   /** Hai tủ sách sát tường sau (rộng w dọc trục x, sâu d), và đèn đứng cạnh bảng. */
   shelves: [
     { x: -3.9, z: -4.7, w: 0.9, d: 0.5 },

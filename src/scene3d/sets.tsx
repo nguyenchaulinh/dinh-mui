@@ -17,7 +17,7 @@ import {
   type Blossom,
   type Menu,
 } from './props';
-import { BANNER, BOARD_TEXT, CALENDAR, COUPLET_LEFT, COUPLET_RIGHT, OFFICE_MOTTO, SCHEDULE_TITLE, SCHOOL_MOTTO, STALL_SIGN, STATION_SIGN } from './decorText';
+import { BANNER, BOARD_TEXT, CALENDAR, COUPLET_LEFT, COUPLET_RIGHT, OFFICE_MOTTO, SALE_POSTER, SCHEDULE_ROWS, SCHEDULE_TITLE, SCHOOL_MOTTO, STALL_SIGN, STATION_SIGN, STREET_BANNERS, shopSign } from './decorText';
 import { OutsideStreet, Skyline, WindowedWall } from './office-decor';
 import { Prop } from './Prop';
 import { TextPlane } from './TextPlane';
@@ -146,8 +146,16 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
       ))}
       {/* nhà phố phía bắc (có mái hiên, câu đối, bồn nước...) và dãy nhà thấp bên kia đường; mỗi nhà 4 draw call (houseShapes.ts) */}
       {houses.map((h, i) => (
-        <StreetHouse key={i} position={[h.x, 0, -5.8]} w={h.w} h={h.h} c={h.c} sign={h.sign} flag={h.flag} variant={i} shop={h.sign !== undefined} />
+        <StreetHouse key={i} position={[h.x, 0, -5.8]} w={h.w} h={h.h} c={h.c} sign={h.sign} signLines={h.sign ? shopSign(i) : undefined} flag={h.flag} variant={i} shop={h.sign !== undefined} />
       ))}
+      {/* băng rôn Tết treo trên mặt tiền ba căn rộng, giữa hai hàng cửa sổ (cao 2.7 .. 3.3 m, trên đầu người) */}
+      {houses
+        .filter((h) => h.w > 2.8)
+        .filter((_, k) => k % 3 === 0)
+        .slice(0, STREET_BANNERS.length)
+        .map((h, k) => (
+          <TextPlane key={`bn${k}`} w={Math.min(2.4, h.w - 0.3)} h={0.6} lines={STREET_BANNERS[k]!.lines} bg={STREET_BANNERS[k]!.bg} grain position={[h.x, 3.0, -3.76]} />
+        ))}
       {farHouses.map((h, i) => (
         <StreetHouse key={`f${i}`} position={[h.x, 0, 7.3]} w={h.w} h={h.h} c={h.c} sign={h.sign} variant={i} shop={false} far />
       ))}
@@ -534,7 +542,7 @@ function CuoiNam({ regionId, variant }: Readonly<{ regionId: string; variant: Ro
       {variant === 'lop-hoc' ? (
         <group position={[-L.wallSideX + 0.03, 1.7, -1.6]} rotation={[0, Math.PI / 2, 0]}>
           <Box p={[0, 0, 0]} s={[0.8, 1.0, 0.03]} c="#7c4a2a" />
-          <TextPlane w={0.74} h={0.94} bg="#fff7ed" lines={[...SCHEDULE_TITLE, { text: '- - - - - -', size: 60, color: '#b45309' }, { text: '- - - - - -', size: 60, color: '#2563eb' }, { text: '- - - - - -', size: 60, color: '#16a34a' }]} position={[0, 0, 0.018]} />
+          <TextPlane w={0.74} h={0.94} bg="#fff7ed" lines={[...SCHEDULE_TITLE, ...SCHEDULE_ROWS]} position={[0, 0, 0.018]} />
         </group>
       ) : (
         <group position={[-L.wallSideX + 0.03, 1.7, -1.6]} rotation={[0, Math.PI / 2, 0]}>
@@ -544,6 +552,9 @@ function CuoiNam({ regionId, variant }: Readonly<{ regionId: string; variant: Ro
           <Box p={[0.18, 0.08, 0.03]} s={[0.12, 0.12, 0.01]} c="#fde68a" e={0.3} />
         </group>
       )}
+      {/* áp phích "ưu đãi" giả trên tường phải, ngay trên tủ TV */}
+      <Box p={[L.wallSideX - 0.03, L.poster.y, L.poster.z]} s={[0.04, L.poster.h + 0.1, L.poster.w + 0.1]} c="#5b3720" />
+      <TextPlane w={L.poster.w} h={L.poster.h} lines={SALE_POSTER[variant]} bg="#b91c1c" grain position={[L.wallSideX - 0.055, L.poster.y, L.poster.z]} rotation={[0, -Math.PI / 2, 0]} />
       {/* tủ TV sát tường phải phía sau quầy, TV chiếu chương trình Tết */}
       <Prop model="tv-cabinet" position={[L.tv.x, 0, L.tv.z]} rotY={Math.PI / 2} fit={{ w: L.tv.w }} blob />
       <Prop model="tv" position={[L.tv.x, 0.62, L.tv.z]} rotY={Math.PI / 2} fit={{ w: 0.95 }} />

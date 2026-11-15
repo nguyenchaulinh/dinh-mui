@@ -1,4 +1,5 @@
 import { CanvasTexture, RepeatWrapping, SRGBColorSpace } from 'three';
+import { canvasFont, fontsReady, type FontRole } from './fonts';
 
 /**
  * Texture nhỏ vẽ bằng canvas lúc chạy (không tải file): ván gỗ, gạch lát. Mỗi loại và màu chỉ vẽ một lần (cache).
@@ -234,15 +235,23 @@ export interface LabelLine {
    */
   size: number;
   color: string;
-  weight?: 'normal' | 'bold';
+  /** Phông (xem fonts.ts); mặc định 'round'. */
+  font?: FontRole;
+  /** 'gold': vàng chuyển sắc từ sáng ở trên xuống đậm ở dưới (kiểu băng rôn Tết); thiếu thì dùng `color`. */
+  fill?: 'gold';
+  /** Viền chữ: `w` là tỉ lệ so với cỡ chữ (0.1 = viền dày 10% cỡ chữ). */
+  stroke?: { color: string; w: number };
+  /** Bóng đổ lệch (tỉ lệ so với cỡ chữ), màu đặc. */
+  shadow?: { color: string; dx: number; dy: number };
 }
 
 export interface LabelOptions {
   /** Mọi dòng dùng cùng một cỡ chữ (lấy cỡ nhỏ nhất vừa khung), ví dụ câu đối dọc. */
   uniform?: boolean;
+  /** Rắc hạt nhám lên nền (chỉ khi có nền), cho cảm giác in giấy. */
+  grain?: boolean;
 }
 
-const FONT = '"Helvetica Neue", "Segoe UI", Arial, sans-serif';
 /** Chữ chiếm tối đa phần này của chiều cao dòng / chiều rộng khung (còn lại là lề). */
 const LINE_FILL = 0.8;
 const WIDTH_FILL = 0.92;
@@ -250,20 +259,21 @@ const HEIGHT_FILL = 0.88;
 
 /**
  * Cỡ chữ (px) cho từng dòng: mỗi dòng nhận phần chiều cao `H * HEIGHT_FILL * size / tổng size`, chữ cao LINE_FILL phần đó,
- * rồi thu nhỏ nếu bề ngang đo được vượt WIDTH_FILL * `W`. `measure(text, weight)` trả bề ngang tại cỡ 1 px. Hàm thuần để test.
+ * rồi thu nhỏ nếu bề ngang đo được vượt WIDTH_FILL * `W`. `measure(line)` trả bề ngang của dòng tại cỡ 1 px (theo phông của
+ * dòng; viền được tính thêm). Hàm thuần để test.
  */
 export function fitLabelFonts(
   lines: readonly LabelLine[],
   W: number,
   H: number,
-  measure: (text: string, weight: 'normal' | 'bold') => number,
+  measure: (line: LabelLine) => number,
   uniform = false,
 ): { fonts: number[]; bands: number[] } {
   const total = lines.reduce((s, l) => s + Math.max(1, l.size), 0);
   const bands = lines.map((l) => (H * HEIGHT_FILL * Math.max(1, l.size)) / total);
   const fonts = lines.map((l, i) => {
     let f = bands[i]! * LINE_FILL;
-    const w = measure(l.text, l.weight ?? 'bold') * f;
+    const w = (measure(l) + (l.stroke ? l.stroke.w : 0) + (l.shadow ? Math.abs(l.shadow.dx) : 0)) * f;
     if (w > W * WIDTH_FILL && w > 0) f *= (W * WIDTH_FILL) / w;
     return f;
   });
@@ -276,7 +286,8 @@ export function fitLabelFonts(
 
 /** Texture chữ: nền `bg` (null = trong suốt), các dòng xếp từ trên xuống theo tỉ lệ. `px` = số px cho mỗi mét. Cache theo nội dung. */
 export function labelTexture(lines: readonly LabelLine[], w: number, h: number, bg: string | null, px = 384, opts: LabelOptions = {}): CanvasTexture {
-  const key = `l|${w}|${h}|${bg}|${px}|${opts.uniform ?? false}|${JSON.stringify(lines)}`;
+  // `fontsReady()` nằm trong khoá: vẽ lại khi phông vừa nạp xong thay vì giữ bản vẽ bằng phông dự phòng.
+  const key = `l|${w}|${h}|${bg}|${px}|${opts.uniform ?? false}|${opts.grain ?? false}|${fontsReady()}|${JSON.stringify(lines)}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const cv = document.createElement('canvas');
@@ -286,19 +297,44 @@ export function labelTexture(lines: readonly LabelLine[], w: number, h: number, 
   if (bg) {
     g.fillStyle = bg;
     g.fillRect(0, 0, cv.width, cv.height);
+    if (opts.grain) {
+      for (let i = 0; i < Math.round((cv.width * cv.height) / 90); i++) {
+        g.fillStyle = rnd(i) < 0.5 ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.07)';
+        g.fillRect(rnd(i + 1) * cv.width, rnd(i + 2) * cv.height, 1.5, 1.5);
+      }
+    }
   }
-  const measure = (text: string, weight: 'normal' | 'bold'): number => {
-    g.font = `${weight} 100px ${FONT}`;
-    return g.measureText(text).width / 100;
+  const measure = (ln: LabelLine): number => {
+    g.font = canvasFont(ln.font ?? 'round', 100);
+    return g.measureText(ln.text).width / 100;
   };
   const { fonts, bands } = fitLabelFonts(lines, cv.width, cv.height, measure, opts.uniform);
   let y = (cv.height * (1 - HEIGHT_FILL)) / 2;
   lines.forEach((ln, i) => {
-    g.font = `${ln.weight ?? 'bold'} ${Math.round(fonts[i]!)}px ${FONT}`;
-    g.fillStyle = ln.color;
+    const f = fonts[i]!;
+    const cy = y + bands[i]! / 2;
+    g.font = canvasFont(ln.font ?? 'round', f);
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.fillText(ln.text, cv.width / 2, y + bands[i]! / 2);
+    g.lineJoin = 'round';
+    g.miterLimit = 2;
+    if (ln.shadow) {
+      g.fillStyle = ln.shadow.color;
+      g.fillText(ln.text, cv.width / 2 + ln.shadow.dx * f, cy + ln.shadow.dy * f);
+    }
+    if (ln.stroke) {
+      g.lineWidth = ln.stroke.w * f;
+      g.strokeStyle = ln.stroke.color;
+      g.strokeText(ln.text, cv.width / 2, cy);
+    }
+    if (ln.fill === 'gold') {
+      const gr = g.createLinearGradient(0, cy - f * 0.5, 0, cy + f * 0.5);
+      gr.addColorStop(0, '#fff4b8');
+      gr.addColorStop(0.45, '#f6c343');
+      gr.addColorStop(1, '#c2790c');
+      g.fillStyle = gr;
+    } else g.fillStyle = ln.color;
+    g.fillText(ln.text, cv.width / 2, cy);
     y += bands[i]!;
   });
   const t = new CanvasTexture(cv);

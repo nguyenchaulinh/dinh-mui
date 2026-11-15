@@ -67,6 +67,28 @@ export function geometryOf(sh: Shape): BufferGeometry {
   }
 }
 
+/**
+ * AO nướng sẵn theo độ cao: nhân màu đỉnh với hệ số tăng tuyến tính từ `min` ở y = `y0` tới 1 ở y = `y1` (tối ở chân, sáng
+ * ở trên), như chân tường bẩn và khuất sáng. Sửa tại chỗ, tạo thuộc tính `color` (trắng) nếu chưa có; `dy` cộng vào y của
+ * đỉnh trước khi tính (hình có gốc không ở chân). Không tốn thêm draw call. Đầu vào hỏng thì không làm gì.
+ */
+export function bakeHeightAO(g: BufferGeometry, y0: number, y1: number, min: number, dy = 0): void {
+  const pos = g.attributes.position;
+  if (!pos || !(y1 > y0) || !Number.isFinite(min)) return;
+  const floor = Math.min(1, Math.max(0, min));
+  let col = g.attributes.color;
+  if (!col) {
+    col = new BufferAttribute(new Float32Array(pos.count * 3).fill(1), 3);
+    g.setAttribute('color', col);
+  }
+  for (let i = 0; i < pos.count; i++) {
+    const t = Math.min(1, Math.max(0, (pos.getY(i) + dy - y0) / (y1 - y0)));
+    const f = floor + (1 - floor) * t;
+    col.setXYZ(i, col.getX(i) * f, col.getY(i) * f, col.getZ(i) * f);
+  }
+  col.needsUpdate = true;
+}
+
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
 /**
