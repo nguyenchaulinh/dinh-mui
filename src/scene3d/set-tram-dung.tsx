@@ -679,7 +679,7 @@ function stationSign(b: Batch, g: Batch): void {
   }
 }
 
-/** Sân bê tông trạm: tấm lát có khe, bó vỉa, vạch dừng trước cửa xe khách, bụi cây thấp mép nam, vệt cỏ chỗ dê con. */
+/** Sân bê tông trạm: tấm lát có khe, bó vỉa, vạch dừng trước cửa xe khách, bụi cây thấp mép nam. (Từng có vệt cỏ ở chỗ spot `be-de` nhưng chặng này không có Bé Dê nên thành mảng xanh trơ trọi giữa sân: đã bỏ.) */
 function yard(b: Batch, style: RegionStyle): void {
   b.flat('#c9ced6', 26, 11, [0, 0, 4.1]);
   for (let x = -12; x <= 12; x += 4) b.flat('#aeb6c2', 0.05, 11, [x, 0.006, 4.1]);
@@ -692,9 +692,6 @@ function yard(b: Batch, style: RegionStyle): void {
   // Ô đỗ xe máy/xe con phía nam sân: vạch trắng kẻ trên nền (không cản đường).
   for (let i = 0; i < 6; i++) b.flat('#f8fafc', 0.09, 2.6, [1.2 + i * 2.1, 0.006, 7.3]);
   b.flat('#f8fafc', 10.6, 0.09, [6.3, 0.006, 6.0]);
-  const deSpot = SETS['tram-dung']!.spots['be-de']!.pos;
-  b.flat('#86a85a', 1.5, 1.2, [deSpot[0], 0.007, deSpot[2]], 0.5);
-  b.flat('#6f9a4a', 0.9, 0.7, [deSpot[0] + 0.25, 0.008, deSpot[2] - 0.1], -0.3);
   for (let i = 0; i < 19; i++) {
     const hedge = style === 'bac' ? '#3f7d32' : '#2f8a3a';
     b.ico(i % 5 === 2 ? '#ec4899' : hedge, 0.42, [-12.6 + i * 1.4, 0.3, 9.35], [1, 0.7, 0.8]);

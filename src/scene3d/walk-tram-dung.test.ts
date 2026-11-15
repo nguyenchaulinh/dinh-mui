@@ -391,3 +391,14 @@ describe('set-tram-dung.tsx: nguồn cảnh', () => {
     expect(setSrc).toMatch(/mergeGeometries/);
   });
 });
+
+describe('trang trí không treo vào spot trống (không có nhân vật hay đồ vật)', () => {
+  it('set-tram-dung chỉ dựng chi tiết nền theo spot có nhân vật / đồ vật dùng; không còn mảng cỏ trơ trọi ở spot dê con', async () => {
+    const src = (await import('./set-tram-dung.tsx?raw')).default as string;
+    const { loadContent } = await import('../content');
+    const map = loadContent().maps.find((m) => m.id === 'tram-dung')!;
+    const used = new Set([...map.npcs.map((n) => n.spot), ...(map.objects ?? []).map((o) => o.spot)]);
+    for (const m of src.matchAll(/spots\['([\w-]+)'\]/g)) expect(used.has(m[1]!), `spot ${m[1]} không có chủ thể nhưng set dựng chi tiết theo nó`).toBe(true);
+    expect(src).not.toMatch(/spots\['be-de'\]/);
+  });
+});
