@@ -46,3 +46,21 @@ describe('hoạt ảnh của model có xương', () => {
     expect(code).not.toMatch(/uncacheRoot/);
   });
 });
+
+describe('đầu to theo vóc dáng', () => {
+  it('headScaleFor: trẻ > người lớn > người già > 1; chó và dê không phóng', async () => {
+    const { headScaleFor } = await import('./rigging');
+    expect(headScaleFor('human', 'kid')).toBeGreaterThan(headScaleFor('human'));
+    expect(headScaleFor('human')).toBeGreaterThan(headScaleFor('human', 'elder'));
+    expect(headScaleFor('human', 'elder')).toBeGreaterThan(1);
+    expect(headScaleFor('human', 'kid')).toBeLessThan(1.4);
+    expect(headScaleFor('dog')).toBe(1);
+    expect(headScaleFor('goat')).toBe(1);
+  });
+  it('phóng đầu đặt SAU khi gắn phụ kiện (khối gắn xương Head to theo, kính và búi tóc không lệch)', () => {
+    const attach = riggedSrc.indexOf('attachProps(root');
+    const scale = riggedSrc.indexOf('bones.head.scale.setScalar(headScaleFor');
+    expect(attach).toBeGreaterThan(0);
+    expect(scale).toBeGreaterThan(attach);
+  });
+});
