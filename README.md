@@ -112,6 +112,7 @@ src/ErrorBoundary.tsx      bắt lỗi giao diện, hiện thẻ báo lỗi thay
 | [docs/07-thiet-ke-ui-ux.md](docs/07-thiet-ke-ui-ux.md) | Hệ thống giao diện "Đêm Tết" |
 | [docs/08-thiet-ke-choi-truoc-que.md](docs/08-thiet-ke-choi-truoc-que.md) | Lối chơi các chặng trước khi về quê |
 | [docs/09-ke-hoach-tiep-theo.md](docs/09-ke-hoach-tiep-theo.md) | **Kế hoạch các giai đoạn tiếp theo** |
+| [docs/11-review-do-hoa-va-ke-hoach.md](docs/11-review-do-hoa-va-ke-hoach.md) | Review đồ họa, kế hoạch nâng cấp, tên địa điểm và địa chỉ |
 
 ## Thêm nội dung
 
