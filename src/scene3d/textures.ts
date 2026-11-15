@@ -86,7 +86,7 @@ export function floorTexture(kind: FloorKind, base: string, repeatX: number, rep
 
 // ---------- Bề mặt: tường trát, cửa cuốn, nhựa đường, gạch lát vỉa hè ----------
 
-export type SurfaceKind = 'plaster' | 'shutter' | 'asphalt' | 'pavers';
+export type SurfaceKind = 'plaster' | 'shutter' | 'asphalt' | 'pavers' | 'facade';
 
 function drawSurface(kind: SurfaceKind, base: string): HTMLCanvasElement {
   const S = 256;
@@ -156,6 +156,25 @@ function drawSurface(kind: SurfaceKind, base: string): HTMLCanvasElement {
       }
       break;
     }
+    case 'facade': {
+      // Mặt tiền nhà cao tầng: lưới cửa sổ 8 x 8, một phần sáng đèn, các tầng ngăn bằng gờ.
+      const cols = 8;
+      const rows = 8;
+      const cw = S / cols;
+      const rh = S / rows;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const lit = rnd(r * 17 + c * 5 + 31) < 0.24;
+          g.fillStyle = lit ? '#fde68a' : mixHex('#243447', base, 0.12 + rnd(r * 3 + c) * 0.12);
+          g.fillRect(c * cw + 5, r * rh + 6, cw - 10, rh - 12);
+          g.fillStyle = 'rgba(255,255,255,0.18)';
+          g.fillRect(c * cw + 5, r * rh + 6, cw - 10, 2);
+        }
+        g.fillStyle = mixHex(base, '#000000', 0.12);
+        g.fillRect(0, r * rh + rh - 3, S, 3);
+      }
+      break;
+    }
     case 'pavers': {
       // Gạch chữ nhật xếp so le hai hàng một, vữa sáng.
       const rows = 8;
@@ -203,4 +222,89 @@ export function skyGradient(horizon: string, zenith = '#6f9bd6', amount = 0.5): 
   const z = ok(zenith) ? zenith : '#6f9bd6';
   const a = Math.min(1, Math.max(0, Number.isFinite(amount) ? amount : 0.5));
   return { horizon: h, top: mixHex(h, z, a) };
+}
+
+// ---------- Chữ và hình dán tường vẽ bằng canvas ----------
+
+export interface LabelLine {
+  text: string;
+  /** Cỡ chữ (px trên canvas). */
+  size: number;
+  color: string;
+  weight?: 'normal' | 'bold';
+  /** Ngôi sao / dấu gạch đầu dòng được viết ngay trong `text`; `x` là vị trí ngang (0..1), mặc định giữa. */
+  x?: number;
+}
+
+const FONT = '"Helvetica Neue", "Segoe UI", Arial, sans-serif';
+
+/** Texture chữ: nền `bg` (null = trong suốt), các dòng chữ chia đều theo chiều dọc. Cache theo nội dung. */
+export function labelTexture(lines: readonly LabelLine[], w: number, h: number, bg: string | null, px = 4): CanvasTexture {
+  const key = `l|${w}|${h}|${bg}|${px}|${JSON.stringify(lines)}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(w * px * 64);
+  cv.height = Math.round(h * px * 64);
+  const g = cv.getContext('2d')!;
+  if (bg) {
+    g.fillStyle = bg;
+    g.fillRect(0, 0, cv.width, cv.height);
+  }
+  const k = cv.height / 256; // các cỡ chữ tính theo canvas cao 256
+  const step = cv.height / (lines.length + 1);
+  lines.forEach((ln, i) => {
+    g.font = `${ln.weight ?? 'bold'} ${Math.round(ln.size * k)}px ${FONT}`;
+    g.fillStyle = ln.color;
+    g.textAlign = ln.x === undefined ? 'center' : 'left';
+    g.textBaseline = 'middle';
+    g.fillText(ln.text, ln.x === undefined ? cv.width / 2 : ln.x * cv.width, step * (i + 1), cv.width * 0.94);
+  });
+  const t = new CanvasTexture(cv);
+  t.colorSpace = SRGBColorSpace;
+  t.anisotropy = 4;
+  cache.set(key, t);
+  return t;
+}
+
+/** Tờ ghi chú dán trên bảng ghim: nền cork, các giấy màu lệch nhau, vài nét bút. */
+export function corkboardTexture(): CanvasTexture {
+  const key = 'cork';
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const S = 256;
+  const cv = document.createElement('canvas');
+  cv.width = S;
+  cv.height = S;
+  const g = cv.getContext('2d')!;
+  g.fillStyle = '#b98a58';
+  g.fillRect(0, 0, S, S);
+  for (let i = 0; i < 1400; i++) {
+    g.fillStyle = rnd(i) < 0.5 ? 'rgba(90,60,30,0.35)' : 'rgba(230,190,140,0.35)';
+    g.fillRect(rnd(i + 1) * S, rnd(i + 2) * S, 1 + rnd(i + 3) * 2, 1 + rnd(i + 4) * 2);
+  }
+  const notes = ['#fde68a', '#fca5a5', '#bfdbfe', '#bbf7d0', '#fed7aa', '#e9d5ff'];
+  for (let i = 0; i < 9; i++) {
+    const x = 14 + (i % 3) * 80 + rnd(i + 9) * 14;
+    const y = 14 + Math.floor(i / 3) * 80 + rnd(i + 19) * 14;
+    g.save();
+    g.translate(x + 32, y + 32);
+    g.rotate((rnd(i + 29) - 0.5) * 0.3);
+    g.fillStyle = 'rgba(0,0,0,0.18)';
+    g.fillRect(-30, -28, 64, 64);
+    g.fillStyle = notes[i % notes.length]!;
+    g.fillRect(-32, -32, 64, 64);
+    g.fillStyle = 'rgba(60,60,80,0.55)';
+    for (let l = 0; l < 4; l++) g.fillRect(-24, -18 + l * 11, 36 + rnd(i * 7 + l) * 12, 2);
+    g.fillStyle = '#dc2626';
+    g.beginPath();
+    g.arc(0, -28, 4, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+  }
+  const t = new CanvasTexture(cv);
+  t.colorSpace = SRGBColorSpace;
+  t.anisotropy = 4;
+  cache.set(key, t);
+  return t;
 }
