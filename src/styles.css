@@ -410,6 +410,107 @@ footer a { color: inherit; }
 .fade-out { position: fixed; inset: 0; z-index: var(--z-dock); background: #000; pointer-events: none; animation: fade-black 1.6s ease-in forwards; }
 @keyframes fade-black { from { opacity: 0; } to { opacity: 0.92; } }
 
+/* ---------- Màn chiến thắng (kết thúc): pháo hoa, huy chương, danh hiệu ---------- */
+.scrim-win {
+  background: radial-gradient(ellipse at 50% 38%, rgb(150 40 24 / 0.38), rgb(8 4 3 / 0.86) 72%);
+  animation: fade 0.5s;
+}
+.fireworks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.modal.win {
+  position: relative; z-index: 1; max-width: 380px; padding: 0 var(--s-4) var(--s-4);
+  background: linear-gradient(180deg, rgb(70 20 16 / 0.94), rgb(24 12 9 / 0.96) 55%);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 4px rgb(246 195 67 / 0.18), 0 0 46px var(--win-glow, rgb(246 195 67 / 0.45)), 0 14px 40px rgb(0 0 0 / 0.6);
+  animation: win-in 0.7s cubic-bezier(0.2, 1.25, 0.4, 1) both;
+}
+.win-ruc-ro { --win-glow: rgb(246 195 67 / 0.55); }
+.win-am-ap { --win-glow: rgb(255 130 150 / 0.5); }
+.win-song-sot { --win-glow: rgb(125 211 252 / 0.4); }
+.win-hai-huoc { --win-glow: rgb(66 212 191 / 0.4); }
+/* Dải lụa vàng trên đầu thẻ (tràn hai mép), hai hình thoi đỏ cạnh chữ. */
+.win-ribbon {
+  margin: 0 calc(-1 * var(--s-4)) var(--s-2); padding: 7px var(--s-5);
+  font-size: var(--fs-s); font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #6b1218;
+  background: linear-gradient(180deg, #ffe9a0, #f6c343 55%, #d9a21b);
+  border-bottom: 2px solid #8a5d06;
+}
+.win-ribbon span { position: relative; display: inline-block; padding: 0 22px; }
+.win-ribbon span::before, .win-ribbon span::after {
+  content: ''; position: absolute; top: 50%; width: 8px; height: 8px; margin-top: -4px;
+  background: #b3202a; rotate: 45deg;
+}
+.win-ribbon span::before { left: 2px; }
+.win-ribbon span::after { right: 2px; }
+.win-wish { margin: var(--s-2) 0 0; font-size: 30px; line-height: 1; font-weight: 700; text-shadow: 0 2px 8px rgb(0 0 0 / 0.5); animation: rise 0.6s both 0.2s; }
+.win-eyebrow { margin-top: var(--s-1); animation: rise 0.5s both 0.3s; }
+.win-title {
+  margin: 4px 0 var(--s-2);
+  font-size: clamp(26px, 8.2vw, 34px); line-height: 1.12; font-weight: 400; text-transform: uppercase; letter-spacing: 0.01em;
+  background: linear-gradient(180deg, #fff8d6 0%, #f6c343 48%, #e0951a 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 #7f1d1d) drop-shadow(0 0 14px rgb(246 195 67 / 0.5));
+  animation: title-in 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) both 0.25s, title-glow 2.6s ease-in-out infinite 1s;
+}
+.win-desc { margin: 0 0 var(--s-1); font-size: var(--fs-m); line-height: 1.5; color: var(--cream); animation: rise 0.5s both 0.4s; }
+
+.medal { position: relative; width: 112px; height: 116px; margin: var(--s-1) auto 0; animation: medal-in 0.9s cubic-bezier(0.2, 1.3, 0.4, 1) both 0.1s; }
+.medal-disc {
+  position: absolute; left: 50%; top: 0; width: 92px; height: 92px; margin-left: -46px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 28%, #fff0b3, #f6c343 46%, #b8860b);
+  box-shadow: 0 4px 0 #7a5a06, 0 0 24px rgb(246 195 67 / 0.65);
+}
+.medal-ring {
+  position: absolute; inset: 8px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 28%, #ee505a, #b3202a 70%);
+  border: 2px solid #ffe08a;
+}
+.medal-ribbon { position: absolute; top: 62px; width: 26px; height: 52px; background: linear-gradient(#e0414a, #9b1c22); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%); }
+.medal-ribbon-l { left: calc(50% - 32px); rotate: 14deg; }
+.medal-ribbon-r { left: calc(50% + 6px); rotate: -14deg; }
+.medal-stars { position: relative; display: flex; align-items: flex-end; gap: 1px; }
+.star { width: 19px; height: 19px; fill: rgb(255 255 255 / 0.22); }
+.star:nth-child(2) { width: 26px; height: 26px; margin-bottom: 7px; }
+.star-on { fill: #ffe27a; filter: drop-shadow(0 0 4px rgb(255 226 122 / 0.95)); animation: star-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+.star:nth-child(1) { animation-delay: 0.7s; }
+.star:nth-child(2) { animation-delay: 0.85s; }
+.star:nth-child(3) { animation-delay: 1s; }
+
+.tiles { margin: var(--s-3) 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-2); }
+.tile {
+  display: grid; justify-items: center; gap: 3px; padding: var(--s-2) 6px;
+  background: rgb(255 246 229 / 0.07); border: 1px solid rgb(255 246 229 / 0.16); border-radius: var(--r-m);
+  animation: rise 0.5s both;
+}
+.tile svg { width: 18px; height: 18px; }
+.tile-harmony { color: var(--harmony); }
+.tile-stamina { color: var(--stamina); }
+.tile-wallet { color: var(--wallet); }
+.tile-value { font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; color: var(--lv, var(--cream)); }
+.tile-label { font-size: var(--fs-xs); line-height: 1.2; text-align: center; color: var(--cream-soft); }
+.tile-bar { width: 100%; height: 5px; overflow: hidden; background: rgb(255 255 255 / 0.15); border-radius: var(--r-pill); }
+.tile-fill { display: block; height: 100%; background: var(--lv, currentColor); border-radius: inherit; transform-origin: left; animation: grow 0.9s ease-out both; }
+.win-total { margin: var(--s-2) 0 0; font-size: var(--fs-s); color: var(--cream-soft); }
+.win-total b { color: var(--gold); font-variant-numeric: tabular-nums; }
+.modal.win .closing { margin-top: var(--s-2); }
+.btn-win {
+  margin-top: var(--s-4); min-height: 50px; font-size: var(--fs-l);
+  color: #5b0f14; background: linear-gradient(180deg, #ffe9a0, #f6c343 55%, #e0a01c);
+  border: 1px solid #fff3c4; box-shadow: 0 4px 0 #8a5d06, 0 0 22px rgb(246 195 67 / 0.5), var(--shadow);
+  animation: rise 0.5s both 0.9s, btn-pulse 2.2s ease-in-out infinite 1.6s;
+}
+.btn-win:active { box-shadow: 0 1px 0 #8a5d06; }
+@keyframes win-in { from { opacity: 0; transform: translateY(24px) scale(0.9); } }
+@keyframes title-in { from { opacity: 0; transform: scale(1.35); } }
+@keyframes title-glow { 50% { filter: drop-shadow(0 2px 0 #7f1d1d) drop-shadow(0 0 24px rgb(246 195 67 / 0.85)); } }
+@keyframes medal-in { from { opacity: 0; transform: scale(0.2) rotate(-200deg); } }
+@keyframes star-pop { from { opacity: 0; transform: scale(0.1) rotate(-90deg); } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes grow { from { transform: scaleX(0); } }
+@keyframes btn-pulse { 50% { box-shadow: 0 4px 0 #8a5d06, 0 0 34px rgb(246 195 67 / 0.9), var(--shadow); } }
+@media (max-height: 640px) { .medal { transform: scale(0.8); margin: -10px auto -10px; } .win-wish { font-size: 24px; } }
+
 /* ---------- Chuyển động ---------- */
 @keyframes fade { from { opacity: 0; } }
 @keyframes pop { from { opacity: 0; transform: scale(0.96); } }
