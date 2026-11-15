@@ -135,3 +135,18 @@ describe('đồ treo tường sau không đè nhau', () => {
     for (const k of ['L.wall.coupletL', 'L.wall.coupletR', 'L.wall.plaque', 'L.wall.clock', 'L.wall.calendar', 'L.wall.cork']) expect(room, k).toContain(k);
   });
 });
+
+describe('áp phích ưu đãi trên tường phải', () => {
+  const P = CUOI_NAM.poster;
+  it('nằm trọn trong đoạn tường đặc phía sau (không chạm khe cửa), cao hơn tủ TV, dưới đỉnh tường', () => {
+    expect(P.z - P.w / 2).toBeGreaterThan(CUOI_NAM.wallBackZ);
+    expect(P.z + P.w / 2).toBeLessThan(CUOI_NAM.door.z0);
+    expect(P.y - P.h / 2, 'cạnh dưới áp phích').toBeGreaterThan(1.4); // TV đặt trên tủ cao ~1.25 m
+    expect(P.y + P.h / 2).toBeLessThan(CUOI_NAM.wallHeight);
+  });
+  it('sets.tsx dùng đúng số trong CUOI_NAM.poster', () => {
+    const room = setsSrc.slice(setsSrc.indexOf('function CuoiNam'), setsSrc.indexOf('function NhaTren'));
+    expect(room).toContain('L.poster.z');
+    expect(room).toContain('SALE_POSTER');
+  });
+});

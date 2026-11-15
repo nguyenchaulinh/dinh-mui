@@ -82,6 +82,15 @@ Thứ tự theo phụ thuộc: **đo, rồi hiệu năng, rồi ánh sáng, rồ
 
 Tổng ước lượng **25-35 ngày làm việc** (chưa tính thời gian bạn xem ảnh và góp ý ở mỗi mốc). Ba mốc nên dừng để bạn xem: sau GĐ 2 (cảm giác ánh sáng), sau GĐ 3 (phố), sau GĐ 4 (nhân vật).
 
+### Tiến độ (15/11/2026)
+
+| GĐ | Đã làm | Còn lại |
+|---|---|---|
+| 0. Đo | Bộ đếm FPS hiện thêm **draw call** và **số tam giác** trên màn hình; test `drawBudget.test.ts` tính ngân sách từ bố cục thật | **Đo trên điện thoại của bạn** và ghi số thật; chụp ảnh tham chiếu |
+| 1. Hiệu năng | `shapes.ts` gộp khối thành một geometry có màu theo đỉnh; **nhà phố** (4 draw call mỗi nhà), **xe máy** (1 mesh), **hoa Tết** (1 mesh mỗi cây), **dây cờ, vạch qua đường** đều đã gộp. Ngân sách phố Tết tính từ cấu trúc: **~321** (cùng công thức cho ra ~1.377 trước khi gộp) | Sạp quà, trạm, đèn lồng (còn nhiều mesh, đang đếm thô); đo thật; áp dụng cho sân nhà và lớp học |
+| 2. Ánh sáng | AO nướng sẵn theo độ cao vào thân và chi tiết nhà (chân nhà tối 70%, sáng dần tới 2.4 m) | Bóng đổ thật, màu theo giờ, tuỳ chọn bloom |
+| 3-8 | Chưa (riêng biển hiệu, băng rôn, địa điểm: xem mục 4 và 6) | |
+
 ### Việc làm nhanh trong 1-2 ngày (nếu muốn thấy khác biệt sớm)
 - Camera phố nâng góc nhìn và lùi xa hơn khi gần tường (xoá mảng phẳng che màn hình).
 - Cửa sổ nhà phố: bỏ tấm vàng phẳng, thay bằng ô kính có khung, rèm, một nửa số ô tối.
@@ -132,6 +141,38 @@ Cùng nhiệm vụ tuỳ chọn "Chào bà con phố Hàng Mã" (thưởng Hòa 
 
 ### 4.4 Cốt truyện đi tàu
 Đã chọn cách pha: chặng 2 kết thúc ở **Ga Hà Nội** (lên tàu); chặng 3 mở đầu bằng "Tàu tới ga tỉnh, bạn đổi sang xe khách về huyện", nên cảnh trạm dừng chân quốc lộ và xe khách giữ nguyên. Chặng 1 hỏi "về bằng gì" vẫn còn lựa chọn xe máy. Rẽ nhánh hoàn toàn theo cách về (tàu / xe khách / xe máy) vẫn là việc lớn chưa làm.
+
+## 6. Phong cách chữ và lời văn (15/11/2026)
+
+Chủ dự án nhận xét chữ còn đơn giản, yêu cầu tham khảo xu hướng banner và thương hiệu hiện nay. Đã tra cứu (nguồn là blog thiết kế và trang quảng cáo, **không phải khảo sát độc lập**, nên coi là ý kiến chứ không phải số liệu):
+
+**Xu hướng được dùng**
+- **Màu:** đỏ và vàng vẫn là chủ đạo cho Tết ([Advertising Vietnam](https://advertisingvietnam.com/bat-nhip-mua-tet-binh-ngo-2026-loat-ngan-hang-cho-ra-mat-an-pham-lich-doc-dao-p27937), [Canva](https://www.canva.com/vi_vn/mau/s/banner-tet/)). Quy tắc 60/30/10: nền trung tính, màu chính cho chữ và mảng khối, màu nhấn cho chi tiết nhỏ.
+- **Chữ như đồ họa (type as graphic):** chữ là hình chính của thiết kế, uốn, kéo giãn, đậm; chữ sắc cạnh cho thông điệp mạnh, chữ tròn mềm cho giọng gần gũi Gen Z ([Advertising Vietnam](https://advertisingvietnam.com/kham-pha-8-xu-huong-thiet-ke-phong-chu-nam-2026-tinh-than-cute-and-cozy-tiep-tuc-duoc-gen-z-ua-chuong-sharp-fonts-giup-thuong-hieu-noi-bat-trong-moi-truong-so-p27707)).
+- **Serif đậm kiểu retro quay lại**, chữ cọ / viết tay cho cảm giác thật, hạt nhám, nhãn dán, một phông "nổi" cho mỗi thiết kế và thử ở cỡ nhỏ ([Envato](https://elements.envato.com/learn/font-trends), [DesignRush](https://www.designrush.com/trends/state-of-design), [Creative Bloq](https://www.creativebloq.com/design/fonts-typography/breaking-rules-and-bringing-joy-top-typography-trends-for-2026)). Có cảnh báo: serif retro dùng quá tay dễ lỗi thời.
+- **Lời văn:** Gen Z coi Tết là "Tết của tôi", thích giọng vui, lạc quan hơn là sướt mướt; chơi chữ kiểu "gieo quẻ" bằng ngôn ngữ giới trẻ ([BrandsVietnam](https://www.brandsvietnam.com/congdong/topic/tet-khong-con-la-doan-vien-truyen-thong-thuong-hieu-dang-noi-gi-voi-gen-z)).
+
+**Không sao chép.** Không dùng tên, logo hay khẩu hiệu thương hiệu thật (bài tra cứu có nhắc các chiến dịch cụ thể; mình chỉ lấy *kiểu*, không lấy câu chữ). Test `fonts.test.ts` báo lỗi nếu chữ trong game chứa vài tên thương hiệu phổ biến.
+
+**Bộ phông** (OFL, đủ chữ cái tiếng Việt, ~750 KB, nạp lười; chi tiết và giấy phép ở `public/fonts/CREDITS.md`)
+
+| Vai trò | Phông | Dùng cho |
+|---|---|---|
+| display | Anton | tiêu đề lớn, ưu đãi, biển Ga Hà Nội |
+| slab | Alfa Slab One | băng rôn Tết, câu đối, tên cửa hàng (serif đậm retro) |
+| script | Dancing Script | lời chúc, tên tiệm hoa (chữ cọ) |
+| round | Be Vietnam Pro ExtraBold | khẩu hiệu, dòng phụ, biển hiệu (sans tròn hiện đại) |
+| hand | Patrick Hand | chữ viết tay trên bảng, ghi chú, lịch |
+
+Hiệu ứng chữ: vàng chuyển sắc viền đỏ sẫm cho băng rôn Tết, nhãn dán (viền trắng dày, bóng đen) cho áp phích ưu đãi, hạt nhám trên nền.
+
+**Lời văn mới (gốc, giọng Gen Z vui, chơi chữ, gắn Hà Nội)**
+- Băng rôn văn phòng: "ĐINH MÙI · DÊ XUÂN PHƠI PHỚI" ("Dê" là con giáp của năm Đinh Mùi).
+- Áp phích ưu đãi giả: "GIẢM 100% CÂU HỎI "BAO GIỜ CƯỚI?"" kèm chú thích "*né đúng lúc mới được giảm" (lớp học: "ƯU ĐÃI TẾT · NGHỈ 7 NGÀY, MIỄN PHÍ · *áp dụng khi nộp hết bài tập").
+- Băng rôn phố Hàng Mã: "TẾT SUM VẦY · XUÂN AN KHANG"; "Gieo quẻ đầu năm · QUẺ NÀY MIỄN PHÍ (né câu hỏi họ hàng thì quẻ mới linh)"; "ĐÀO NHẬT TÂN · BUNG ĐÚNG MÙNG 1".
+- Tên cửa hàng hư cấu trên biển nhà phố: Tiệm Bánh Mùi, Trà Tết 28, Hoa Đào Hàng Mã, Đèn Lồng Nhà Ba, Mứt Tết Cô Hai, Quà Tết Đinh Mùi, Phở Gánh Chiều 28, Lì Xì Đỏ Hàng Mã.
+
+**Chưa làm:** bảng so sánh bằng mắt các kiểu chữ (cần ảnh chụp từ máy bạn: cỡ chữ ở khoảng cách camera thật, độ tương phản trên điện thoại).
 
 ## 5. Câu hỏi cần bạn trả lời trước khi bắt đầu
 
