@@ -82,7 +82,10 @@ src/game/camera.ts         camera bám + camera hội thoại (thử nhiều gó
 src/game/speech.ts         bong bóng thoại: tối đa một bong bóng mỗi người, chọn phía bung ra để hai bong bóng không đè nhau
 src/labels.ts              nhãn hiển thị + statLevel (mức nguy hiểm / trung bình / tự tin của chỉ số)
 src/scene3d/Rigged.tsx     nhân vật có xương (model CC0 trong public/models): đổi màu, chuẩn chiều cao, hoạt ảnh, tư thế ngồi, chỉnh dáng Pomeranian; rigging.ts: luật thuần
-src/screens/Cards.tsx      thẻ nổi: mở đầu + nhập tên, thẻ chặng, tạm dừng, kết thúc
+src/screens/Cards.tsx      thẻ nổi: mở đầu + nhập tên, thẻ chặng, tạm dừng
+src/screens/EndingScreen.tsx  màn chiến thắng: pháo hoa, huy chương sao, danh hiệu chữ vàng, ba ô chỉ số đếm lên
+src/screens/endingView.ts  (hàm thuần) giọng điệu theo kết thúc (màu, dải lụa, độ hoành tráng), số sao, đếm số
+src/ui/Fireworks.tsx       canvas pháo hoa + giấy hoa rơi (tắt khi giảm chuyển động, dừng khi tab ẩn); mô phỏng thuần ở fireworkSim.ts
 src/ui/ui.tsx              thành phần giao diện dùng chung: thẻ nổi, thanh chỉ số, bảng tên, biểu tượng
 src/styles.css             token + thành phần của hệ thống giao diện (docs/07)
 src/scene3d/walk.ts        vùng đi lại và vật cản của từng bộ cảnh (khớp hình học trong sets.tsx/props.tsx)
