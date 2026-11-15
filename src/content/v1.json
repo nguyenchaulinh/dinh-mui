@@ -1,9 +1,7 @@
 {
   "version": 1,
   "regions": [
-    { "id": "ha-noi", "city": "Hà Nội", "tagline": "Từ Hà Nội về quê miền Bắc ăn Tết." },
-    { "id": "da-nang", "city": "Đà Nẵng", "tagline": "Từ Đà Nẵng về quê miền Trung ăn Tết." },
-    { "id": "sai-gon", "city": "Sài Gòn", "tagline": "Từ Sài Gòn về quê miền Nam ăn Tết." }
+    { "id": "ha-noi", "city": "Hà Nội", "tagline": "Từ Hà Nội về quê ăn Tết." }
   ],
   "personas": [
     {
@@ -26,9 +24,9 @@
     }
   ],
   "stages": [
-    { "id": "cuoi-nam", "title": "Cuối năm ở phố", "intro": "Chiều cuối năm ở thành phố. Săn vé, thu dọn đồ, chào mọi người rồi lên đường về quê.", "mapId": "cuoi-nam" },
-    { "id": "ra-ben", "title": "Ra bến", "intro": "28 tháng Chạp. Cả thành phố cùng lúc muốn về quê. Mua quà ở sạp đầu phố, né mấy bác xe ôm chèo kéo rồi ra trạm xe buýt ở cuối phố.", "mapId": "ra-ben" },
-    { "id": "duong-ve", "title": "Đường về", "intro": "Xe khách dừng ở trạm nghỉ giữa quốc lộ. Mua cái bánh mì cho đỡ đói, tránh mấy lời mời \"đổi đời\" rồi lên xe đi tiếp.", "mapId": "tram-dung" },
+    { "id": "cuoi-nam", "title": "Cuối năm ở phố", "intro": "Chiều cuối năm ở Hà Nội. Săn vé tàu, thu dọn đồ, chào mọi người rồi ra ga về quê.", "mapId": "cuoi-nam" },
+    { "id": "ra-ben", "title": "Ra Ga Hà Nội", "intro": "28 tháng Chạp. Cả Hà Nội cùng lúc muốn về quê. Mua quà ở sạp phố Hàng Mã, né mấy bác xe ôm chèo kéo rồi vào Ga Hà Nội (120 Lê Duẩn) ở cuối phố.", "mapId": "ra-ben" },
+    { "id": "duong-ve", "title": "Đường về", "intro": "Tàu tới ga tỉnh, bạn đổi sang xe khách về huyện. Xe dừng ở trạm nghỉ giữa quốc lộ. Mua cái bánh mì cho đỡ đói, tránh mấy lời mời \"đổi đời\" rồi lên xe đi tiếp.", "mapId": "tram-dung" },
     { "id": "buoc-vao-nha", "title": "Bước vào nhà", "intro": "Sau một chuyến xe dài, bạn về tới cổng nhà. Chưa kịp đặt balo xuống thì câu hỏi đầu tiên đã bay tới.", "mapId": "san-nha" }
   ],
   "characters": [
@@ -182,7 +180,7 @@
     {
       "id": "co-ban-qua",
       "name": "Cô Bán Quà",
-      "role": "Sạp quà Tết",
+      "role": "Sạp Tết phố Hàng Mã",
       "enabled": true,
       "look": {
         "kind": "human",
@@ -202,7 +200,7 @@
     {
       "id": "bac-xe-om",
       "name": "Bác Xe Ôm",
-      "role": "Xe ôm đầu phố",
+      "role": "Xe ôm phố Hàng Mã",
       "enabled": true,
       "look": {
         "kind": "human",
@@ -282,16 +280,67 @@
         ],
         "accent": "#334155"
       }
+    },
+    {
+      "id": "bac-to-truong",
+      "name": "Bác Tổ Trưởng",
+      "role": "Tổ trưởng dân phố",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#d9a27a",
+        "hair": "#e5e7eb",
+        "hairStyle": "short",
+        "outfit": "#4b5563",
+        "build": "elder",
+        "accessory": "glasses",
+        "accessories": ["megaphone"],
+        "accent": "#f59e0b",
+        "model": "nam-vest",
+        "pants": "#1f2937"
+      }
+    },
+    {
+      "id": "co-tra-da",
+      "name": "Cô Trà Đá",
+      "role": "Quán trà đá vỉa hè",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#e8b98f",
+        "hair": "#2b1d15",
+        "hairStyle": "bun",
+        "outfit": "#0e7490",
+        "accessory": "apron",
+        "accessories": ["cup"],
+        "accent": "#f59e0b",
+        "model": "nu-cong-so",
+        "pants": "#374151"
+      }
+    },
+    {
+      "id": "ba-hai-hoa-dao",
+      "name": "Bà Hai Gánh Đào",
+      "role": "Bán đào Nhật Tân",
+      "enabled": true,
+      "look": {
+        "kind": "human",
+        "skin": "#e0b088",
+        "hair": "#e5e7eb",
+        "hairStyle": "bun",
+        "outfit": "#be185d",
+        "build": "elder",
+        "accessory": "scarf",
+        "accessories": ["branch"],
+        "model": "nu-thuong-ngay",
+        "pants": "#44403c"
+      }
     }
   ],
   "scenes": [
     {
       "id": "bvn-1-dl", "characterId": "co-hai", "personas": ["moi-di-lam"],
       "line": "Về rồi đấy à? Ngồi đây cô hỏi cái, giờ lương tháng bao nhiêu rồi?",
-      "lineByRegion": {
-        "da-nang": "Về rồi đó hả con? Ngồi xuống đây, răng rồi, lương tháng nhiêu rồi?",
-        "sai-gon": "Về rồi hả con? Ngồi đây cô hỏi nè, giờ lương tháng nhiêu rồi?"
-      },
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ cũng đủ sống cô ạ. Mà cô dạo này khỏe không?", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Cô khỏe! Mà con ốm đi hay sao ấy...", "tipId": "T03" },
@@ -306,10 +355,6 @@
     {
       "id": "bvn-1-dt", "characterId": "co-hai", "personas": ["doc-than-27"],
       "line": "Lương cao rồi mà sao chưa chịu lập gia đình hả con?",
-      "lineByRegion": {
-        "da-nang": "Lương cao rồi mà răng chưa chịu lập gia đình rứa con?",
-        "sai-gon": "Lương cao rồi mà sao hông chịu lập gia đình vậy con?"
-      },
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ duyên chưa tới cô ạ. Mà cô dạo này khỏe không?", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Khỏe, khỏe. Duyên thì phải đi tìm chứ ai mang tới tận nhà.", "tipId": "T03" },
@@ -324,10 +369,6 @@
     {
       "id": "bvn-1-sv", "characterId": "co-hai", "personas": ["sinh-vien"],
       "line": "Năm cuối rồi hả? Ra trường làm gì? Có xin vào nhà nước được không?",
-      "lineByRegion": {
-        "da-nang": "Năm cuối rồi hả? Ra trường làm chi? Có xin vô nhà nước được không?",
-        "sai-gon": "Năm cuối rồi hả? Ra trường làm gì? Có xin vô nhà nước được hông?"
-      },
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ con đang thực tập, có kế hoạch rồi cô ạ.", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Thực tập có lương không con?", "tipId": "T03" },
@@ -340,10 +381,6 @@
     {
       "id": "bvn-2", "characterId": "bac-ca",
       "line": "Ơ, dạo này trông khác thế? Béo ra hay gầy đi đấy?",
-      "lineByRegion": {
-        "da-nang": "Ủa, răng dạo ni trông khác rứa? Béo ra hay ốm đi?",
-        "sai-gon": "Ủa, sao dạo này trông khác vậy? Mập ra hay ốm đi đó?"
-      },
       "lines": [ { "characterId": "be-de", "text": "Chuyện cân nặng của người khác thì không phải chủ đề Tết." } ],
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ tại Tết sắp tới nên con tích trữ ạ.", "effects": { "harmony": 3, "stamina": -6 },
@@ -369,10 +406,6 @@
     {
       "id": "roam-bin", "characterId": "bin",
       "line": "Anh/chị ơi, lì xì em đi! Em hứa năm sau em ngoan.",
-      "lineByRegion": {
-        "da-nang": "Anh/chị ơi, lì xì em đi! Em hứa năm sau em ngoan mà.",
-        "sai-gon": "Anh/chị ơi, lì xì em đi nghen! Em hứa năm sau em ngoan."
-      },
       "choices": [
         { "id": "a", "style": "kheo", "text": "Đây, mừng tuổi em, mua kẹo nha.", "effects": { "wallet": -5, "harmony": 5 },
           "reply": "Yeah! Em sẽ quay clip cảm ơn anh/chị đăng lên nhóm chat!" },
@@ -385,10 +418,6 @@
     {
       "id": "roam-ut-sv", "characterId": "di-ut", "personas": ["sinh-vien"],
       "line": "Con ơi, sắp ra trường rồi, định làm gì chưa? Dì hỏi trước kẻo quên.",
-      "lineByRegion": {
-        "da-nang": "Con ơi, sắp ra trường rồi, định làm chi chưa? Dì hỏi trước kẻo quên.",
-        "sai-gon": "Con ơi, sắp ra trường rồi, định làm gì chưa nghen? Dì hỏi trước kẻo quên."
-      },
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ con đang tìm hiểu, dì có chỗ nào giới thiệu cho con không ạ?", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Để dì hỏi giùm. Mà ăn thêm đi con, việc gì cũng cần có sức.", "tipId": "T03" },
@@ -401,31 +430,21 @@
     {
       "id": "roam-ut-dl", "characterId": "di-ut", "personas": ["moi-di-lam"],
       "line": "Lương tháng bao nhiêu rồi con? Dì hỏi để về còn khoe với bà Sáu.",
-      "lineByRegion": {
-        "da-nang": "Lương tháng nhiêu rồi con? Dì hỏi để về còn khoe với bà Sáu.",
-        "sai-gon": "Lương tháng bao nhiêu rồi con? Dì hỏi để về còn khoe với bà Sáu nghen."
-      },
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ đủ sống thôi dì, mà dì dạo này có khỏe không ạ?", "effects": { "harmony": 5, "stamina": -8 },
           "reply": "Dì khỏe! Mà con trả lời không đúng câu hỏi nha.", "tipId": "T03" },
         { "id": "b", "style": "that-tha", "text": "Dạ con chưa muốn nói con số ạ.", "effects": { "harmony": -5, "stamina": 5 },
           "reply": "Thôi, dì đoán là cao lắm nên con ngại." },
         { "id": "c", "style": "lay", "text": "Đủ mua quà biếu dì thôi ạ.", "effects": { "harmony": 3, "stamina": 3, "wallet": -3 },
-          "reply": "Ủa vậy dì đợi quà đó!",
-          "replyByRegion": { "sai-gon": "Ủa vậy dì đợi quà nghen!", "da-nang": "Ủa rứa dì đợi quà nghe!" } }
+          "reply": "Ủa vậy dì đợi quà đó!" }
       ]
     },
     {
       "id": "roam-ut-dt", "characterId": "di-ut", "personas": ["doc-than-27"],
       "line": "Bao giờ cưới để dì còn xếp lịch? Dì có mối này tốt lắm, con nhà bà Sáu.",
-      "lineByRegion": {
-        "da-nang": "Bao giờ cưới để dì còn xếp lịch? Dì có mối ni tốt lắm, con nhà bà Sáu.",
-        "sai-gon": "Bao giờ cưới để dì còn xếp lịch nghen? Dì có mối này tốt lắm, con nhà bà Sáu."
-      },
       "choices": [
         { "id": "a", "style": "kheo", "text": "Dạ khi nào có duyên con báo dì đầu tiên ạ.", "effects": { "harmony": 5, "stamina": -8 },
-          "reply": "Nhớ đó, dì giữ chỗ trong sổ rồi.",
-          "replyByRegion": { "sai-gon": "Nhớ đó nghen, dì giữ chỗ trong sổ rồi.", "da-nang": "Nhớ đó nghe, dì giữ chỗ trong sổ rồi." } },
+          "reply": "Nhớ đó, dì giữ chỗ trong sổ rồi." },
         { "id": "b", "style": "that-tha", "text": "Dạ con chưa có kế hoạch, mong dì đừng giới thiệu ạ.", "effects": { "harmony": -5, "stamina": 5 },
           "reply": "Ừ... thôi dì không ép. Mà dì vẫn giữ số điện thoại đó." },
         { "id": "c", "style": "lay", "text": "Dì giới thiệu giỏi vậy sao dì không mở công ty mai mối?", "effects": { "harmony": 3, "stamina": -3 },
@@ -436,10 +455,6 @@
       "id": "tu-ve",
       "characterId": "tu",
       "line": "Mua vé Tết chưa? Năm nay nghe nói vé cháy sớm lắm.",
-      "lineByRegion": {
-        "da-nang": "Mua vé Tết chưa? Năm ni nghe nói vé cháy sớm lắm.",
-        "sai-gon": "Mua vé Tết chưa? Năm nay nghe nói vé cháy sớm lắm đó."
-      },
       "choices": [
         {
           "id": "a",
@@ -648,10 +663,10 @@
         {
           "id": "a",
           "style": "that-tha",
-          "text": "Mở bán vé Tết qua tổng đài và website. Giá niêm yết, có hoá đơn.",
+          "text": "Mở bán vé tàu Tết qua tổng đài và website của đường sắt. Giá niêm yết, có hoá đơn.",
           "effects": {  "wallet": -10 },
           "reply": "Đặt được vé! Email xác nhận đã về hộp thư.",
-          "author": "Nhà xe Đinh Mùi Express (trang chính thức)",
+          "author": "Cổng bán vé tàu Đinh Mùi (trang chính thức)",
           "setFlags": ["co-ve", "san-ve-xong"]
         },
         {
@@ -677,7 +692,7 @@
         {
           "id": "d",
           "style": "lay",
-          "text": "Suất nội bộ nhà xe, vé giờ chót, chỉ còn 2 vé.",
+          "text": "Suất nội bộ nhà ga, vé giờ chót, chỉ còn 2 vé.",
           "effects": {  "wallet": -15, "stamina": -5 },
           "reply": "\"Nội bộ\" tới mức không ai biết nó ở đâu.",
           "author": "Kênh vé nội bộ",
@@ -709,12 +724,12 @@
       "id": "cach-ve",
       "characterId": "be-de",
       "line": "Giờ về quê bằng gì đây?",
-      "lines": [{ "text": "Vé không có, tiền cọc cũng không. Thôi, tới bến rồi tính.", "if": { "flags": ["ve-lua"] } }],
+      "lines": [{ "text": "Vé không có, tiền cọc cũng không. Thôi, ra Ga Hà Nội rồi tính.", "if": { "flags": ["ve-lua"] } }],
       "choices": [
         {
           "id": "a",
           "style": "that-tha",
-          "text": "Xe khách giường nằm, vé đặt rồi.",
+          "text": "Tàu giường nằm, vé đặt rồi.",
           "effects": { },
           "reply": "Chuẩn bị gối cổ và tinh thần nghe người bên cạnh ngáy.",
           "setFlags": ["xe-khach", "da-chon-cach-ve"],
@@ -731,9 +746,9 @@
         {
           "id": "c",
           "style": "kheo",
-          "text": "Ra bến rồi tính.",
+          "text": "Ra Ga Hà Nội rồi tính.",
           "effects": {  "stamina": -3 },
-          "reply": "Bến xe ngày 28 Tết. Chúc may mắn.",
+          "reply": "Ga Hà Nội ngày 28 Tết. Chúc may mắn.",
           "setFlags": ["ra-ben-tinh", "da-chon-cach-ve"]
         }
       ]
@@ -805,10 +820,6 @@
       "id": "rb-mua-qua",
       "characterId": "co-ban-qua",
       "line": "Mưa phùn thế này mà còn ra phố, mua quà đi cho ấm tay! Về quê mà tay không là cả họ nhìn đấy.",
-      "lineByRegion": {
-        "da-nang": "Gió sông lạnh rứa mà còn ra phố, mua quà đi! Về quê mà tay không là cả họ nhìn đó.",
-        "sai-gon": "Nắng chang chang mà còn ra phố, mua quà đi nghen! Về quê mà tay không là cả họ nhìn đó."
-      },
       "choices": [
         {
           "id": "a",
@@ -867,30 +878,26 @@
     {
       "id": "rb-xe-om",
       "characterId": "bac-xe-om",
-      "line": "Đi xe ôm không em? Ra bến nhanh lắm, tắc đường bác vẫn lách được!",
-      "lineByRegion": {
-        "da-nang": "Đi xe ôm không em? Ra bến nhanh lắm, kẹt xe bác vẫn lách được nghe!",
-        "sai-gon": "Đi xe ôm hông em? Ra bến nhanh lắm, kẹt xe bác vẫn lách được nghen!"
-      },
+      "line": "Đi xe ôm không cháu? Ra Ga Hà Nội nhanh lắm, tắc đường bác vẫn lách được!",
       "choices": [
         {
           "id": "a",
           "style": "kheo",
-          "text": "Dạ em đi xe buýt cho tiện, cảm ơn bác ạ.",
+          "text": "Dạ cháu đi bộ ra ga cho tiện, cảm ơn bác ạ.",
           "effects": { "stamina": 1 },
-          "reply": "Ừ, xe buýt cũng được. Cuối phố có trạm đó em."
+          "reply": "Ừ, đi bộ cũng được. Ga Hà Nội ở cuối phố đó cháu."
         },
         {
           "id": "b",
           "style": "that-tha",
-          "text": "Em hết tiền rồi bác ơi.",
+          "text": "Cháu hết tiền rồi bác ơi.",
           "effects": { "stamina": 2 },
           "reply": "Hết tiền thì đi bộ cho khỏe!"
         },
         {
           "id": "c",
           "style": "lay",
-          "text": "Bác chở em, em trả bằng lời cảm ơn nhé?",
+          "text": "Bác chở cháu, cháu trả bằng lời cảm ơn nhé?",
           "effects": { "harmony": 1, "stamina": -3 },
           "reply": "Lời cảm ơn thì bác chở tới đầu ngõ thôi!"
         }
@@ -994,6 +1001,90 @@
           "effects": { "wallet": -5, "harmony": -3, "stamina": -5 },
           "reply": "Điện thoại báo chuyển khoản thành công. Khoá học thì chưa thấy đâu.",
           "tipId": "T06"
+        }
+      ]
+    },
+    {
+      "id": "rb-to-truong",
+      "characterId": "bac-to-truong",
+      "line": "A lô, bà con cô bác chú ý! Hôm nay 28 Tết, phố đông lắm, đề nghị đi bên phải, không dừng xe giữa lối đi nhé!",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Dạ cháu xin phép đi bên phải ạ.",
+          "effects": { "harmony": 2, "stamina": -1 },
+          "reply": "Tốt! Thanh niên văn minh, tổ dân phố xin ghi nhận!"
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Bác ơi, cháu tìm Ga Hà Nội thì đi lối nào ạ?",
+          "effects": { "stamina": 0 },
+          "reply": "Cứ đi thẳng về phía trước, cuối phố là tới ga cháu nhé. Đi cẩn thận, đông người lắm."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Bác cho cháu mượn cái loa, cháu thông báo giúp bác.",
+          "effects": { "harmony": -2, "stamina": -3 },
+          "reply": "Loa của tổ dân phố, không phải loa karaoke! Trả bác nào!"
+        }
+      ]
+    },
+    {
+      "id": "rb-tra-da",
+      "characterId": "co-tra-da",
+      "line": "Trà đá đây, năm nghìn một cốc thôi! Đứng chờ cũng ngồi xuống nghỉ chút đi cháu, hôm nay đông lắm.",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Cô cho cháu một cốc, cháu cảm ơn cô.",
+          "effects": { "stamina": 1 },
+          "reply": "Mát nhé! Cô pha từ sáng, thùng thứ ba rồi đấy."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Cháu đang vội ra ga, để lát cháu ghé ạ.",
+          "effects": { "stamina": -3 },
+          "reply": "Vội thì vội, Tết nhất cũng uống ngụm nước đã chứ cháu."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Cô cho cháu chịu cốc trà đá, mai Tết cháu trả gấp đôi.",
+          "effects": { "harmony": -2, "stamina": -1 },
+          "reply": "Cho chịu cái gì, Tết rồi! Cháu trả luôn năm nghìn đi."
+        }
+      ]
+    },
+    {
+      "id": "rb-hoa-dao",
+      "characterId": "ba-hai-hoa-dao",
+      "line": "Đào Nhật Tân đây! Cành này bung đúng mùng Một đấy cháu, mua về chưng cho có lộc.",
+      "choices": [
+        {
+          "id": "a",
+          "style": "kheo",
+          "text": "Bà cho cháu cành nhỏ thôi, cháu đi tàu nên mang cho tiện.",
+          "effects": { "wallet": -1, "harmony": 3 },
+          "reply": "Cành nhỏ cũng đủ Tết, bung hoa là có lộc cháu ạ."
+        },
+        {
+          "id": "b",
+          "style": "that-tha",
+          "text": "Cháu chỉ ngắm thôi bà ạ, hôm nay cháu hết tiền rồi.",
+          "effects": { "stamina": 1 },
+          "reply": "Ngắm thì không mất tiền. Cháu cứ ngắm cho đỡ nhớ nhà."
+        },
+        {
+          "id": "c",
+          "style": "lay",
+          "text": "Bà bớt cho cháu một nửa, cháu mua cả cây.",
+          "effects": { "harmony": -2, "stamina": -4 },
+          "reply": "Mua cả cây thì bà lấy đúng giá, mà cháu mang lên tàu kiểu gì?"
         }
       ]
     }
@@ -1322,9 +1413,30 @@
             "everySec": 6,
             "range": 8,
             "minRange": 2.5,
-            "questions": ["Đi xe ôm không em?", "Ra bến đi em ơi!", "Lên xe bác chở cho nhanh!"],
+            "questions": ["Đi xe ôm không cháu?", "Ra Ga Hà Nội đi cháu ơi!", "Lên xe bác chở cho nhanh!"],
             "hitSceneIds": ["rb-xe-om"]
           }
+        },
+        {
+          "characterId": "co-tra-da",
+          "spot": "tra-da",
+          "behavior": "stand",
+          "prompt": "Uống trà đá",
+          "action": { "kind": "talk", "sceneIds": ["rb-tra-da"], "after": "Trà đá đây, đủ đá đủ chè!" }
+        },
+        {
+          "characterId": "ba-hai-hoa-dao",
+          "spot": "hoa-dao",
+          "behavior": "stand",
+          "prompt": "Hỏi mua đào",
+          "action": { "kind": "talk", "sceneIds": ["rb-hoa-dao"], "after": "Đào Nhật Tân đây, bung đúng mùng Một!" }
+        },
+        {
+          "characterId": "bac-to-truong",
+          "spot": "to-truong",
+          "behavior": "stand",
+          "prompt": "Nói chuyện",
+          "action": { "kind": "talk", "sceneIds": ["rb-to-truong"], "after": "Đi bên phải, cẩn thận đông người nhé bà con!" }
         }
       ],
       "objects": [
@@ -1339,14 +1451,14 @@
           "action": { "kind": "pickup", "line": "Bạn xách giỏ quà lên, nặng tay nhưng đáng. Về quê không thể tay không." }
         },
         {
-          "id": "xe-buyt",
-          "label": "Trạm xe buýt",
+          "id": "cong-ga",
+          "label": "Cổng Ga Hà Nội · 120 Lê Duẩn",
           "spot": "ben",
-          "prompt": "Lên xe buýt",
+          "prompt": "Vào ga",
           "seat": "len-xe",
           "requires": { "flags": ["quest:mua-qua"] },
-          "lockedLine": "Chưa lên xe được: mua quà rồi hẵng ra bến.",
-          "action": { "kind": "exit", "line": "Bạn chen lên xe buýt, balo ôm trước ngực. Cả thành phố cùng về quê." }
+          "lockedLine": "Chưa vào ga được: mua quà rồi hẵng ra ga.",
+          "action": { "kind": "exit", "line": "Bạn chen qua cổng Ga Hà Nội, balo ôm trước ngực. Cả Hà Nội cùng về quê." }
         }
       ],
       "quests": [
@@ -1384,14 +1496,25 @@
           "rewardLine": "Bác xe ôm chào thua. Bạn né như một tay đua."
         },
         {
+          "id": "chao-pho",
+          "title": "Chào bà con phố Hàng Mã",
+          "objectives": [
+            { "id": "to-truong", "text": "Nói chuyện với Bác Tổ Trưởng", "done": { "flags": ["talked:ra-ben:bac-to-truong"] } },
+            { "id": "tra-da", "text": "Ghé quán trà đá của Cô Trà Đá", "done": { "flags": ["talked:ra-ben:co-tra-da"] } },
+            { "id": "hoa-dao", "text": "Hỏi thăm Bà Hai Gánh Đào", "done": { "flags": ["talked:ra-ben:ba-hai-hoa-dao"] } }
+          ],
+          "reward": { "harmony": 2 },
+          "rewardLine": "Cả phố Hàng Mã biết mặt bạn rồi."
+        },
+        {
           "id": "ra-ben-xong",
-          "title": "Ra bến",
+          "title": "Vào Ga Hà Nội",
           "objectives": [
             { "id": "q1", "text": "Hoàn thành \"Mua quà về quê\"", "done": { "flags": ["quest:mua-qua"] } },
-            { "id": "q2", "text": "Lên xe buýt ở cuối phố", "done": { "flags": ["used:ra-ben:xe-buyt"] } }
+            { "id": "q2", "text": "Vào Ga Hà Nội ở cuối phố", "done": { "flags": ["used:ra-ben:cong-ga"] } }
           ],
           "reward": { "stamina": 2 },
-          "rewardLine": "Xe buýt chật cứng nhưng đang chạy về phía quê."
+          "rewardLine": "Sân ga chật cứng nhưng tàu đang chờ, về phía quê."
         }
       ],
       "goalQuestId": "ra-ben-xong"
@@ -1403,7 +1526,7 @@
       "events": [
         {
           "id": "tren-xe",
-          "when": { "regions": ["ha-noi", "da-nang", "sai-gon"] },
+          "when": { "regions": ["ha-noi"] },
           "sceneIds": ["dv-tren-xe"]
         }
       ],

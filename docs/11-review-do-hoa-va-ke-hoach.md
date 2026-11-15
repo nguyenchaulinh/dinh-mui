@@ -96,45 +96,49 @@ Tổng ước lượng **25-35 ngày làm việc** (chưa tính thời gian bạ
 - **Không ghi phường / quận:** đơn vị hành chính đã đổi từ 1/7/2025 (nguồn ghi nhận cấp quận bị bãi bỏ) và các nguồn đang ghi khác nhau. Chỉ ghi `số nhà + đường + thành phố`.
 - Hiển thị ở ba chỗ: biển hiệu trong cảnh (`TextPlane`), nhãn nút tương tác / việc cần làm, và thẻ chào chặng.
 
-### 4.2 Bảng đề xuất theo thành phố của người chơi
+### 4.2 Quyết định (15/11): toàn bộ game ở Hà Nội
 
-| Vai trò trong game | Hà Nội | Đà Nẵng | Sài Gòn |
+Chủ dự án chốt: **mọi nhân vật, địa điểm và tên riêng gắn với Hà Nội**, không lan sang khu vực khác. Đã triển khai:
+- `regions` chỉ còn `ha-noi`; xoá 13 câu biến thể theo vùng (Đà Nẵng, Sài Gòn) khỏi `v1.json`. Cơ chế `lineByRegion`... vẫn còn trong engine nhưng nội dung không dùng. Cảnh 3D theo miền (Trung, Nam) vẫn còn trong code nhưng không bao giờ được chọn.
+- `src/content/places.ts` là nguồn tên địa điểm công cộng; test `haNoi.test.ts` báo lỗi nếu nội dung nhắc thành phố khác, nhắc "trạm xe buýt", hoặc gắn số nhà lạ vào Ga Hà Nội / phố Hàng Mã.
+
+| Vai trò trong game | Tên trong game | Địa chỉ | Trạng thái |
 |---|---|---|---|
-| Nhà ga (thay "trạm xe buýt") | **Ga Hà Nội, 120 Lê Duẩn** (đã xác minh; khu A phục vụ tàu đường dài) | **Ga Đà Nẵng, 791 Hải Phòng** (đã xác minh) | **Ga Sài Gòn, 1 Nguyễn Thông** (đã xác minh) |
-| Nơi sắm quà Tết | **Phố Hàng Mã** (đã xác minh là phố bán đồ trang trí Tết; chưa có số nhà) | **Chợ Hàn, 119 Trần Phú** (đã xác minh) | Chợ Bến Thành, đường Lê Lợi (**chưa xác minh** số nhà; cần tra) |
-| Bến xe (nếu đi xe khách) | Bến xe Giáp Bát, đường Giải Phóng (**chưa xác minh** số nhà) | Bến xe Trung tâm Đà Nẵng (**chưa xác minh** địa chỉ) | **Bến xe Miền Tây, 395 Kinh Dương Vương** (đã xác minh) |
-| Sạp quà (hư cấu) | "Sạp Quà Tết Hàng Mã" | "Sạp Quà Tết Chợ Hàn" | "Sạp Quà Tết Bến Thành" (tuỳ xác minh) |
-| Trạm dừng chân (hư cấu) | "Quán Bánh Mì Bà Tư" trên quốc lộ 1A; km cụ thể chọn sau khi chọn tuyến | cùng | cùng |
+| Nhà ga (thay "trạm xe buýt") | **Ga Hà Nội** | **120 Lê Duẩn** (khu A, tàu đường dài) | đã xác minh (nguồn du lịch) |
+| Phố sắm Tết | **Phố Hàng Mã** (phố bán đồ trang trí Tết, Hà Nội) | chỉ tên phố | đã xác minh là phố bán đồ trang trí Tết; chưa có số nhà nên không ghi |
+| Sạp quà | "Sạp Tết Hàng Mã" (hư cấu, trên phố Hàng Mã) | không số nhà | hư cấu |
+| Quán dừng chân giữa quốc lộ | "Quán bánh mì" (hư cấu) | không gắn km | hư cấu |
+| Hoa đào | "Đào Nhật Tân" (làng hoa đào nổi tiếng của Hà Nội, chỉ dùng như tên giống hoa) | | tên chung |
 
-**Chỉ dùng trong game những mục đã xác minh.** Ba mục chưa xác minh (số nhà phố Hàng Mã, chợ Bến Thành, bến Giáp Bát, bến xe Đà Nẵng) giữ dạng "tên + đường" cho tới khi tra được nguồn đáng tin; không điền số nhà.
+Hiển thị: biển "GA HÀ NỘI · 120 Lê Duẩn" treo vuông góc phố ở cuối phố, biển "SẠP TẾT HÀNG MÃ" trên sạp, nhãn nút "Cổng Ga Hà Nội · 120 Lê Duẩn", tiêu đề chặng "Ra Ga Hà Nội" và "Vào Ga Hà Nội", tên cảnh "Phố Hàng Mã, Hà Nội, ngày 28 tháng Chạp".
 
-Nguồn đã tra (đều là trang du lịch / đặt vé, **không phải nguồn chính thức** của ngành đường sắt hay chính quyền; nên đối chiếu thêm trước khi phát hành):
+Nguồn đã tra (đều là trang du lịch / đặt vé, **không phải nguồn chính thức**; nên đối chiếu thêm với Đường sắt Việt Nam trước khi phát hành):
 - Ga Hà Nội: [mia.vn](https://mia.vn/cam-nang-du-lich/thong-tin-ve-ga-ha-noi-15502), [Wikipedia](https://wikipedia.com/wiki/Hanoi_station)
-- Ga Đà Nẵng: [Bookaway](https://bookaway.com/routes/vietnam/da-nang/da-nang-train-station)
-- Ga Sài Gòn: [Vinpearl](https://vinpearl.com/vi/thong-tin-chi-tiet-ve-ga-sai-gon)
-- Chợ Hàn: [VietnamTourism](https://www.vietnamtourism.com/vi/cho-han-o-da-nang-lich-su-huong-dan-tung-tang-va-meo-thuc-te)
 - Phố Hàng Mã: [SGGP](https://www.sggp.org.vn/ha-noi-pho-hang-ma-ruc-sac-do-dip-can-tet-post777543.html)
-- Bến xe Miền Tây: [mia.vn](https://mia.vn/cam-nang-du-lich/thong-tin-ve-ben-xe-mien-tay-18169)
 
-### 4.3 Cách làm trong code
-1. `Region.places`: mỗi vùng có `ga`, `choTet`, `benXe` gồm `{ name, address }`.
-2. Mở rộng cơ chế chèn tên (hiện có `{ten}`) thêm `{ga}`, `{gaDiaChi}`, `{choTet}`, `{benXe}` để các câu thoại, nhiệm vụ, nhãn nút dùng chung; validator báo lỗi nếu dùng placeholder lạ (như `{ten}` hiện nay).
-3. Sửa các chỗ đang nói chung chung (đã rà `v1.json`): chặng "Ra bến" (tiêu đề, intro), đồ vật `xe-buyt` (nhãn "Trạm xe buýt", nút "Lên xe buýt", câu thoại), câu của Bác Xe Ôm ("Cuối phố có trạm đó em"), các lựa chọn của Bé Dê ("Ra bến rồi tính"), nhiệm vụ "Chọn quà ở sạp", "Lên xe buýt ở cuối phố", `registry` label cảnh.
-4. Biển hiệu trong cảnh: tên + địa chỉ vẽ bằng `TextPlane` (đã có sẵn) ở cổng ga, sạp quà, trạm dừng chân.
-5. Thẻ chào chặng: thêm dòng "địa điểm · địa chỉ" dưới tiêu đề.
-6. Test: mọi `{...}` trong nội dung khớp danh sách cho phép; mọi vùng đều có đủ `places`.
+Không ghi tên phường / quận: đơn vị hành chính đã đổi từ 1/7/2025.
 
-### 4.4 Quyết định cần bạn xác nhận về cốt truyện
-Đổi "trạm xe buýt" thành **nhà ga** kéo theo chuyện đi tàu, trong khi chặng 3 hiện là trạm dừng chân quốc lộ của xe khách. Ba cách:
-- **A. Rẽ nhánh theo "về bằng gì"** (Bé Dê đã hỏi ở chặng 1: xe khách / xe máy / ra bến rồi tính): đi tàu thì chặng 2 là ga, chặng 3 là ga dọc đường; đi xe khách thì chặng 2 là bến xe, chặng 3 là trạm dừng chân. **Đề xuất**, nhưng tốn nhiều công nhất.
-- **B. Tàu cho mọi người:** chặng 2 là ga, chặng 3 đổi thành "ga dọc đường" (đổi cảnh trạm dừng chân thành sân ga), giữ nguyên Chú Ba Triết Lý và anh họ.
-- **C. Xe khách cho mọi người:** chặng 2 là bến xe (đổi "ga" thành "bến"), chặng 3 giữ. Ít việc nhất, nhưng không đúng yêu cầu "Ga Hà Nội" của bạn.
+### 4.3 Nhân vật mới ở phố Hàng Mã (hư cấu, đều vai tích cực / trung tính)
+
+| Nhân vật | Vai | Cảnh | Ghi chú |
+|---|---|---|---|
+| Bác Tổ Trưởng | Tổ trưởng dân phố, cầm loa, đeo kính | `rb-to-truong` | nhắc đi bên phải, chỉ đường ra ga; lựa chọn "mượn loa" bị từ chối |
+| Cô Trà Đá | Quán trà đá vỉa hè, tạp dề, cốc trà | `rb-tra-da` | trà đá năm nghìn, nhắc nghỉ chân |
+| Bà Hai Gánh Đào | Bán đào Nhật Tân, khăn, cành đào | `rb-hoa-dao` | mua cành đào; "mua cả cây rồi mang lên tàu kiểu gì" |
+
+Cùng nhiệm vụ tuỳ chọn "Chào bà con phố Hàng Mã" (thưởng Hòa khí +2). Đã đo lại cân bằng kết thúc (sinh viên E3 ~35%, E8 ~52%, độc thân 27+ E7 ~59%, E2 vẫn đạt được).
+
+**Chưa thêm "Anh Long nghiện" và "Michael Lọ":** xem mục 5, câu hỏi 0.
+
+### 4.4 Cốt truyện đi tàu
+Đã chọn cách pha: chặng 2 kết thúc ở **Ga Hà Nội** (lên tàu); chặng 3 mở đầu bằng "Tàu tới ga tỉnh, bạn đổi sang xe khách về huyện", nên cảnh trạm dừng chân quốc lộ và xe khách giữ nguyên. Chặng 1 hỏi "về bằng gì" vẫn còn lựa chọn xe máy. Rẽ nhánh hoàn toàn theo cách về (tàu / xe khách / xe máy) vẫn là việc lớn chưa làm.
 
 ## 5. Câu hỏi cần bạn trả lời trước khi bắt đầu
 
+0. **"Anh Long nghiện" và "Michael Lọ" là ai?** Hai tên này chưa có trong hồ sơ nào của dự án. Quy tắc ở [03-cameo.md](03-cameo.md) mục 2.3 và 5.1 loại người có liên quan tới ma túy hoặc vụ án, chỉ cho phép vai tích cực hoặc trung tính, và nội dung ma túy thuộc nhóm bị loại. Nếu đó là người thật, hoặc nhân vật bị mô tả là người nghiện, mình cần bạn cho biết họ là ai, và đề xuất một bản hư cấu không mô tả ai là người nghiện (xem câu trả lời trong cuộc trò chuyện).
 1. **Phong cách:** đồng ý giữ low-poly nhưng làm nhất quán (mục 1), không đuổi ảnh thật?
 2. **Thư viện:** cho thêm `@react-three/postprocessing` (bloom, vignette, SMAA)? Cần cài từ registry công khai (máy này cần ngoại lệ của IS như trước). Nếu không, mình bỏ hậu kỳ và chỉ dùng ánh sáng + AO nướng.
 3. **Tải model CC0 thêm:** cho phép tải thêm nhân vật và bộ nhà từ poly.pizza (mỗi lần bạn duyệt như trước)? Bộ nhà Kenney City Kit còn chưa kiểm được vì bị chặn 429 lần trước.
 4. **Ngân sách thiết bị:** thiết bị thấp nhất cần chạy (đề xuất: Android tầm trung, 30 FPS, 400 draw call, 250 nghìn tam giác mỗi cảnh)?
-5. **Địa điểm:** (a) theo thành phố người chơi hay chỉ Hà Nội; (b) chọn phương án A / B / C ở mục 4.4; (c) bạn có nguồn đáng tin cho ba địa chỉ chưa xác minh không.
+5. **Số nhà phố Hàng Mã và các địa điểm Hà Nội khác** (bến xe Giáp Bát, Mỹ Đình...): bạn có nguồn đáng tin không? Chưa xác minh thì giữ "tên + đường".
 6. **Thứ tự:** làm ngay GĐ 0 và 1 (đo, hiệu năng), hay làm trước "việc làm nhanh" để thấy khác biệt sớm?

@@ -19,7 +19,7 @@ import {
   type Blossom,
   type Menu,
 } from './props';
-import { BANNER, BOARD_TEXT, CALENDAR, COUPLET_LEFT, COUPLET_RIGHT, OFFICE_MOTTO, SCHEDULE_TITLE, SCHOOL_MOTTO } from './decorText';
+import { BANNER, BOARD_TEXT, CALENDAR, COUPLET_LEFT, COUPLET_RIGHT, OFFICE_MOTTO, SCHEDULE_TITLE, SCHOOL_MOTTO, STALL_SIGN, STATION_SIGN } from './decorText';
 import { OutsideStreet, Skyline, WindowedWall } from './office-decor';
 import { Prop } from './Prop';
 import { TextPlane } from './TextPlane';
@@ -224,6 +224,14 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
         <BlossomTree key={p.x} kind={p.kind === 'quat' ? 'quat' : blossom} position={[p.x, PHO_TET.sidewalkTop, p.z]} scale={0.9} />
       ))}
       <GiftStall position={[PHO_TET.stall.x, PHO_TET.sidewalkTop, PHO_TET.stall.z]} />
+      {/* biển sạp (hướng ra phố) */}
+      <Box p={[PHO_TET.stall.x, 2.78, PHO_TET.stall.z + 0.46]} s={[2.5, 0.42, 0.05]} c="#b91c1c" />
+      <TextPlane w={2.4} h={0.36} lines={STALL_SIGN} position={[PHO_TET.stall.x, 2.78, PHO_TET.stall.z + 0.49]} />
+      {/* biển Ga Hà Nội vuông góc phố, gắn vào mặt tiền và treo cao 3 m (trên đầu người đi, nên không cần vật cản) để người đi từ đầu phố thấy trước */}
+      <group position={[PHO_TET.bus.x - 1.6, 0, -2.6]}>
+        <Box p={[0, SIGN_Y, 0]} s={[0.07, 0.95, 2.35]} c="#1e3a8a" />
+        <TextPlane w={2.2} h={0.82} lines={STATION_SIGN} double position={[0, SIGN_Y, 0]} rotation={[0, -Math.PI / 2, 0]} />
+      </group>
       <group position={[PHO_TET.bus.x, PHO_TET.sidewalkTop, PHO_TET.bus.z]} rotation={[0, Math.PI, 0]}>
         <BusStop position={[0, 0, 0]} />
       </group>
@@ -337,6 +345,9 @@ function Box({ p, s, c, e }: Readonly<{ p: [number, number, number]; s: [number,
     </mesh>
   );
 }
+
+/** Độ cao tâm biển Ga Hà Nội (m): cạnh dưới 2.6 m, cao hơn đầu người chơi nên đi bên dưới được. */
+export const SIGN_Y = 3.1;
 
 /** Sàn lát (ván gỗ / gạch) vẽ bằng texture canvas; `tile` là cạnh ô lặp (m). */
 function Floor({ kind, base, w, d, z, tile = 2 }: Readonly<{ kind: FloorKind; base: string; w: number; d: number; z: number; tile?: number }>) {

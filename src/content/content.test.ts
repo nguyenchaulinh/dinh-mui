@@ -94,7 +94,7 @@ describe('kết thúc ẩn "Tết xa nhà"', () => {
   });
 
   it('đổi ý ("con về") thì chơi tiếp', () => {
-    let s = createGame(c, 'sinh-vien', 'sai-gon', 'Minh');
+    let s = createGame(c, 'sinh-vien', 'ha-noi', 'Minh');
     s = choose(c, s, 'me-goi', 'd').state;
     s = choose(c, s, 'chac-chua', 'b').state;
     expect(s.endingId).toBeNull();

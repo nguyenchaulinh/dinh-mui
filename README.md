@@ -2,7 +2,7 @@
 
 Game web 3D về quê ăn Tết, sống sót qua những câu hỏi của họ hàng. Người chơi điều khiển nhân vật ở **góc nhìn thứ ba**, đi lại trong cảnh 3D, nói chuyện với họ hàng, né câu hỏi và làm nhiệm vụ. Plan, kịch bản và research nằm trong [docs/](docs/).
 
-**Hiện trạng:** chơi được 4 chặng (`cuoi-nam`: văn phòng / lớp học, `ra-ben`: phố Tết, `tram-dung`: trạm dừng chân trên đường về, `san-nha`: sân nhà ở quê), 3 vai × 3 thành phố, 9 kết thúc. Chưa có âm thanh, lưu tiến trình, chặng mâm cơm và các chặng từ giao thừa trở đi. Kế hoạch tiếp theo ở [docs/09-ke-hoach-tiep-theo.md](docs/09-ke-hoach-tiep-theo.md).
+**Hiện trạng:** chơi được 4 chặng (`cuoi-nam`: văn phòng / lớp học, `ra-ben`: phố Tết, `tram-dung`: trạm dừng chân trên đường về, `san-nha`: sân nhà ở quê), 3 vai, toàn bộ ở **Hà Nội** (phố Hàng Mã, Ga Hà Nội 120 Lê Duẩn), 9 kết thúc. Chưa có âm thanh, lưu tiến trình, chặng mâm cơm và các chặng từ giao thừa trở đi. Kế hoạch tiếp theo ở [docs/09-ke-hoach-tiep-theo.md](docs/09-ke-hoach-tiep-theo.md).
 
 ## Chạy local
 
@@ -24,20 +24,20 @@ Mở địa chỉ `Network` trong log bằng trình duyệt điện thoại. Gó
 **Nhảy thẳng vào một bản đồ** (chỉ khi chạy dev; bỏ qua thẻ mở đầu và thẻ chặng):
 
 ```
-http://localhost:5173/?roam=cuoi-nam&persona=sinh-vien&region=da-nang
+http://localhost:5173/?roam=cuoi-nam&persona=sinh-vien&region=ha-noi
 ```
 
 - `roam`: id bản đồ trong [src/content/v1.json](src/content/v1.json), mục `maps`: `cuoi-nam` (văn phòng / lớp học), `ra-ben` (phố Tết, trạm xe buýt), `tram-dung` (trạm dừng chân trên quốc lộ), `san-nha` (sân nhà ở quê).
 - `persona`: `sinh-vien`, `moi-di-lam`, `doc-than-27`.
-- `region`: `ha-noi`, `da-nang`, `sai-gon`.
+- `region`: `ha-noi` (game chỉ ở Hà Nội; tham số giữ lại cho dev).
 
 ## Cách chơi
 
 Thiết kế: [docs/07-thiet-ke-ui-ux.md](docs/07-thiet-ke-ui-ux.md) (giao diện), [docs/08-thiet-ke-choi-truoc-que.md](docs/08-thiet-ke-choi-truoc-que.md) (lối chơi).
 
-1. **Mở game:** cảnh chặng 1 làm nền, thẻ giữa màn hình bốc ngẫu nhiên bối cảnh (vai: sinh viên năm cuối / mới đi làm / độc thân 27+; thành phố: Hà Nội / Đà Nẵng / Sài Gòn). Bạn chỉ nhập tên rồi "Lên đường".
+1. **Mở game:** cảnh chặng 1 làm nền, thẻ giữa màn hình bốc ngẫu nhiên bối cảnh (vai: sinh viên năm cuối / mới đi làm / độc thân 27+; thành phố luôn là Hà Nội). Bạn chỉ nhập tên rồi "Lên đường".
 2. **Chặng 1 · Cuối năm ở phố** (văn phòng nếu đi làm, lớp học nếu là sinh viên): dùng máy tính **săn vé** (nhân vật tự đi tới ghế, ngồi xuống rồi mới mở feed; 4/6 bài là lừa đảo), **nhặt** sạc, hộp bánh, áo ấm (nhân vật với tay lấy, đồ bay vào người), nói chuyện với đồng nghiệp/bạn, Sếp/Cô và chị Thu/Lớp trưởng, **bấm NÉ đúng lúc** khi Sếp/Lớp trưởng lao tới giao việc. Săn vé xong Bé Dê hỏi về bằng gì, rồi **mẹ gọi video**. Đủ việc thì **cửa ra** mới mở.
-3. **Chặng 2 · Bước vào nhà** (sân nhà, giọng thoại và cảnh đổi theo miền): nói chuyện với Cô Hai, Bác Cả, Bà Tám, vuốt chó Vàng, chơi với bé Bin, **bấm NÉ đúng lúc** khi Dì Út lao tới hỏi (băng rôn báo trước, vòng thời gian thu nhỏ; bấm khi chạm vạch vàng).
+3. **Chặng 2 · Bước vào nhà** (sân nhà miền Bắc): nói chuyện với Cô Hai, Bác Cả, Bà Tám, vuốt chó Vàng, chơi với bé Bin, **bấm NÉ đúng lúc** khi Dì Út lao tới hỏi (băng rôn báo trước, vòng thời gian thu nhỏ; bấm khi chạm vạch vàng).
 4. **Kết thúc:** xong chặng cuối, hoặc một chỉ số (Hòa khí, Sức chịu đựng, Ví) về 0, hoặc nói với mẹ "năm nay con ở lại" rồi xác nhận, thì ra **danh hiệu Tết**. Né tổng cộng 8 câu để mở "Chiến thần né câu hỏi".
 
 Điều khiển:
@@ -55,7 +55,7 @@ Giao diện trong game:
 
 | Lệnh | Việc |
 |---|---|
-| `npm test` | Unit test: engine, validate, chuyển động/va chạm/NPC/bấm NÉ, model nhân vật, và mô phỏng mọi tổ hợp câu đáp của nội dung thật với mọi persona × thành phố |
+| `npm test` | Unit test: engine, validate, chuyển động/va chạm/NPC/bấm NÉ, model nhân vật, và mô phỏng mọi tổ hợp câu đáp của nội dung thật với mọi persona (Hà Nội) |
 | `npm run typecheck` | Kiểm tra type |
 | `npm run build` | Build production ra `dist/` |
 | `npm run perf` | **Đo hiệu năng tự động**: giả lập điện thoại (màn hình, cảm ứng, CPU chậm), chơi thử các bản đồ, in FPS, thời gian khung, draw call. Xem `node scripts/perf.mjs --help`. Kết quả ghi vào `.perf/`. Không thay được máy thật: không giả lập được GPU điện thoại |
@@ -118,7 +118,7 @@ src/ErrorBoundary.tsx      bắt lỗi giao diện, hiện thẻ báo lỗi thay
 
 Sửa `src/content/v1.json`, rồi chạy `npm test`. Validate báo lỗi ngay nếu tham chiếu sai (scene, thẻ mẹo, vùng, cờ, lịch sử, set 3D, vị trí đứng, nhiệm vụ). Mỗi chặng (`stages`) trỏ tới một bản đồ (`maps`); mỗi scene hội thoại phải được một NPC trong bản đồ gọi tới (`action.sceneIds` hoặc `shoots.hitSceneIds`), nếu không validate báo "scene mồ côi".
 
-- **Vùng:** `lineByRegion`, `textByRegion`, `replyByRegion` thay giọng theo thành phố. Scene có `regions` chỉ hiện với vùng đó.
+- **Chỉ Hà Nội:** mọi nhân vật, địa điểm, tên riêng và giọng thoại gắn với Hà Nội; không nhắc thành phố khác (test `haNoi.test.ts` canh). Địa điểm công cộng thật (Ga Hà Nội, phố Hàng Mã) khai trong `src/content/places.ts`, cơ sở tư nhân là hư cấu và không gắn số nhà thật. Cơ chế biến thể vùng (`lineByRegion`...) vẫn còn trong engine nhưng nội dung không dùng.
 - **Persona:** `personas` trong scene (cùng một NPC có thể hỏi mỗi vai một câu khác nhau).
 - **Cờ:** lựa chọn có `setFlags`; scene, dòng thoại, lựa chọn có `if: { flags, notFlags, history, ... }`; kết thúc có `flags`. Chế độ đi lại tự sinh cờ `talked:`, `petted:`, `dodged:`, `hit:`, `quest:`.
 - **Bản đồ:** `maps[]` gồm `setId` (bộ cảnh 3D có vùng đi lại trong `walk.ts`), `playerId`, `npcs` (vị trí, hành vi `stand`/`wander`/`approach`, hành động `talk`/`pet`, tuỳ chọn `ambush` để lao tới hỏi (bấm NÉ đúng lúc), `personas` nếu chỉ có với một số vai), `objects` (đồ vật: `talk` mở hội thoại/feed, `pickup` nhặt, `exit` ra cửa; `requires` để khoá), `events` (tự bật khi đủ cờ; `kind: "call"` là cuộc gọi đến), `variantByPersona` (trang trí theo vai), `quests` (mục tiêu có thể giới hạn `personas`) và `goalQuestId` (nhiệm vụ đích: xong thì hết chặng).

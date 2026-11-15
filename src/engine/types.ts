@@ -69,6 +69,8 @@ export const ACCESSORIES = [
   'cup',
   'spoon',
   'folder',
+  'megaphone',
+  'branch',
 ] as const;
 export type Accessory = (typeof ACCESSORIES)[number];
 

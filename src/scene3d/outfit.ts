@@ -218,6 +218,26 @@ export function propsFor(list: readonly Accessory[], fit: Fit, accent?: string, 
           { g: 'sphere', s: [0.035, 6, 4], p: [0, 0.03, 0.045], k: [1, 1.4, 0.4], c: '#e5e7eb' },
         ]);
         break;
+      case 'megaphone': // loa cầm tay của tổ dân phố: loa nón loe về phía trước, thân và cán
+        hand([
+          { g: 'cyl', s: [0.04, 0.04, 0.1, 8], p: [0, -0.07, 0.05], r: [Math.PI / 2, 0, 0], c: a('#f59e0b') },
+          { g: 'cone', s: [0.1, 0.18, 10], p: [0, -0.07, 0.17], r: [-Math.PI / 2, 0, 0], c: a('#f59e0b') },
+          { g: 'cyl', s: [0.018, 0.018, 0.09, 6], p: [0, -0.12, 0.04], c: DARK },
+        ]);
+        break;
+      case 'branch': // cành đào cầm tay: thân mảnh nghiêng, các bông hồng
+        hand([
+          { g: 'cyl', s: [0.009, 0.013, 0.36, 4], p: [0.02, 0.0, 0.05], r: [0, 0, -0.2], c: '#4a2e1a' },
+          ...[
+            [0.05, 0.14, 0.06],
+            [-0.01, 0.1, 0.08],
+            [0.08, 0.06, 0.04],
+            [0.01, 0.18, 0.05],
+            [0.06, 0.2, 0.08],
+            [-0.02, 0.15, 0.03],
+          ].map((p) => ({ g: 'sphere', s: [0.032, 5, 4], p: [p[0]!, p[1]!, p[2]!], c: '#f472b6' }) as Shape),
+        ]);
+        break;
       case 'folder': // tập hồ sơ / sổ
         hand([
           { g: 'box', s: [0.2, 0.27, 0.025], p: [0, -0.14, 0.07], r: [0.1, 0, 0], c: a('#b91c1c') },

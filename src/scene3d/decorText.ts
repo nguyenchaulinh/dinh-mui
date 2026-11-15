@@ -10,6 +10,15 @@ export interface DecorLine {
   weight?: 'normal' | 'bold';
 }
 
+import { GA_HA_NOI, PHO_HANG_MA } from '../content/places';
+
+/** Biển cổng ga (vuông góc phố) và biển sạp quà: tên địa điểm + địa chỉ, lấy từ `content/places.ts`. */
+export const STATION_SIGN: readonly DecorLine[] = [
+  { text: GA_HA_NOI.name.toUpperCase(), size: 118, color: '#fef3c7' },
+  { text: GA_HA_NOI.address, size: 74, color: '#bae6fd', weight: 'normal' },
+];
+export const STALL_SIGN: readonly DecorLine[] = [{ text: `SẠP TẾT ${PHO_HANG_MA.name.replace('Phố ', '').toUpperCase()}`, size: 100, color: '#fde68a' }];
+
 export const BANNER: readonly DecorLine[] = [{ text: 'CHÚC MỪNG NĂM MỚI · TẾT ĐINH MÙI', size: 130, color: '#fde68a' }];
 
 /** Hai vế câu đối đỏ dán hai bên bảng, mỗi dòng một chữ / cụm. */
@@ -52,4 +61,6 @@ export const ALL_DECOR: readonly DecorLine[] = [
   ...OFFICE_MOTTO,
   ...CALENDAR,
   ...SCHEDULE_TITLE,
+  ...STATION_SIGN,
+  ...STALL_SIGN,
 ];
