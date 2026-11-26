@@ -88,6 +88,15 @@ describe('dãy nhà cao tầng gộp một geometry', () => {
   });
 });
 
+describe('MergedShapes không dựng lại hình mỗi lần render', () => {
+  it('giá trị mặc định của lit / glass là hằng dùng chung, không phải `= []` (mảng mới mỗi render làm useMemo vô tác dụng)', async () => {
+    const src = (await import('./Merged.tsx?raw')).default as string;
+    expect(src).not.toMatch(/lit\s*=\s*\[\]/);
+    expect(src).not.toMatch(/glass\s*=\s*\[\]/);
+    expect(src).toMatch(/lit = NONE/);
+  });
+});
+
 describe('cấu trúc dựng CuoiNam giữ ngân sách draw call', () => {
   const room = setsSrc.slice(setsSrc.indexOf('function CuoiNam'), setsSrc.indexOf('function NhaTren'));
   it('không còn <Box> / <mesh> riêng lẻ trong phòng (khối tĩnh đã gộp trong roomShapes)', () => {

@@ -284,12 +284,24 @@ export function fitLabelFonts(
   return { fonts, bands };
 }
 
+/** Khoá cache của texture chữ (`ready` = phông đã nạp xong). Tách ra để test. */
+export function labelCacheKey(ready: boolean, w: number, h: number, bg: string | null, px: number, opts: LabelOptions, lines: readonly LabelLine[]): string {
+  return `l|${w}|${h}|${bg}|${px}|${opts.uniform ?? false}|${opts.grain ?? false}|${ready}|${JSON.stringify(lines)}`;
+}
+
 /** Texture chữ: nền `bg` (null = trong suốt), các dòng xếp từ trên xuống theo tỉ lệ. `px` = số px cho mỗi mét. Cache theo nội dung. */
 export function labelTexture(lines: readonly LabelLine[], w: number, h: number, bg: string | null, px = 384, opts: LabelOptions = {}): CanvasTexture {
   // `fontsReady()` nằm trong khoá: vẽ lại khi phông vừa nạp xong thay vì giữ bản vẽ bằng phông dự phòng.
-  const key = `l|${w}|${h}|${bg}|${px}|${opts.uniform ?? false}|${opts.grain ?? false}|${fontsReady()}|${JSON.stringify(lines)}`;
+  const ready = fontsReady();
+  const key = labelCacheKey(ready, w, h, bg, px, opts, lines);
   const hit = cache.get(key);
   if (hit) return hit;
+  if (ready) {
+    // Bản vẽ bằng phông dự phòng không còn ai cần: giải phóng canvas và texture GPU của nó (không để cache phình gấp đôi).
+    const stale = labelCacheKey(false, w, h, bg, px, opts, lines);
+    cache.get(stale)?.dispose();
+    cache.delete(stale);
+  }
   const cv = document.createElement('canvas');
   cv.width = Math.max(32, Math.round(w * px));
   cv.height = Math.max(32, Math.round(h * px));

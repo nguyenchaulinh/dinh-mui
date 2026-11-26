@@ -301,13 +301,13 @@ export const PHO_TET = {
    * chặn của một NPC đứng rộng 0.77 m quanh tâm, chiếm gần hết vỉa hè nếu đứng giữa. Khớp spot trong registry.ts.
    */
   standNpc: { z: -3.25, xs: [-7.6, 0.9, 8.0] },
-  /** Trạm xe buýt: tâm ghế chờ; mái/lưng quay về phía nhà phố (nhóm xoay PI). */
   /**
    * Góc máy bám trên phố: dải đi lại rộng 2 m sát mặt tiền nên góc mặc định (thấp 15°, cách 5.6 m) đặt camera ngay sát tường
    * nhà, mặt tiền thành mảng phẳng che màn hình. Nâng lên ~29° và lùi 6.6 m: mắt camera cao ~4.4 m, trên mái hiên (2.2 m), nhìn
    * xuống vỉa hè và lòng đường. Không có xà thấp ở phố nên không bị giới hạn 2.75 m của cổng làng.
    */
   camera: { pitch: 0.5, dist: 6.6 },
+  /** Trạm xe buýt: tâm ghế chờ; mái/lưng quay về phía nhà phố (nhóm xoay PI). */
   bus: { x: 10, z: -2.9, benchHw: 0.7, benchHd: 0.2, postDx: 1.1, postDz: -0.15, postR: 0.1, signDx: 2.0, signDz: 0.9, signR: 0.06 },
 } as const;
 

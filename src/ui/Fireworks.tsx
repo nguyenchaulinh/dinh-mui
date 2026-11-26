@@ -44,13 +44,16 @@ export function Fireworks({ intensity, palette, confetti = true }: Readonly<{ in
     const g = cv?.getContext('2d');
     if (!cv || !g || prefersReducedMotion()) return undefined;
     const sim = createSim();
-    const small = Math.min(window.innerWidth, window.innerHeight) < 600;
-    const dpr = Math.min(window.devicePixelRatio || 1, small ? 1.5 : 2);
+    let small = false;
+    let dpr = 1;
     let w = 0;
     let h = 0;
+    // Tính lại khi đổi cỡ / xoay màn hình: độ phân giải và trần số hạt theo màn hình hiện tại.
     const resize = () => {
       w = window.innerWidth;
       h = window.innerHeight;
+      small = Math.min(w, h) < 600;
+      dpr = Math.min(window.devicePixelRatio || 1, small ? 1.5 : 2);
       cv.width = Math.round(w * dpr);
       cv.height = Math.round(h * dpr);
     };
