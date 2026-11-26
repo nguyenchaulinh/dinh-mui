@@ -8,7 +8,7 @@ import { hairParts, hidesOriginalHair } from './hair';
 import { accessoriesOf, builtinOf, fitOf, propsFor } from './outfit';
 import { attachProps } from './outfitBuild';
 import { smoothOnce } from './smooth';
-import { BIND_HEIGHT, BONES, HIP_ABOVE_SEAT, POM_BONES, POM_DROP, POM_FUR, SIT_POSE, clipFor, heightFor, sanitizeName, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
+import { BIND_HEIGHT, BONES, HIP_ABOVE_SEAT, POM_BONES, POM_DROP, POM_FUR, SIT_POSE, clipFor, headScaleFor, heightFor, sanitizeName, modelUrl, partOf, roleOf, type CharacterModel, type MatRole } from './rigging';
 
 const HEX = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 /** Không dùng Draco/Meshopt: file không nén theo kiểu đó, và tránh tự tải bộ giải mã từ CDN ngoài. */
@@ -154,6 +154,8 @@ export function RiggedFigure({
     }
     // 5. Phụ kiện (kính, nón, balo, thẻ, cà vạt, ly...) gắn vào xương nên đi theo hoạt ảnh. Chỉ người: chó không có.
     const props = kind === 'human' ? attachProps(root, [...(customHair ? hairParts(look.hairStyle!, fitOf(model), look.hair) : []), ...propsFor(accessoriesOf(look), fitOf(model), look.accent, builtinOf(model))]) : null;
+    // Đầu to hơn một chút theo vóc dáng. Đặt SAU khi gắn phụ kiện: khối gắn xương Head to theo đầu nên kính, búi tóc không lệch.
+    if (kind === 'human' && bones.head) bones.head.scale.setScalar(headScaleFor(kind, look.build));
     // 6. Chuẩn hoá chiều cao theo chiều cao tư thế gốc đã biết (KHÔNG đo bằng Box3: xem BIND_HEIGHT).
     return { root, bones, scale: heightFor(kind, look.build) / BIND_HEIGHT[model], props };
   }, [gltf.scene, model, kind, look]);

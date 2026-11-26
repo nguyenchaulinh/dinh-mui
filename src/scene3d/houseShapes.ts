@@ -78,6 +78,9 @@ export function houseShapes({ w, h, sign, flag, variant, shop, far = false }: Ho
     );
   }
 
+  // Ban công lồng sắt ("chuồng cọp", đặc trưng nhà phố Hà Nội) ở tầng hai của nhà có từ ba tầng, một nhà trong ba.
+  if (floors >= 3 && variant % 3 === 1) balconyCage(solid, w, 1.6 * 2 + 0.6);
+
   if (shop) {
     const [c1, c2] = AWNING_COLORS[variant % AWNING_COLORS.length]!;
     const stripes = 4;
@@ -118,4 +121,28 @@ export function houseShapes({ w, h, sign, flag, variant, shop, far = false }: Ho
     );
   }
   return { solid, lit, floors };
+}
+
+/** Độ nhô ra (m) của ban công lồng sắt so với mặt tiền; ở độ cao tầng hai (trên 2.9 m) nên nằm trên đầu người trên vỉa hè. */
+export const BALCONY = { out: 0.55, h: 1.15 } as const;
+
+/** Lồng sắt: sàn, khung trên, thanh đứng ở mặt trước và hai bên, thanh ngang giữa. `y` là độ cao tâm cửa sổ tầng đó. */
+function balconyCage(solid: Shape[], w: number, y: number): void {
+  const bw = w * 0.75;
+  const z0 = 2.02;
+  const zc = z0 + BALCONY.out / 2;
+  const yb = y - 0.5; // sàn ngang bậu cửa
+  const yt = yb + BALCONY.h;
+  const iron = '#374151';
+  solid.push(
+    { g: 'box', s: [bw, 0.07, BALCONY.out], p: [0, yb, zc], c: '#9ca3af' },
+    { g: 'box', s: [bw, 0.04, BALCONY.out], p: [0, yt, zc], c: iron },
+    { g: 'box', s: [bw, 0.03, 0.03], p: [0, yb + BALCONY.h / 2, z0 + BALCONY.out], c: iron },
+  );
+  const bars = Math.max(4, Math.round(bw / 0.22));
+  for (let i = 0; i <= bars; i++) solid.push({ g: 'box', s: [0.025, BALCONY.h, 0.025], p: [(i / bars - 0.5) * bw, yb + BALCONY.h / 2, z0 + BALCONY.out], c: iron });
+  for (const sx of [-1, 1]) {
+    for (let k = 0; k <= 2; k++) solid.push({ g: 'box', s: [0.025, BALCONY.h, 0.025], p: [sx * bw / 2, yb + BALCONY.h / 2, z0 + (k / 2) * BALCONY.out], c: iron });
+    solid.push({ g: 'box', s: [0.03, 0.03, BALCONY.out], p: [sx * bw / 2, yb + BALCONY.h / 2, zc], c: iron });
+  }
 }

@@ -132,6 +132,17 @@ export function heightFor(kind: 'human' | 'dog' | 'goat', build?: 'kid' | 'adult
   return 1.65;
 }
 
+/**
+ * Hệ số phóng đầu theo vóc dáng (xương Head, co giãn đều quanh cổ): đầu hơi to hơn thật cho dễ đọc nét mặt, phụ kiện và tóc
+ * thêm (gắn xương Head) to theo nên không lệch. Trẻ em đầu to nhất, người già ít nhất. Chó không phóng.
+ */
+export function headScaleFor(kind: 'human' | 'dog' | 'goat', build?: 'kid' | 'adult' | 'elder'): number {
+  if (kind !== 'human') return 1;
+  if (build === 'kid') return 1.28;
+  if (build === 'elder') return 1.06;
+  return 1.12;
+}
+
 /** Hoạt ảnh của game (Figure) -> tên clip trong file GLB. */
 export function clipFor(anim: string | undefined, kind: 'human' | 'dog' | 'goat'): string {
   if (kind === 'dog') {

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { BufferGeometry } from 'three';
 import { Lantern } from './props';
 import { mergeShapes } from './shapes';
-import { buntingShapes, busStopShapes, crosswalkShapes, stallShapes } from './streetShapes';
+import { buntingShapes, busStopShapes, crosswalkShapes, powerLineShapes, stallShapes } from './streetShapes';
 
 /** Đạo cụ phố Tết (sạp quà, trạm xe buýt). Hình học khớp vùng đi lại PHO_TET trong walk.ts. */
 
@@ -98,6 +98,16 @@ export function Bunting({ x, y0, y1, z0, z1, flags = 10 }: Readonly<{ x: number;
 /** Vạch qua đường (các vạch song song với trục z, nằm trên lòng đường z -1.8..2.2). Một mesh. */
 export function Crosswalk({ x }: Readonly<{ x: number }>) {
   const geo = useMemo(() => mergeShapes(crosswalkShapes(x)), [x]);
+  return (
+    <mesh geometry={geo}>
+      <meshStandardMaterial vertexColors flatShading roughness={0.85} />
+    </mesh>
+  );
+}
+
+/** Cột điện bê tông, biến áp và các bó dây chằng chịt dọc / ngang phố (streetShapes.ts `powerLineShapes`). Một mesh. `houseTop` cho độ cao đỉnh nhà phía bắc tại x. */
+export function PowerLines({ houseTop }: Readonly<{ houseTop: (x: number) => number }>) {
+  const geo = useMemo(() => mergeShapes(powerLineShapes(houseTop)), [houseTop]);
   return (
     <mesh geometry={geo}>
       <meshStandardMaterial vertexColors flatShading roughness={0.85} />

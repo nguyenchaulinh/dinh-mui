@@ -142,7 +142,20 @@ export function Modal({
   children,
   onClose,
   wide = false,
-}: Readonly<{ label: string; children: ReactNode; onClose?: () => void; wide?: boolean }>) {
+  className = '',
+  scrimClassName = '',
+  backdrop,
+}: Readonly<{
+  label: string;
+  children: ReactNode;
+  onClose?: () => void;
+  wide?: boolean;
+  /** Lớp CSS thêm cho thẻ (ví dụ màn chiến thắng). */
+  className?: string;
+  scrimClassName?: string;
+  /** Lớp trang trí nằm giữa nền và thẻ (pháo hoa), không nhận chuột. */
+  backdrop?: ReactNode;
+}>) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -158,8 +171,9 @@ export function Modal({
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
   return (
-    <div className="scrim">
-      <div ref={ref} className={wide ? 'modal modal-wide' : 'modal'} role="dialog" aria-modal="true" aria-label={label}>
+    <div className={`scrim ${scrimClassName}`.trim()}>
+      {backdrop}
+      <div ref={ref} className={`${wide ? 'modal modal-wide' : 'modal'} ${className}`.trim()} role="dialog" aria-modal="true" aria-label={label}>
         {children}
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NAME_MAX, normalizeName } from '../engine/engine';
 import { objectivesFor } from '../engine/quests';
-import type { Content, Ending, GameState, Stage } from '../engine/types';
+import type { Content, GameState, Stage } from '../engine/types';
 import { Modal, StatBars } from '../ui/ui';
 import { Footer } from './Footer';
 
@@ -128,23 +128,5 @@ export function PauseCard({ onResume, onRestart }: Readonly<{ onResume: () => vo
   );
 }
 
-/** Thẻ kết thúc: danh hiệu Tết của người chơi, chỉ số cuối, chơi lại. */
-export function EndingCard({
-  ending,
-  game,
-  onReplay,
-}: Readonly<{ ending: Ending; game: GameState; onReplay: () => void }>) {
-  return (
-    <Modal label="Kết thúc">
-      <p className="eyebrow">Danh hiệu Tết của {game.playerName || 'bạn'}</p>
-      <h2 className="title title-ending">{ending.title}</h2>
-      <p className="lead">{ending.description}</p>
-      <StatBars stats={game.stats} />
-      <p className="closing">Dù sao thì... vẫn phải về nhà.</p>
-      <button className="btn btn-block" onClick={onReplay}>
-        Chơi lại
-      </button>
-      <Footer />
-    </Modal>
-  );
-}
+// Màn kết thúc (pháo hoa, huy chương, danh hiệu) ở EndingScreen.tsx.
+export { EndingCard } from './EndingScreen';

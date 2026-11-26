@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { BackSide, BufferAttribute, Color, SphereGeometry } from 'three';
 import {
   Altar,
@@ -18,13 +18,16 @@ import {
   type Menu,
 } from './props';
 import { BANNER, BOARD_TEXT, CALENDAR, COUPLET_LEFT, COUPLET_RIGHT, OFFICE_MOTTO, SALE_POSTER, SCHEDULE_ROWS, SCHEDULE_TITLE, SCHOOL_MOTTO, STALL_SIGN, STATION_SIGN, STREET_BANNERS, shopSign } from './decorText';
-import { OutsideStreet, Skyline, WindowedWall } from './office-decor';
+import { OutsideStreet, Skyline } from './office-decor';
+import { MergedShapes } from './Merged';
+import { roomShapes } from './roomShapes';
 import { Prop } from './Prop';
 import { TextPlane } from './TextPlane';
 import { TexMat } from './TexMat';
 import { SETS, styleOfRegion } from './registry';
 import { corkboardTexture, floorTexture, skyGradient, type FloorKind } from './textures';
-import { BusStop, Bunting, Crosswalk, GiftStall, PARKED_BIKES, STREET_LAMP_XS } from './props-street';
+import { BusStop, Bunting, Crosswalk, GiftStall, PARKED_BIKES, PowerLines, STREET_LAMP_XS } from './props-street';
+import type { Shape } from './shapes';
 import { PHO_TRAFFIC, phoFarHouses, phoHouses, phoSkyline } from './phoLayout';
 import { StreetHouse } from './StreetHouse';
 import { TramDung } from './set-tram-dung';
@@ -122,6 +125,11 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
     [],
   );
   const cargo = useMemo<Blossom[]>(() => [blossom, 'quat'], [blossom]);
+  // 20 vạch kẻ giữa đường và 9 toà nhà xa: gộp, mỗi nhóm một mesh.
+  const roadShapes = useMemo(() => Array.from({ length: 20 }, (_, i): Shape => ({ g: 'plane', s: [1.6, 0.08], p: [-38 + i * 4, 0.02, 0.2], r: [-Math.PI / 2, 0, 0], c: '#f8fafc' })), []);
+  const skylineShapes = useMemo(() => skyline.map((b): Shape => ({ g: 'box', s: [b.w, b.h, 4], p: [b.x, b.h / 2, -13], c: b.c })), [skyline]);
+  // Độ cao đỉnh nhà phố phía bắc tại x (dây điện neo vào mặt tiền không lơ lửng trên nhà thấp).
+  const houseTop = useCallback((x: number) => (houses.find((h) => Math.abs(x - h.x) <= h.w / 2)?.h ?? 4.5) + 0.24, [houses]);
 
   return (
     <group>
@@ -131,16 +139,14 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
         <planeGeometry args={[80, 4]} />
         <TexMat kind="asphalt" base="#3b4252" rx={20} ry={1} rough={0.95} />
       </mesh>
-      {Array.from({ length: 20 }, (_, i) => (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[-38 + i * 4, 0.02, 0.2]}>
-          <planeGeometry args={[1.6, 0.08]} />
-          <Mat c="#f8fafc" />
-        </mesh>
-      ))}
+      <MergedShapes solid={roadShapes} />
       {/* vỉa hè hai bên */}
-      {[-2.9, 3.4].map((z) => (
+      {[
+        { z: -2.6, d: 2.4 }, // vỉa hè bắc: mặt tiền z -3.8 tới lề z -1.4 (rộng bằng vùng đi lại)
+        { z: 3.4, d: 1.8 },
+      ].map(({ z, d }) => (
         <mesh key={z} position={[0, PHO_TET.sidewalkTop / 2, z]}>
-          <boxGeometry args={[80, PHO_TET.sidewalkTop, 1.8]} />
+          <boxGeometry args={[80, PHO_TET.sidewalkTop, d]} />
           <TexMat kind="pavers" base="#cbc5bb" rx={60} ry={2} />
         </mesh>
       ))}
@@ -172,12 +178,9 @@ function PhoTet({ regionId }: Readonly<{ regionId: string }>) {
       {Array.from({ length: 7 }, (_, i) => (
         <Prop key={`u${i}`} model={i % 3 === 1 ? 'houseplant' : 'bush'} position={[-10.5 + i * 3.6, PHO_TET.sidewalkTop, 4.35]} fit={{ h: i % 3 === 1 ? 0.7 : 0.8 }} />
       ))}
-      {skyline.map((b, i) => (
-        <mesh key={`s${i}`} position={[b.x, b.h / 2, -13]}>
-          <boxGeometry args={[b.w, b.h, 4]} />
-          <Mat c={b.c} />
-        </mesh>
-      ))}
+      {/* nhà cao tầng xa phía sau dãy nhà bắc, vạch kẻ giữa đường (đã gộp) */}
+      <MergedShapes solid={skylineShapes} />
+      <PowerLines houseTop={houseTop} />
       {/* dây cờ Tết căng ngang đường (treo cao), vạch qua đường, xe máy đậu sát lề */}
       {[-10, -4, 2, 8].map((x) => (
         <Bunting key={x} x={x} y0={4.9} y1={4.6} z0={-3.9} z1={5.4} />
@@ -301,6 +304,9 @@ function SanNha({ regionId }: Readonly<{ regionId: string }>) {
 /** Biến thể trang trí của phòng: văn phòng (người đi làm) hoặc lớp học (sinh viên). Cùng mặt bằng CUOI_NAM. */
 export type RoomVariant = 'van-phong' | 'lop-hoc';
 
+/** AO nướng sẵn cho khối cố định của phòng: chân tường tối còn 80%, sáng dần tới 1.4 m. */
+const ROOM_AO = { y1: 1.4, min: 0.8 } as const;
+
 const ROOM: Record<RoomVariant, { floor: string; wall: string; dado: string; desk: string; board: string; counter: string }> = {
   'van-phong': { floor: '#bfb8ad', wall: '#f1ece4', dado: '#d6cfc4', desk: '#f4f1ec', board: '#f8fafc', counter: '#9ca3af' },
   'lop-hoc': { floor: '#e2cfa8', wall: '#f6e7c1', dado: '#8fb996', desk: '#c08a52', board: '#1f4d3a', counter: '#d97706' },
@@ -329,64 +335,6 @@ function Floor({ kind, base, w, d, z, tile = 2 }: Readonly<{ kind: FloorKind; ba
   );
 }
 
-/** Cửa sổ trên tường trái nhìn ra phố: kính xanh, khung trắng có song ngang dọc, bậu cửa và rèm hai bên. */
-function WindowFrame({ x, z, curtain }: Readonly<{ x: number; z: number; curtain: string }>) {
-  const { w, sill, head } = CUOI_NAM.windows; // khớp ô mở của WindowedWall
-  const h = head - sill;
-  const y = (sill + head) / 2;
-  return (
-    <group position={[x, 0, z]}>
-      <mesh position={[0.01, y, 0]}>
-        <boxGeometry args={[0.02, h, w]} />
-        <meshStandardMaterial color="#cfe8ff" transparent opacity={0.16} roughness={0.1} depthWrite={false} />
-      </mesh>
-      {[-1, 1].map((s) => (
-        <Box key={`v${s}`} p={[0.03, y, s * (w / 2)]} s={[0.06, h + 0.08, 0.07]} c="#f8fafc" />
-      ))}
-      {[-1, 1].map((s) => (
-        <Box key={`h${s}`} p={[0.03, y + s * (h / 2), 0]} s={[0.06, 0.07, w + 0.07]} c="#f8fafc" />
-      ))}
-      <Box p={[0.03, y, 0]} s={[0.04, 0.04, w]} c="#f8fafc" />
-      <Box p={[0.03, y, 0]} s={[0.04, h, 0.04]} c="#f8fafc" />
-      <Box p={[0.1, y - h / 2 - 0.06, 0]} s={[0.22, 0.05, w + 0.2]} c="#e5e7eb" />
-      {[-1, 1].map((s) => (
-        <Box key={`c${s}`} p={[0.08, y + 0.08, s * (w / 2 + 0.18)]} s={[0.06, h + 0.5, 0.3]} c={curtain} />
-      ))}
-    </group>
-  );
-}
-
-/** Máy lạnh treo tường (thân trắng, cánh đảo gió, đèn báo): chạy dọc tường trái, trên đầu cửa sổ. */
-function AirCon({ position }: Readonly<{ position: [number, number, number] }>) {
-  return (
-    <group position={position}>
-      <Box p={[0, 0, 0]} s={[0.26, 0.3, 1.0]} c="#f8fafc" />
-      <Box p={[0.09, -0.12, 0]} s={[0.1, 0.05, 0.92]} c="#e2e8f0" />
-      <Box p={[0.131, -0.02, 0]} s={[0.02, 0.012, 0.8]} c="#cbd5e1" />
-      <Box p={[0.131, 0.08, 0.38]} s={[0.02, 0.025, 0.05]} c="#22c55e" e={0.8} />
-      <Box p={[0, -0.18, 0.2]} s={[0.04, 0.08, 0.04]} c="#e2e8f0" />
-    </group>
-  );
-}
-
-/** Đồng hồ treo tường (mặt trắng, viền, hai kim). */
-function WallClock({ position }: Readonly<{ position: [number, number, number] }>) {
-  return (
-    <group position={position}>
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.24, 0.24, 0.05, 20]} />
-        <Mat c="#3b2a1d" />
-      </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.03]}>
-        <cylinderGeometry args={[0.2, 0.2, 0.02, 20]} />
-        <Mat c="#fafaf9" />
-      </mesh>
-      <Box p={[0, 0.06, 0.05]} s={[0.018, 0.13, 0.01]} c="#111827" />
-      <Box p={[0.05, 0, 0.05]} s={[0.1, 0.018, 0.01]} c="#111827" />
-    </group>
-  );
-}
-
 /** Mặt đất ngoài toà nhà: lát gạch (thay cho mảng nâu một màu lộ ra ngoài mép sàn). */
 function PaverGround({ size = 160 }: Readonly<{ size?: number }>) {
   return (
@@ -397,15 +345,11 @@ function PaverGround({ size = 160 }: Readonly<{ size?: number }>) {
   );
 }
 
-/** Bảng ghim giấy ghi chú: nền cork dán nhiều giấy màu, khung gỗ. */
+/** Bảng ghim giấy ghi chú: nền cork dán nhiều giấy màu (khung gỗ nằm trong khối gộp roomShapes.ts). */
 function CorkBoard({ position, w, h }: Readonly<{ position: [number, number, number]; w: number; h: number }>) {
   const map = useMemo(() => corkboardTexture(), []);
   return (
     <group position={position}>
-      <mesh>
-        <boxGeometry args={[w + 0.1, h + 0.1, 0.03]} />
-        <Mat c="#7c4a2a" />
-      </mesh>
       <mesh position={[0, 0, 0.017]}>
         <planeGeometry args={[w, h]} />
         <meshStandardMaterial map={map} roughness={0.95} />
@@ -446,12 +390,9 @@ function CuoiNam({ regionId, variant }: Readonly<{ regionId: string; variant: Ro
   const s = styleOf(regionId);
   const depth = L.frontZ - L.wallBackZ;
   const midZ = (L.wallBackZ + L.frontZ) / 2;
-  const wallW = L.wallSideX * 2 + L.wallThick * 2;
-  const h = L.wallHeight;
   const b = L.bossDesk;
-  const doorLow = L.door.z0 - (L.wallBackZ - L.wallThick);
-  const doorHigh = L.frontZ + L.wallThick - L.door.z1;
-  const doorX = L.wallSideX + L.wallThick / 2;
+  // Tường, khung cửa, cửa sổ, máy lạnh, đồng hồ, khung bảng...: gộp thành 3 mesh (roomShapes.ts); AO làm tối chân tường.
+  const fixed = useMemo(() => roomShapes(variant, room), [variant, room]);
   return (
     <group>
       <PaverGround />
@@ -468,92 +409,27 @@ function CuoiNam({ regionId, variant }: Readonly<{ regionId: string; variant: Ro
         <Prop key={`ol${z}`} model="street-light" position={[-L.wallSideX - L.wallThick - 2.1, 0, z]} rotY={-Math.PI / 2} fit={{ h: 4.4 }} />
       ))}
       <Floor kind={variant === 'lop-hoc' ? 'wood' : 'tile'} base={variant === 'lop-hoc' ? '#b98b56' : room.floor} w={L.wallSideX * 2} d={depth + L.ext} z={midZ + L.ext / 2} />
-      {/* tường sau + chân tường */}
-      <Box p={[0, h / 2, L.wallBackZ - L.wallThick / 2]} s={[wallW, h, L.wallThick]} c={room.wall} />
-      <Box p={[0, 0.45, L.wallBackZ + 0.01]} s={[wallW - 0.6, 0.9, 0.02]} c={room.dado} />
-      {/* tường trái có cửa sổ nhìn ra phố */}
-      <WindowedWall
-        x={-L.wallSideX - L.wallThick / 2}
-        thick={L.wallThick}
-        z0={L.wallBackZ - L.wallThick / 2}
-        z1={L.frontZ + L.wallThick / 2 + L.ext}
-        h={h}
-        sill={L.windows.sill}
-        head={L.windows.head}
-        openings={L.windows.zs.map((z) => ({ z, w: L.windows.w }))}
-        color={room.wall}
-      />
-      {L.windows.zs.map((z) => (
-        <WindowFrame key={z} x={-L.wallSideX} z={z} curtain={variant === 'lop-hoc' ? '#dc2626' : '#cbd5e1'} />
-      ))}
-      {/* máy lạnh trên đầu cửa sổ: hai cái ở hai trụ rộng nhất */}
-      <AirCon position={[-L.wallSideX + 0.15, 2.62, -1.6]} />
-      <AirCon position={[-L.wallSideX + 0.15, 2.62, 3.6]} />
-      {/* len tường: chân tường (ốp chân) dọc tường sau và tường trái */}
-      <Box p={[0, 0.06, L.wallBackZ + 0.02]} s={[wallW - 0.6, 0.12, 0.04]} c="#5b4636" />
-      <Box p={[-L.wallSideX + 0.02, 0.06, midZ + L.ext / 2]} s={[0.04, 0.12, depth + L.ext]} c="#5b4636" />
-      {/* tường phải, chừa khe cửa */}
-      <Box p={[doorX, h / 2, L.door.z0 - doorLow / 2]} s={[L.wallThick, h, doorLow]} c={room.wall} />
-      <Box p={[doorX, h / 2, L.door.z1 + (doorHigh + L.ext) / 2]} s={[L.wallThick, h, doorHigh + L.ext]} c={room.wall} />
-      <Box p={[doorX, 2.35, (L.door.z0 + L.door.z1) / 2]} s={[L.wallThick, 1.3, L.door.z1 - L.door.z0]} c={room.wall} />
-      {/* khung cửa + biển "Lối ra" */}
-      {[L.door.z0, L.door.z1].map((z) => (
-        <Box key={z} p={[doorX - 0.16, 0.85, z]} s={[0.06, 1.7, 0.08]} c="#7c4a2a" />
-      ))}
-      <Box p={[doorX - 0.17, 1.95, (L.door.z0 + L.door.z1) / 2]} s={[0.04, 0.22, 0.7]} c="#16a34a" e={0.6} />
-      {/* bảng trắng / bảng đen và băng rôn Tết trên tường sau */}
-      <Box p={[-0.4, 1.55, L.wallBackZ + 0.03]} s={[2.6, 1.1, 0.04]} c={room.board} />
-      <Box p={[-0.4, 2.55, L.wallBackZ + 0.03]} s={[3.6, 0.36, 0.03]} c="#c0262d" />
-      <Box p={[-0.4, 2.55, L.wallBackZ + 0.05]} s={[3.3, 0.06, 0.01]} c="#f5b82e" e={0.3} />
+      <MergedShapes solid={fixed.solid} lit={fixed.lit} glass={fixed.glass} ao={ROOM_AO} />
+      {/* chữ trên băng rôn Tết và bảng (nền đã gộp ở trên) */}
       <TextPlane w={3.3} h={0.3} lines={BANNER} position={[-0.4, 2.56, L.wallBackZ + 0.056]} />
-      {/* chữ trên bảng, câu đối đỏ hai bên, khẩu hiệu treo trên bàn sếp / giáo viên */}
       <TextPlane w={2.4} h={1.0} lines={BOARD_TEXT[variant]} position={[-0.4, 1.55, L.wallBackZ + 0.056]} />
       {/* câu đối: khe giữa tủ sách (x tới -2.55) và khung bảng (từ x = -1.76) chỉ rộng 0.8 m nên vế trái nằm giữa khe */}
       {[
         { x: L.wall.coupletL.x, lines: COUPLET_LEFT },
         { x: L.wall.coupletR.x, lines: COUPLET_RIGHT },
       ].map((c) => (
-        <group key={c.x}>
-          <Box p={[c.x, 1.7, L.wallBackZ + 0.03]} s={[0.62, 1.56, 0.03]} c="#c0262d" />
-          <Box p={[c.x, 1.7, L.wallBackZ + 0.047]} s={[0.56, 1.5, 0.01]} c="#f5b82e" e={0.15} />
-          <Box p={[c.x, 1.7, L.wallBackZ + 0.054]} s={[0.5, 1.44, 0.01]} c="#c0262d" />
-          <TextPlane w={0.5} h={1.44} lines={c.lines} uniform position={[c.x, 1.7, L.wallBackZ + 0.062]} />
-        </group>
+        <TextPlane key={c.x} w={0.5} h={1.44} lines={c.lines} uniform position={[c.x, 1.7, L.wallBackZ + 0.062]} />
       ))}
-      <Box p={[L.wall.plaque.x, 2.05, L.wallBackZ + 0.03]} s={[L.wall.plaque.w, 0.3, 0.03]} c={variant === 'lop-hoc' ? '#f5deb3' : '#dbeafe'} />
       <TextPlane w={L.wall.plaque.w - 0.1} h={0.24} lines={variant === 'lop-hoc' ? SCHOOL_MOTTO : OFFICE_MOTTO} position={[L.wall.plaque.x, 2.05, L.wallBackZ + 0.05]} />
-      {/* khung gỗ quanh bảng, máng đựng phấn / bút, giẻ lau */}
-      {[-1, 1].map((s) => (
-        <Box key={`bh${s}`} p={[-0.4 + s * 1.33, 1.55, L.wallBackZ + 0.04]} s={[0.07, 1.2, 0.05]} c="#5b3720" />
-      ))}
-      {[-1, 1].map((s) => (
-        <Box key={`bv${s}`} p={[-0.4, 1.55 + s * 0.58, L.wallBackZ + 0.04]} s={[2.73, 0.07, 0.05]} c="#5b3720" />
-      ))}
-      <Box p={[-0.4, 0.94, L.wallBackZ + 0.1]} s={[2.4, 0.04, 0.12]} c="#5b3720" />
-      <Box p={[-1.1, 0.985, L.wallBackZ + 0.1]} s={[0.12, 0.04, 0.05]} c="#f5f5f4" />
-      <Box p={[-0.5, 0.985, L.wallBackZ + 0.1]} s={[0.07, 0.05, 0.03]} c={variant === 'lop-hoc' ? '#fde68a' : '#2563eb'} />
-      <Box p={[-0.35, 0.985, L.wallBackZ + 0.1]} s={[0.07, 0.05, 0.03]} c="#dc2626" />
-      <WallClock position={[L.wall.clock.x, 2.3, L.wallBackZ + 0.05]} />
-      {/* tờ lịch và tranh dán tường */}
-      <Box p={[L.wall.calendar.x, 1.85, L.wallBackZ + 0.03]} s={[L.wall.calendar.w, 0.92, 0.02]} c="#c0262d" />
       <TextPlane w={0.6} h={0.86} lines={CALENDAR} bg="#fafaf5" position={[L.wall.calendar.x, 1.85, L.wallBackZ + 0.042]} />
       <CorkBoard position={[L.wall.cork.x, 1.85, L.wallBackZ + 0.04]} w={0.9} h={0.7} />
-      {/* tường trái giữa các cửa sổ: thời khóa biểu (lớp học) hoặc tranh khung (văn phòng) */}
-      {variant === 'lop-hoc' ? (
+      {/* thời khóa biểu trên tường trái giữa các cửa sổ (khung ở trên) */}
+      {variant === 'lop-hoc' && (
         <group position={[-L.wallSideX + 0.03, 1.7, -1.6]} rotation={[0, Math.PI / 2, 0]}>
-          <Box p={[0, 0, 0]} s={[0.8, 1.0, 0.03]} c="#7c4a2a" />
           <TextPlane w={0.74} h={0.94} bg="#fff7ed" lines={[...SCHEDULE_TITLE, ...SCHEDULE_ROWS]} position={[0, 0, 0.018]} />
-        </group>
-      ) : (
-        <group position={[-L.wallSideX + 0.03, 1.7, -1.6]} rotation={[0, Math.PI / 2, 0]}>
-          <Box p={[0, 0, 0]} s={[0.8, 0.6, 0.03]} c="#3b2a1d" />
-          <Box p={[0, 0.0, 0.02]} s={[0.7, 0.5, 0.01]} c="#9ec5e8" />
-          <Box p={[0, -0.12, 0.028]} s={[0.7, 0.22, 0.01]} c="#4b7f52" />
-          <Box p={[0.18, 0.08, 0.03]} s={[0.12, 0.12, 0.01]} c="#fde68a" e={0.3} />
         </group>
       )}
       {/* áp phích "ưu đãi" giả trên tường phải, ngay trên tủ TV */}
-      <Box p={[L.wallSideX - 0.03, L.poster.y, L.poster.z]} s={[0.04, L.poster.h + 0.1, L.poster.w + 0.1]} c="#5b3720" />
       <TextPlane w={L.poster.w} h={L.poster.h} lines={SALE_POSTER[variant]} bg="#b91c1c" grain position={[L.wallSideX - 0.055, L.poster.y, L.poster.z]} rotation={[0, -Math.PI / 2, 0]} />
       {/* tủ TV sát tường phải phía sau quầy, TV chiếu chương trình Tết */}
       <Prop model="tv-cabinet" position={[L.tv.x, 0, L.tv.z]} rotY={Math.PI / 2} fit={{ w: L.tv.w }} blob />
@@ -577,17 +453,10 @@ function CuoiNam({ regionId, variant }: Readonly<{ regionId: string; variant: Ro
         )}
         <Prop model="desk-chair" position={[0, 0, -0.75]} rotY={Math.PI} fit={{ h: 1.1 }} blob />
       </group>
-      {/* quầy pha cà phê / bàn liên hoan */}
+      {/* quầy pha cà phê / bàn liên hoan (đồ đặt trên quầy đã gộp ở trên) */}
       <group position={[L.counter.x, 0, L.counter.z]}>
         <Prop model="table" rotY={Math.PI / 2} fit={{ w: L.counter.d - 0.1 }} blob />
-        {variant === 'van-phong' ? (
-          <>
-            <Prop model="coffee-machine" position={[0, 0.75, 0.5]} rotY={Math.PI / 2} fit={{ w: 0.34 }} />
-            <Box p={[0, 0.88, -0.2]} s={[0.22, 0.26, 0.22]} c="#bae6fd" e={0.2} />
-          </>
-        ) : (
-          ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6'].map((c, i) => <Box key={c} p={[0, 0.88, -0.7 + i * 0.32]} s={[0.12, 0.26, 0.12]} c={c} />)
-        )}
+        {variant === 'van-phong' && <Prop model="coffee-machine" position={[0, 0.75, 0.5]} rotY={Math.PI / 2} fit={{ w: 0.34 }} />}
       </group>
       {/* móc áo, tủ sách sát tường sau, đèn đứng, thảm giữa hai hàng bàn */}
       <Prop model="coat-rack" position={[L.coatRack.x, 0, L.coatRack.z]} fit={{ h: 1.7 }} blob />

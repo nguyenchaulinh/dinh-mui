@@ -134,7 +134,6 @@ export function createGame(c: Content, personaId: string, regionId: string, play
   return { personaId, regionId, playerName, stats, flags: [], tipsSeen: [], history: [], dodges: 0, endingId: null };
 }
 
-/** Áp kill-switch: nhân vật bị tắt thì trả về bản thay thế trung tính. */
 /** Dáng vẻ của nhân vật theo vai người chơi: `lookByPersona[vai]` ghi đè từng trường của `look`. */
 export function lookFor(ch: Character, personaId: string): Look | undefined {
   const over = ch.lookByPersona?.[personaId];
@@ -142,6 +141,7 @@ export function lookFor(ch: Character, personaId: string): Look | undefined {
   return { ...(ch.look ?? { kind: 'human' as const }), ...over };
 }
 
+/** Áp kill-switch: nhân vật bị tắt thì trả về bản thay thế trung tính. */
 export function resolveCharacter(c: Content, characterId: string): Character {
   const byId = new Map(c.characters.map((x) => [x.id, x]));
   const ch = byId.get(characterId);
