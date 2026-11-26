@@ -31,7 +31,7 @@ Thứ tự đề xuất: A trước, sau đó B → C → D theo mạch truyện
 
 ## 3. Việc cần chủ dự án quyết
 
-1. Host registry nội bộ vẫn nằm trong lịch sử git (commit `d344bf9`, đã có trên `origin/main`). Có viết lại lịch sử hay không do IS và chủ repo quyết.
+1. ~~Host registry nội bộ nằm trong lịch sử git công khai.~~ **Đã viết lại lịch sử và force-push (26/11/2026)**: mọi nhánh trên GitHub sạch. **Còn lại:** 7 ref `refs/pull/1..7/head` của GitHub vẫn trỏ về commit cũ nên chuỗi cũ còn truy cập được bằng URL commit; cần GitHub Support xóa, hoặc tạo repo mới. Báo security@ssi.com.vn. Xem [10](10-ban-giao-tien-do.md) mục 5.
 2. Kết thúc E1 còn cần kiểm tra khả năng đạt được bằng mô phỏng; nếu khó đạt thì giữ là kết thúc hiếm hay nới điều kiện?
 3. Nguồn nhạc và âm thanh: tự làm hay dùng bộ CC0?
 4. Mục tiêu thiết bị tối thiểu cho giai đoạn G.
