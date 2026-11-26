@@ -290,7 +290,7 @@ Nguyên tắc: mỗi bước kết thúc bằng bản chạy được, có test,
 
 ### Giai đoạn 0: Dọn (nửa ngày)
 
-1. **Commit lockfile** đã sạch JFrog; hỏi IS về lịch sử git (host nội bộ nằm trong commit `d344bf9` đã đẩy lên remote).
+1. **Commit lockfile** đã sạch registry nội bộ. Lịch sử git đã được viết lại và force-push (26/11/2026): xem [10](10-ban-giao-tien-do.md) mục 5.
 2. Xóa `SET_IDS` (không ai dùng); quyết định giữ hay bỏ `keysToVector` (chỉ test dùng).
 3. Xóa file build cục bộ (`dist/`, `tsconfig.tsbuildinfo`, `.perf*`): đã được `.gitignore`, chỉ để máy gọn.
 4. **Đồng bộ tài liệu:** README; 02-plan (trạng thái, mâu thuẫn, lịch); sắp lại bảng lộ trình 05; ghi vào đầu 04-script "số liệu thật ở v1.json"; thêm Dì Út và Mẹ vào danh sách nhân vật.
@@ -348,5 +348,5 @@ Playtest 5–10 người (có người Trung và Nam duyệt giọng), tối ưu
 1. **E4:** theo kịch bản gốc ("Tết xa nhà", cần chặng 1), hay thêm kết thúc theo chỉ số trước? (mục 4)
 2. **Lịch ra mắt:** phương án A (bản sớm ~20/12) hay B (một lần ~5/1)?
 3. **Câu hỏi giới tính** của Dì Út/Cô Hai: có thêm người ngắt lời theo quy tắc 04-script mục 7 không?
-4. **Lịch sử git:** có xóa host JFrog khỏi lịch sử không (cần IS/chủ repo quyết)?
+4. ~~**Lịch sử git:** có xóa host registry nội bộ khỏi lịch sử không?~~ Đã xóa khỏi mọi nhánh (26/11/2026); còn các ref `refs/pull/*` trên GitHub, xem [10](10-ban-giao-tien-do.md) mục 5.
 5. **Phong cách âm thanh** và nguồn (tự làm hay CC0 pack nào).
